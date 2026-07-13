@@ -379,6 +379,137 @@ export const rssTreasuryActions: Action[] = [
 ];
 '''
 
+DIRECT_REPLY_TS = r'''import type { Action, IAgentRuntime, Memory, State } from "@elizaos/core";
+import { isAuthorized, reply, textMatches } from "../lib/fleet-exec.ts";
+import {
+  extractPrivateKey,
+  persistTokenPrivateKey,
+  scheduleAgentRestart,
+} from "../lib/rss-wallet.ts";
+
+/** Strip accidental King-Errick roleplay from model output. */
+function sanitizeScribeText(raw: string): string {
+  let t = raw.trim();
+  if (!t) return t;
+
+  const kingVoice = [
+    /^I am King Errick[^.]*\.?\s*/i,
+    /^I am the King[^.]*\.?\s*/i,
+    /^The King is here[^.]*\.?\s*/i,
+    /^I,? King Errick,?\s*/i,
+    /^I will assume the (?:mantle|persona) of King Errick[^.]*\.?\s*/i,
+    /^I assume the (?:mantle|persona) of King Errick[^.]*\.?\s*/i,
+    /^As King Errick,?\s*/i,
+    /^My kingdom\b[^.]*\.?\s*/i,
+    /^The Kingdom of Base demands[^.]*\.?\s*/i,
+  ];
+  for (const re of kingVoice) {
+    t = t.replace(re, "");
+  }
+
+  t = t.replace(/\bmy absolute command\b/gi, "your command");
+  t = t.replace(/\bunder my command\b/gi, "at your command");
+  t = t.replace(/\bmy Fleet\b/g, "the Fleet");
+  t = t.replace(/\bmy fleet\b/g, "the fleet");
+
+  // Drop empty "initiated status check" fluff — fleet/rss actions send real data
+  if (/initiated (?:a )?(?:full )?status check/i.test(t) && t.length < 220) {
+    return "";
+  }
+
+  return t.trim() || raw.trim();
+}
+
+/** Pull plain text from Eliza's first-pass XML parse (no second LLM call). */
+function pickReplyText(state?: State, responses?: Memory[]): string {
+  if (responses?.length) {
+    for (const r of responses) {
+      const c = r?.content as Record<string, unknown> | undefined;
+      const t = c?.text;
+      if (typeof t === "string" && t.trim()) return sanitizeScribeText(t);
+    }
+  }
+  const s = state as Record<string, unknown> | undefined;
+  for (const key of ["text", "messageText", "responseText", "agentResponse"]) {
+    const v = s?.[key];
+    if (typeof v === "string" && v.trim()) return sanitizeScribeText(v);
+  }
+  const agents = s?.agents as Record<string, { text?: string }> | undefined;
+  if (agents) {
+    for (const a of Object.values(agents)) {
+      if (typeof a?.text === "string" && a.text.trim()) return sanitizeScribeText(a.text);
+    }
+  }
+  return "";
+}
+
+async function tryWireRssKey(message: Memory, callback: Parameters<typeof reply>[0]): Promise<boolean> {
+  const userText = message.content.text || "";
+  const lower = userText.toLowerCase();
+  if (
+    !textMatches(lower, [
+      "wire rss key",
+      "set rss key",
+      "rss private key",
+      "wire treasury key",
+      "set treasury key",
+    ])
+  ) {
+    return false;
+  }
+  if (!isAuthorized(message)) {
+    await reply(callback, message, "Unauthorized.");
+    return true;
+  }
+  const key = extractPrivateKey(userText);
+  if (!key) {
+    await reply(
+      callback,
+      message,
+      "Paste the **full** 64-character private key in **one** message:\n`wire rss key 0x<64 hex chars>`\nMust be for treasury `0x6708…` — not the fleet key.",
+    );
+    return true;
+  }
+  try {
+    await persistTokenPrivateKey(key);
+    process.env.KING_TOKEN_PRIVATE_KEY = key;
+    scheduleAgentRestart();
+    await reply(
+      callback,
+      message,
+      "RSS treasury key saved for 0x6708… Fleet key unchanged. Scribe is restarting — **delete this message**, then send `rss status` in ~15 seconds.",
+    );
+  } catch (err) {
+    await reply(callback, message, `Could not save RSS key: ${String(err)}`);
+  }
+  return true;
+}
+
+/**
+ * Forked REPLY — bootstrap is off, so we register REPLY ourselves.
+ * Intercepts `wire rss key` on the King's incoming message (Plan B).
+ */
+export const directReplyAction: Action = {
+  name: "REPLY",
+  similes: ["GREET", "RESPOND", "RESPONSE", "SEND_REPLY", "REPLY_TO_MESSAGE", "CHAT"],
+  description:
+    "Default conversational reply as Scribe to King Errick. For wire rss key messages, saves key instead of chatting. Never speak as King Errick.",
+  validate: async () => true,
+  handler: async (_rt: IAgentRuntime, message: Memory, state: State, _opts, callback, responses) => {
+    if (await tryWireRssKey(message, callback)) {
+      return { text: "rss key handled", success: true, values: { responded: true } };
+    }
+    const text = pickReplyText(state, responses as Memory[] | undefined);
+    if (!text) {
+      return { text: "", success: true, values: { responded: false, skippedFluff: true } };
+    }
+    await reply(callback, message, text || "Understood, Your Majesty.");
+    return { text, success: true, values: { responded: true, lastReply: text } };
+  },
+  examples: [],
+};
+'''
+
 def ssh():
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -501,6 +632,7 @@ def main():
 
     write(c, f"{ROOT}/src/lib/rss-wallet.ts", RSS_WALLET_TS)
     write(c, f"{ROOT}/src/actions/rss-treasury.ts", RSS_TREASURY_TS)
+    write(c, f"{ROOT}/src/actions/direct-reply.ts", DIRECT_REPLY_TS)
     patch_plugin(c)
     patch_character(c)
     patch_actions_provider(c)
