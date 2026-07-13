@@ -2,6 +2,7 @@
 """Deploy RSS_TREASURY actions — separate token wallet (0x6708), fleet EVM key unchanged."""
 import base64
 import datetime
+import os
 import paramiko
 import time
 
@@ -13,10 +14,12 @@ RSS_WALLET_TS = r'''import {
   createPublicClient,
   createWalletClient,
   erc20Abi,
+  fallback,
   formatUnits,
   http,
   type Address,
   type Hash,
+  type Transport,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
@@ -28,8 +31,26 @@ export const MORPHO_BLUE = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Addre
 export const LIQUID_RESERVE_RAW =
   BigInt(process.env.RSS_LIQUID_RESERVE || "21000000") * 10n ** BigInt(RSS_DECIMALS);
 
-function rpcUrl(): string {
-  return process.env.EVM_PROVIDER_BASE?.trim() || process.env.RPC_URL?.trim() || "https://mainnet.base.org";
+function rpcUrls(): string[] {
+  const urls: string[] = [];
+  const add = (u?: string | null) => {
+    const t = u?.trim();
+    if (t && !urls.includes(t)) urls.push(t);
+  };
+  add(process.env.RSS_RPC_URL);
+  add(process.env.RPC_PRIVATE_DRPC);
+  add(process.env.EVM_PROVIDER_BASE);
+  add(process.env.RPC_URL);
+  add("https://base.publicnode.com");
+  add("https://base.llamarpc.com");
+  return urls;
+}
+
+function getTransport(): Transport {
+  const urls = rpcUrls();
+  if (!urls.length) return http("https://base.publicnode.com");
+  if (urls.length === 1) return http(urls[0]);
+  return fallback(urls.map((u) => http(u)));
 }
 
 export function hasTokenKey(): boolean {
@@ -44,12 +65,12 @@ export function getTokenAccount() {
 }
 
 export function getPublicClient() {
-  return createPublicClient({ chain: base, transport: http(rpcUrl()) });
+  return createPublicClient({ chain: base, transport: getTransport() });
 }
 
 export function getRssWallet() {
   const account = getTokenAccount();
-  const transport = http(rpcUrl());
+  const transport = getTransport();
   if (account.address.toLowerCase() !== KING_TOKEN_ADDRESS.toLowerCase()) {
     throw new Error(`KING_TOKEN_PRIVATE_KEY signs as ${account.address}, expected ${KING_TOKEN_ADDRESS}`);
   }
@@ -368,8 +389,9 @@ def write(c, path, content):
     run(c, f"python3 -c \"import base64; open('{path}','wb').write(base64.b64decode('{b64}'))\"")
 
 
-def patch_env(c):
+def patch_env(c, king_drpc: str | None = None):
     env = run(c, f"cat {ROOT}/.env")
+    drpc = (king_drpc or "").strip()
     lines_to_add = []
     if "KING_TOKEN_ADDRESS=" not in env:
         lines_to_add.append("KING_TOKEN_ADDRESS=0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1")
@@ -377,14 +399,27 @@ def patch_env(c):
         lines_to_add.append("RSS_TOKEN_ADDRESS=0x7a305D07B537359cf468eAea9bb176E5308bC337")
     if "RSS_LIQUID_RESERVE=" not in env:
         lines_to_add.append("RSS_LIQUID_RESERVE=21000000")
-    if "KING_TOKEN_PRIVATE_KEY=" not in env:
-        lines_to_add.append("# KING_TOKEN_PRIVATE_KEY=0x...  # RSS treasury only — set via SSH, never fleet key")
+    if "KING_TOKEN_PRIVATE_KEY=" not in env and "# KING_TOKEN_PRIVATE_KEY" not in env:
+        lines_to_add.append("# KING_TOKEN_PRIVATE_KEY=0x...  # or: wire rss key 0x... in Telegram")
     if "MORPHO_RSS_MARKET_ID=" not in env and "# MORPHO_RSS_MARKET_ID" not in env:
         lines_to_add.append("# MORPHO_RSS_MARKET_ID=  # set after Morpho createMarket for RSS on Base")
     if lines_to_add:
         env = env.rstrip() + "\n\n# RSS treasury (separate from fleet EVM_PRIVATE_KEY)\n" + "\n".join(lines_to_add) + "\n"
+    if drpc:
+        import re
+        if "RSS_RPC_URL=" in env:
+            env = re.sub(r"^RSS_RPC_URL=.*$", f"RSS_RPC_URL={drpc}", env, flags=re.M)
+        else:
+            env = env.rstrip() + f"\nRSS_RPC_URL={drpc}\n"
+        if re.search(r"^EVM_PROVIDER_BASE=https://base\.drpc\.org\s*$", env, re.M):
+            env = re.sub(r"^EVM_PROVIDER_BASE=.*$", f"EVM_PROVIDER_BASE={drpc}", env, flags=re.M)
+        elif "EVM_PROVIDER_BASE=" not in env:
+            env = env.rstrip() + f"\nEVM_PROVIDER_BASE={drpc}\n"
         write(c, f"{ROOT}/.env", env)
-        print("  patched .env (KING_TOKEN_PRIVATE_KEY must be set by King via SSH)")
+        print("  patched .env RPC -> private dRPC")
+    elif lines_to_add:
+        write(c, f"{ROOT}/.env", env)
+        print("  patched .env placeholders")
 
 
 def patch_plugin(c):
@@ -460,7 +495,7 @@ def main():
     patch_plugin(c)
     patch_character(c)
     patch_actions_provider(c)
-    patch_env(c)
+    patch_env(c, os.environ.get("KING_DRPC_URL"))
 
     print("=== build ===")
     print(run(c, f"cd {ROOT} && bun run build 2>&1", t=180))
