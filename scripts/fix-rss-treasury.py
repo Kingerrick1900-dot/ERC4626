@@ -118,20 +118,55 @@ export async function broadcastPreparedTxs(txs: PreparedTx[]): Promise<Hash[]> {
   }
   return hashes;
 }
+
+const ENV_PATH = process.env.KING_AGENT_ENV_PATH || "/opt/elizaos-agent/king-agent/.env";
+
+export function extractPrivateKey(text: string): `0x${string}` | null {
+  const m = text.match(/0x[a-fA-F0-9]{64}/);
+  return m ? (m[0] as `0x${string}`) : null;
+}
+
+export async function persistTokenPrivateKey(privateKey: `0x${string}`): Promise<void> {
+  const account = privateKeyToAccount(privateKey);
+  if (account.address.toLowerCase() !== KING_TOKEN_ADDRESS.toLowerCase()) {
+    throw new Error(`Key is for ${account.address}, expected treasury ${KING_TOKEN_ADDRESS}`);
+  }
+  let env = await Bun.file(ENV_PATH).text();
+  const line = `KING_TOKEN_PRIVATE_KEY=${privateKey}`;
+  if (/^KING_TOKEN_PRIVATE_KEY=.*/m.test(env)) {
+    env = env.replace(/^KING_TOKEN_PRIVATE_KEY=.*/m, line);
+  } else if (/^# KING_TOKEN_PRIVATE_KEY.*/m.test(env)) {
+    env = env.replace(/^# KING_TOKEN_PRIVATE_KEY.*/m, line);
+  } else {
+    env = env.trimEnd() + `\n${line}\n`;
+  }
+  await Bun.write(ENV_PATH, env);
+}
+
+export function scheduleAgentRestart(): void {
+  Bun.spawn(["pm2", "restart", "king-agent", "--update-env"], {
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+}
 '''
 
 RSS_TREASURY_TS = r'''import type { Action, IAgentRuntime, Memory, State } from "@elizaos/core";
 import { isAuthorized, reply, textMatches } from "../lib/fleet-exec.ts";
+import { formatUnits } from "viem";
 import {
   KING_TOKEN_ADDRESS,
   LIQUID_RESERVE_RAW,
   RSS_TOKEN,
+  extractPrivateKey,
   fmtRss,
   hasTokenKey,
+  persistTokenPrivateKey,
   readEthBalance,
   readRssBalance,
   runMorphoPrepare,
   broadcastPreparedTxs,
+  scheduleAgentRestart,
   stakeableAmount,
 } from "../lib/rss-wallet.ts";
 
@@ -272,7 +307,48 @@ export const rssTreasuryStakeMorphoAction: Action = {
   examples: [],
 };
 
-export const rssTreasuryActions: Action[] = [rssTreasuryStatusAction, rssTreasuryStakeMorphoAction];
+export const rssTreasurySetKeyAction: Action = {
+  name: "RSS_TREASURY_SET_KEY",
+  similes: ["WIRE_RSS_KEY", "SET_RSS_KEY", "RSS_WIRE_KEY"],
+  description:
+    "Plan B — King sets RSS treasury private key via Telegram (authorized chat only). Message must include 0x + 64 hex chars. Validates key maps to 0x6708…, saves to .env, restarts agent. Never echoes key back. Fleet EVM_PRIVATE_KEY unchanged.",
+  validate: async (_rt: IAgentRuntime, message: Memory) => {
+    const t = message.content.text || "";
+    if (!extractPrivateKey(t)) return false;
+    const lower = t.toLowerCase();
+    return (
+      textMatches(lower, ["wire rss key", "set rss key", "rss private key", "wire treasury key", "set treasury key"]) ||
+      lower.includes("king_token_private_key")
+    );
+  },
+  handler: async (_rt, message, _state, _opts, callback) => {
+    if (!isAuthorized(message)) return deny(callback, message);
+    const text = message.content.text || "";
+    const key = extractPrivateKey(text);
+    if (!key) {
+      return reply(callback, message, "Send: `wire rss key 0x<64-char-private-key>` — treasury wallet 0x6708… only.");
+    }
+    try {
+      await persistTokenPrivateKey(key);
+      process.env.KING_TOKEN_PRIVATE_KEY = key;
+      scheduleAgentRestart();
+      await reply(
+        callback,
+        message,
+        "RSS treasury key saved for 0x6708… Fleet key unchanged. Scribe is restarting — delete this message, then send `rss status` in ~15 seconds.",
+      );
+    } catch (err) {
+      await reply(callback, message, `Could not save RSS key: ${String(err)}`);
+    }
+  },
+  examples: [],
+};
+
+export const rssTreasuryActions: Action[] = [
+  rssTreasuryStatusAction,
+  rssTreasurySetKeyAction,
+  rssTreasuryStakeMorphoAction,
+];
 '''
 
 def ssh():
@@ -329,6 +405,7 @@ def patch_character(c):
     char = run(c, f"cat {ROOT}/src/character.ts")
     rss_system = (
         "RSS_TREASURY = King's RSS wallet 0x6708… only (KING_TOKEN_PRIVATE_KEY). Token 0x7a305… — balance/stake via RSS_TREASURY_STATUS and RSS_TREASURY_STAKE_MORPHO. "
+        "PLAN B KEY SETUP: King sends `wire rss key 0x<private-key>` in Telegram — use RSS_TREASURY_SET_KEY (authorized chat only). Never echo key back. Fleet key unchanged. "
         "Keep 21M RSS liquid. NEVER use EVM_PRIVATE_KEY (fleet 0xcbD8…) for RSS. "
     )
     if "RSS_TREASURY" not in char:
@@ -339,20 +416,37 @@ def patch_character(c):
         # template instructions
         char = char.replace(
             "- For explicit fleet/EVM/shell commands from the King: use REPLY first (brief acknowledgment), then the matching fleet action.",
-            "- For RSS/elephant token treasury (0x7a305…, wallet 0x6708…): use RSS_TREASURY_STATUS or RSS_TREASURY_STAKE_MORPHO — never fleet EVM actions.\n"
+            "- For RSS/elephant token treasury (0x7a305…, wallet 0x6708…): use RSS_TREASURY_STATUS, RSS_TREASURY_SET_KEY (wire rss key), or RSS_TREASURY_STAKE_MORPHO — never fleet EVM actions.\n"
             "- For explicit fleet/EVM/shell commands from the King: use REPLY first (brief acknowledgment), then the matching fleet action.",
         )
         write(c, f"{ROOT}/src/character.ts", char)
         print("  patched character.ts")
+    elif "RSS_TREASURY_SET_KEY" not in char:
+        char = char.replace(
+            "RSS_TREASURY_STAKE_MORPHO. ",
+            "RSS_TREASURY_STAKE_MORPHO. PLAN B KEY SETUP: King sends `wire rss key 0x<private-key>` — use RSS_TREASURY_SET_KEY. ",
+        )
+        char = char.replace(
+            "RSS_TREASURY_STATUS or RSS_TREASURY_STAKE_MORPHO",
+            "RSS_TREASURY_STATUS, RSS_TREASURY_SET_KEY (wire rss key), or RSS_TREASURY_STAKE_MORPHO",
+        )
+        write(c, f"{ROOT}/src/character.ts", char)
+        print("  patched character.ts (plan B)")
 
 
 def patch_actions_provider(c):
     prov = run(c, f"cat {ROOT}/src/providers/actions.ts")
-    if "RSS_TREASURY" not in prov:
-        prov = prov.replace(
-            "Use REPLY for conversation (plain text in <text>). Use fleet actions only when the King orders fleet/EVM/shell work.",
-            "Use REPLY for conversation. RSS token ops: RSS_TREASURY_STATUS, RSS_TREASURY_STAKE_MORPHO (KING_TOKEN wallet only). Fleet EVM actions are for fleet wallet only — not RSS.",
-        )
+    if "RSS_TREASURY_SET_KEY" not in prov:
+        if "RSS_TREASURY_STAKE_MORPHO" in prov:
+            prov = prov.replace(
+                "RSS_TREASURY_STAKE_MORPHO (KING_TOKEN wallet only)",
+                "RSS_TREASURY_SET_KEY (wire rss key), RSS_TREASURY_STAKE_MORPHO (KING_TOKEN wallet only)",
+            )
+        else:
+            prov = prov.replace(
+                "Use REPLY for conversation (plain text in <text>). Use fleet actions only when the King orders fleet/EVM/shell work.",
+                "Use REPLY for conversation. RSS token ops: RSS_TREASURY_STATUS, RSS_TREASURY_SET_KEY (wire rss key), RSS_TREASURY_STAKE_MORPHO (KING_TOKEN wallet only). Fleet EVM actions are for fleet wallet only — not RSS.",
+            )
         write(c, f"{ROOT}/src/providers/actions.ts", prov)
         print("  patched providers/actions.ts")
 
@@ -380,7 +474,7 @@ def main():
 
     c.close()
     print("\n=== RSS treasury deployed ===")
-    print("King must set KING_TOKEN_PRIVATE_KEY in /opt/elizaos-agent/king-agent/.env via SSH, then: pm2 restart king-agent --update-env")
+    print("Plan B: King sends in Telegram: wire rss key 0x<private-key>")
 
 
 if __name__ == "__main__":
