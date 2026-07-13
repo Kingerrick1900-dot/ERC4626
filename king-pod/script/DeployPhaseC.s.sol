@@ -10,7 +10,7 @@ import {KingMoneyMarket} from "../src/KingMoneyMarket.sol";
 contract DeployPhaseC is Script {
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant KING = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
-    address constant MARKET = 0x50a61ca6b06563f1a44f7f2186a325b5301e2578;
+    address constant MARKET = 0x50A61cA6b06563f1A44f7F2186A325b5301e2578;
     // Team treasury = King until Crown names a separate address
     address constant TEAM = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
 
