@@ -1,0 +1,16 @@
+{
+  "chainId": 8453,
+  "factory": "0xc95e9a1625ce340f69fE8eddC3062CCFB9976cfD",
+  "sUsdc": "0x4af86ac17eb6f12588b2f3b70969f304933d1021",
+  "pair": "0x56ebfc0af28e1a9d8e6f9d0f3262ff1ad1a78f8c",
+  "oracle": "0xb62f7a3643d394269b781ede29e4b426aa78bce4",
+  "market": "0x50a61ca6b06563f1a44f7f2186a325b5301e2578",
+  "pod": "0x4aa72a111e9E78753F7f3217edfD9177aA0B2dcc",
+  "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "rssPriceUsd": "0.05",
+  "bootstrapTx": "0x09c2e084609e76d0129fc1e8a77e8b97877904e194c2112262d939c499ae386e",
+  "deployTx": "0xbf0a4dd9c4e98dbb69a9fbf36af81af270204761c3e60635f2fb6fd2a3ebcd3f",
+  "flashUsdc": "60000000000",
+  "flashUsdcHuman": "60000",
+  "note": "Balancer Base vault only had ~73k USDC available; M flash not possible. Option A closed at 0k."
+}
