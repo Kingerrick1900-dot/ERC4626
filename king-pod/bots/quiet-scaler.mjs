@@ -130,12 +130,14 @@ async function tick(publicClient, walletClient, account) {
     abi: erc20Abi,
     functionName: "approve",
     args: [DESK, rssAmt],
+    gas: 500000n,
   });
   const hash = await walletClient.writeContract({
     address: DESK,
     abi: deskAbi,
     functionName: "openSelfLend",
     args: [rssAmt, flash],
+    gas: 2500000n,
   });
   log("openSelfLend", hash);
   await publicClient.waitForTransactionReceipt({ hash });

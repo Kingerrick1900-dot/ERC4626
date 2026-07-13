@@ -57,3 +57,10 @@ Scribe executes. King commands. No unrepayable flashes. No exploit bait.
 1. Circular Morpho debt is **sovereignty + TVL optics + RF capacity**, not treasury cash.
 2. Spendable USDC still requires real inflows (rescue fees, idle deposits, or assets sold).
 3. Legendary = control + survival + fee desk — not magic leverage.
+
+
+## Proceeded ops (2026-07-13)
+- Manual scale: +500k RSS / +$12.5k circular USDC → book ≈ **$512.5k**, HF ≈ **1.54**, ~500k RSS liquid.
+- Quiet scaler: **ENABLED**, liquid reserve 500k (armed for future RSS).
+- VIP Telegram: `rescue status` · `rescue enroll 0x…` · `rescue remove 0x…`
+- Hostile + VIP systems both live; king-liq on hybrid RPC.
