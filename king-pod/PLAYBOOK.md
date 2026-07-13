@@ -64,3 +64,5 @@ Scribe executes. King commands. No unrepayable flashes. No exploit bait.
 - Quiet scaler: **ENABLED**, liquid reserve 500k (armed for future RSS).
 - VIP Telegram: `rescue status` · `rescue enroll 0x…` · `rescue remove 0x…`
 - Hostile + VIP systems both live; king-liq on hybrid RPC.
+
+See also: `PHASE3.md` (Strike + Enroll revenue phase).
