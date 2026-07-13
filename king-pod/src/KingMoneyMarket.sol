@@ -14,7 +14,8 @@ contract KingMoneyMarket is Ownable, ReentrancyGuard {
     KingSusdc public immutable sUsdc;
     KingPair public immutable pair;
     KingOracle public oracle;
-    address public operator; // KingPod — may credit collateral and borrowTo
+    address public operator; // primary (legacy)
+    mapping(address => bool) public isOperator;
 
     uint256 public lltvBps = 7000; // 70%
     uint256 public constant BPS = 10_000;
@@ -27,7 +28,7 @@ contract KingMoneyMarket is Ownable, ReentrancyGuard {
 
     error NotOperator();
     modifier onlyOperator() {
-        if (msg.sender != operator) revert NotOperator();
+        if (msg.sender != operator && !isOperator[msg.sender]) revert NotOperator();
         _;
     }
 
@@ -66,6 +67,12 @@ contract KingMoneyMarket is Ownable, ReentrancyGuard {
 
     function setOperator(address op) external onlyOwner {
         operator = op;
+        isOperator[op] = true;
+    }
+
+    function setOperatorAuth(address op, bool allowed) external onlyOwner {
+        isOperator[op] = allowed;
+        if (allowed && operator == address(0)) operator = op;
     }
 
     function maxBorrow(address user) public view returns (uint256) {
