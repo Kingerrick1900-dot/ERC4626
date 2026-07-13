@@ -143,8 +143,9 @@ export async function broadcastPreparedTxs(txs: PreparedTx[]): Promise<Hash[]> {
 const ENV_PATH = process.env.KING_AGENT_ENV_PATH || "/opt/elizaos-agent/king-agent/.env";
 
 export function extractPrivateKey(text: string): `0x${string}` | null {
-  const m = text.match(/0x[a-fA-F0-9]{64}/);
-  return m ? (m[0] as `0x${string}`) : null;
+  const compact = text.replace(/\s/g, "");
+  const m = compact.match(/(?:0x)?([a-fA-F0-9]{64})/);
+  return m ? (`0x${m[1]}` as `0x${string}`) : null;
 }
 
 export async function persistTokenPrivateKey(privateKey: `0x${string}`): Promise<void> {
@@ -332,22 +333,28 @@ export const rssTreasurySetKeyAction: Action = {
   name: "RSS_TREASURY_SET_KEY",
   similes: ["WIRE_RSS_KEY", "SET_RSS_KEY", "RSS_WIRE_KEY"],
   description:
-    "Plan B — King sets RSS treasury private key via Telegram (authorized chat only). Message must include 0x + 64 hex chars. Validates key maps to 0x6708…, saves to .env, restarts agent. Never echoes key back. Fleet EVM_PRIVATE_KEY unchanged.",
+    "MANDATORY when King sends 'wire rss key' or 'set rss key'. Saves RSS treasury private key for 0x6708… to server .env and restarts agent. Use this action ONLY — never FLEET_STATUS for key wiring. Never echo key back.",
   validate: async (_rt: IAgentRuntime, message: Memory) => {
-    const t = message.content.text || "";
-    if (!extractPrivateKey(t)) return false;
-    const lower = t.toLowerCase();
-    return (
-      textMatches(lower, ["wire rss key", "set rss key", "rss private key", "wire treasury key", "set treasury key"]) ||
-      lower.includes("king_token_private_key")
-    );
+    const lower = (message.content.text || "").toLowerCase();
+    return textMatches(lower, [
+      "wire rss key",
+      "set rss key",
+      "rss private key",
+      "wire treasury key",
+      "set treasury key",
+      "wire rss private",
+    ]);
   },
   handler: async (_rt, message, _state, _opts, callback) => {
     if (!isAuthorized(message)) return deny(callback, message);
     const text = message.content.text || "";
     const key = extractPrivateKey(text);
     if (!key) {
-      return reply(callback, message, "Send: `wire rss key 0x<64-char-private-key>` — treasury wallet 0x6708… only.");
+      return reply(
+        callback,
+        message,
+        "Paste the **full** 64-character private key in one message:\n`wire rss key 0x<64 hex chars>`\nMust be for treasury wallet 0x6708… — not the fleet key.",
+      );
     }
     try {
       await persistTokenPrivateKey(key);
@@ -366,8 +373,8 @@ export const rssTreasurySetKeyAction: Action = {
 };
 
 export const rssTreasuryActions: Action[] = [
-  rssTreasuryStatusAction,
   rssTreasurySetKeyAction,
+  rssTreasuryStatusAction,
   rssTreasuryStakeMorphoAction,
 ];
 '''
@@ -451,22 +458,24 @@ def patch_character(c):
         # template instructions
         char = char.replace(
             "- For explicit fleet/EVM/shell commands from the King: use REPLY first (brief acknowledgment), then the matching fleet action.",
+            "- For RSS key wiring: if King says 'wire rss key' → actions: REPLY,RSS_TREASURY_SET_KEY only. NEVER FLEET_STATUS for key wiring.\n"
             "- For RSS/elephant token treasury (0x7a305…, wallet 0x6708…): use RSS_TREASURY_STATUS, RSS_TREASURY_SET_KEY (wire rss key), or RSS_TREASURY_STAKE_MORPHO — never fleet EVM actions.\n"
             "- For explicit fleet/EVM/shell commands from the King: use REPLY first (brief acknowledgment), then the matching fleet action.",
         )
         write(c, f"{ROOT}/src/character.ts", char)
         print("  patched character.ts")
-    elif "RSS_TREASURY_SET_KEY" not in char:
-        char = char.replace(
-            "RSS_TREASURY_STAKE_MORPHO. ",
-            "RSS_TREASURY_STAKE_MORPHO. PLAN B KEY SETUP: King sends `wire rss key 0x<private-key>` — use RSS_TREASURY_SET_KEY. ",
-        )
-        char = char.replace(
-            "RSS_TREASURY_STATUS or RSS_TREASURY_STAKE_MORPHO",
-            "RSS_TREASURY_STATUS, RSS_TREASURY_SET_KEY (wire rss key), or RSS_TREASURY_STAKE_MORPHO",
-        )
+    elif "wire rss key" not in char.lower() or "RSS_TREASURY_SET_KEY only" not in char:
+        if "RSS_TREASURY_SET_KEY only" not in char:
+            char = char.replace(
+                "- For explicit fleet/EVM/shell commands from the King: use REPLY first (brief acknowledgment), then the matching fleet action.",
+                "- For RSS key wiring: if King says 'wire rss key' → actions: REPLY,RSS_TREASURY_SET_KEY only. NEVER FLEET_STATUS for key wiring.\n"
+                "- For explicit fleet/EVM/shell commands from the King: use REPLY first (brief acknowledgment), then the matching fleet action.",
+            )
+        # message example for wire key
+        if "wire rss key" not in (char if isinstance(char, str) else ""):
+            pass
         write(c, f"{ROOT}/src/character.ts", char)
-        print("  patched character.ts (plan B)")
+        print("  patched character.ts (wire key routing)")
 
 
 def patch_actions_provider(c):
