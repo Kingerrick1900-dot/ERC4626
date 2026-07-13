@@ -1,0 +1,387 @@
+#!/usr/bin/env python3
+"""Deploy RSS_TREASURY actions — separate token wallet (0x6708), fleet EVM key unchanged."""
+import base64
+import datetime
+import paramiko
+import time
+
+HOST, USER, PASSWORD = "5.78.226.227", "root", "rC9jmJmhvdCh"
+ROOT = "/opt/elizaos-agent/king-agent"
+TS = int(datetime.datetime.now().timestamp())
+
+RSS_WALLET_TS = r'''import {
+  createPublicClient,
+  createWalletClient,
+  erc20Abi,
+  formatUnits,
+  http,
+  type Address,
+  type Hash,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { base } from "viem/chains";
+
+export const RSS_DECIMALS = 18;
+export const RSS_TOKEN = (process.env.RSS_TOKEN_ADDRESS || "0x7a305D07B537359cf468eAea9bb176E5308bC337") as Address;
+export const KING_TOKEN_ADDRESS = (process.env.KING_TOKEN_ADDRESS || "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1") as Address;
+export const MORPHO_BLUE = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Address;
+export const LIQUID_RESERVE_RAW =
+  BigInt(process.env.RSS_LIQUID_RESERVE || "21000000") * 10n ** BigInt(RSS_DECIMALS);
+
+function rpcUrl(): string {
+  return process.env.EVM_PROVIDER_BASE?.trim() || process.env.RPC_URL?.trim() || "https://mainnet.base.org";
+}
+
+export function hasTokenKey(): boolean {
+  return Boolean(process.env.KING_TOKEN_PRIVATE_KEY?.trim());
+}
+
+export function getTokenAccount() {
+  const pk = process.env.KING_TOKEN_PRIVATE_KEY?.trim();
+  if (!pk) throw new Error("KING_TOKEN_PRIVATE_KEY not set — add King's RSS wallet key to .env");
+  const key = (pk.startsWith("0x") ? pk : `0x${pk}`) as `0x${string}`;
+  return privateKeyToAccount(key);
+}
+
+export function getPublicClient() {
+  return createPublicClient({ chain: base, transport: http(rpcUrl()) });
+}
+
+export function getRssWallet() {
+  const account = getTokenAccount();
+  const transport = http(rpcUrl());
+  if (account.address.toLowerCase() !== KING_TOKEN_ADDRESS.toLowerCase()) {
+    throw new Error(`KING_TOKEN_PRIVATE_KEY signs as ${account.address}, expected ${KING_TOKEN_ADDRESS}`);
+  }
+  return {
+    account,
+    publicClient: createPublicClient({ chain: base, transport }),
+    walletClient: createWalletClient({ chain: base, transport, account }),
+  };
+}
+
+export async function readRssBalance(address: Address = KING_TOKEN_ADDRESS): Promise<bigint> {
+  return getPublicClient().readContract({
+    address: RSS_TOKEN,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [address],
+  });
+}
+
+export async function readEthBalance(address: Address = KING_TOKEN_ADDRESS): Promise<bigint> {
+  return getPublicClient().getBalance({ address });
+}
+
+export function stakeableAmount(balance: bigint): bigint {
+  if (balance <= LIQUID_RESERVE_RAW) return 0n;
+  return balance - LIQUID_RESERVE_RAW;
+}
+
+export function fmtRss(raw: bigint): string {
+  return `${formatUnits(raw, RSS_DECIMALS)} RSS`;
+}
+
+type PreparedTx = { to: Address; data: `0x${string}`; value?: bigint; chainId?: number };
+
+export async function runMorphoPrepare(args: string[]): Promise<{ transactions?: PreparedTx[]; warnings?: string[]; error?: string }> {
+  const proc = Bun.spawn(["npx", "@morpho-org/cli@latest", ...args], {
+    stdout: "pipe",
+    stderr: "pipe",
+    env: process.env,
+  });
+  const [stdout, stderr, code] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
+  if (code !== 0) return { error: stderr.trim() || stdout.trim() || `morpho cli exit ${code}` };
+  try {
+    return JSON.parse(stdout);
+  } catch {
+    return { error: `Invalid morpho CLI JSON: ${stdout.slice(0, 400)}` };
+  }
+}
+
+export async function broadcastPreparedTxs(txs: PreparedTx[]): Promise<Hash[]> {
+  const { walletClient, publicClient } = getRssWallet();
+  const hashes: Hash[] = [];
+  for (const tx of txs) {
+    const hash = await walletClient.sendTransaction({
+      to: tx.to,
+      data: tx.data,
+      value: tx.value ?? 0n,
+      chain: base,
+    });
+    await publicClient.waitForTransactionReceipt({ hash });
+    hashes.push(hash);
+  }
+  return hashes;
+}
+'''
+
+RSS_TREASURY_TS = r'''import type { Action, IAgentRuntime, Memory, State } from "@elizaos/core";
+import { isAuthorized, reply, textMatches } from "../lib/fleet-exec.ts";
+import {
+  KING_TOKEN_ADDRESS,
+  LIQUID_RESERVE_RAW,
+  RSS_TOKEN,
+  fmtRss,
+  hasTokenKey,
+  readEthBalance,
+  readRssBalance,
+  runMorphoPrepare,
+  broadcastPreparedTxs,
+  stakeableAmount,
+} from "../lib/rss-wallet.ts";
+
+const deny = async (cb: Parameters<typeof reply>[0], msg: Memory) => reply(cb, msg, "Unauthorized.");
+
+function morphoMarketId(): string | null {
+  const id = process.env.MORPHO_RSS_MARKET_ID?.trim();
+  return id || null;
+}
+
+async function morphoMarketExists(): Promise<boolean> {
+  const id = morphoMarketId();
+  if (!id) return false;
+  const out = await runMorphoPrepare([
+    "query-markets",
+    "--chain",
+    "base",
+    "--collateral-asset",
+    RSS_TOKEN,
+    "--limit",
+    "5",
+  ]);
+  if (out.error) return false;
+  const markets = (out as { markets?: unknown[] }).markets;
+  return Array.isArray(markets) && markets.length > 0;
+}
+
+export const rssTreasuryStatusAction: Action = {
+  name: "RSS_TREASURY_STATUS",
+  similes: ["RSS_BALANCE", "TOKEN_TREASURY_STATUS", "ELE_BALANCE"],
+  description:
+    "RSS token treasury status for King's dedicated wallet (0x6708). Shows RSS balance, ETH for gas, liquid reserve, stakeable amount, Morpho market status. Uses KING_TOKEN wallet only — NOT fleet EVM key.",
+  validate: async (_rt: IAgentRuntime, message: Memory) => {
+    const t = (message.content.text || "").toLowerCase();
+    return textMatches(t, [
+      "rss balance",
+      "rss status",
+      "rss treasury",
+      "token treasury",
+      "elephant token",
+      "ele balance",
+      "rss wallet",
+    ]);
+  },
+  handler: async (_rt, message, _state, _opts, callback) => {
+    if (!isAuthorized(message)) return deny(callback, message);
+    try {
+      const [rss, eth] = await Promise.all([readRssBalance(), readEthBalance()]);
+      const stakeable = stakeableAmount(rss);
+      const marketId = morphoMarketId();
+      const marketLive = marketId ? await morphoMarketExists() : false;
+      const keyOk = hasTokenKey();
+      const lines = [
+        `**RSS Treasury** — ${KING_TOKEN_ADDRESS}`,
+        `Token: \`${RSS_TOKEN}\``,
+        `Balance: **${fmtRss(rss)}**`,
+        `ETH (gas): **${Number(eth) / 1e18}**`,
+        `Liquid reserve (do not stake): **${fmtRss(LIQUID_RESERVE_RAW)}**`,
+        `Stakeable now: **${fmtRss(stakeable)}**`,
+        `KING_TOKEN_PRIVATE_KEY: ${keyOk ? "configured" : "**NOT SET**"}`,
+        `Morpho market: ${marketLive ? `yes (\`${marketId}\`)` : marketId ? `id set but market not found` : "none — set MORPHO_RSS_MARKET_ID after createMarket"}`,
+        `Fleet EVM key (0xcbD8…): separate — unchanged`,
+      ];
+      await reply(callback, message, lines.join("\n"));
+    } catch (err) {
+      await reply(callback, message, `RSS treasury error: ${String(err)}`);
+    }
+  },
+  examples: [],
+};
+
+export const rssTreasuryStakeMorphoAction: Action = {
+  name: "RSS_TREASURY_STAKE_MORPHO",
+  similes: ["RSS_STAKE", "STAKE_ELE_MORPHO", "STAKE_RSS"],
+  description:
+    "Stake RSS from King's token wallet into Morpho Blue as collateral. Keeps RSS_LIQUID_RESERVE (21M) in wallet. Requires KING_TOKEN_PRIVATE_KEY + MORPHO_RSS_MARKET_ID + ETH gas. Never uses fleet EVM_PRIVATE_KEY.",
+  validate: async (_rt: IAgentRuntime, message: Memory) => {
+    const t = (message.content.text || "").toLowerCase();
+    return textMatches(t, ["rss stake", "stake rss", "stake morpho", "stake ele", "stake elephant", "morpho stake rss"]);
+  },
+  handler: async (_rt, message, _state, _opts, callback) => {
+    if (!isAuthorized(message)) return deny(callback, message);
+    if (!hasTokenKey()) {
+      return reply(callback, message, "KING_TOKEN_PRIVATE_KEY not set in .env — fleet key is not used for RSS.");
+    }
+    const marketId = morphoMarketId();
+    if (!marketId) {
+      return reply(
+        callback,
+        message,
+        "No Morpho market for RSS on Base yet. Set MORPHO_RSS_MARKET_ID after createMarket, then retry.",
+      );
+    }
+    try {
+      const balance = await readRssBalance();
+      const amount = stakeableAmount(balance);
+      if (amount <= 0n) {
+        return reply(
+          callback,
+          message,
+          `Nothing to stake. Balance ${fmtRss(balance)} — reserve ${fmtRss(LIQUID_RESERVE_RAW)} must stay liquid. Withdraw RSS from 0x9022… to treasury wallet first.`,
+        );
+      }
+      const eth = await readEthBalance();
+      if (eth === 0n) {
+        return reply(callback, message, "Treasury wallet has 0 ETH — send Base ETH to 0x6708… for gas.");
+      }
+      const amountHuman = formatUnits(amount, RSS_DECIMALS);
+      const prepared = await runMorphoPrepare([
+        "prepare-supply-collateral",
+        "--chain",
+        "base",
+        "--market-id",
+        marketId,
+        "--user-address",
+        KING_TOKEN_ADDRESS,
+        "--amount",
+        amountHuman,
+      ]);
+      if (prepared.error) {
+        return reply(callback, message, `Morpho prepare failed: ${prepared.error}`);
+      }
+      const txs = prepared.transactions || [];
+      if (!txs.length) {
+        const warn = (prepared.warnings || []).join("; ");
+        return reply(callback, message, `No transactions prepared. ${warn}`);
+      }
+      const hashes = await broadcastPreparedTxs(txs);
+      await reply(
+        callback,
+        message,
+        `**RSS staked to Morpho**\nAmount: **${fmtRss(amount)}**\nMarket: \`${marketId}\`\nTx: ${hashes.map((h) => `\`${h}\``).join(", ")}`,
+      );
+    } catch (err) {
+      await reply(callback, message, `RSS stake failed: ${String(err)}`);
+    }
+  },
+  examples: [],
+};
+
+export const rssTreasuryActions: Action[] = [rssTreasuryStatusAction, rssTreasuryStakeMorphoAction];
+'''
+
+def ssh():
+    c = paramiko.SSHClient()
+    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    c.connect(HOST, username=USER, password=PASSWORD, timeout=20, allow_agent=False, look_for_keys=False)
+    return c
+
+
+def run(c, cmd, t=120):
+    _, o, e = c.exec_command(cmd, timeout=t)
+    return (o.read() + e.read()).decode()
+
+
+def write(c, path, content):
+    b64 = base64.b64encode(content.encode()).decode()
+    run(c, f"python3 -c \"import base64; open('{path}','wb').write(base64.b64decode('{b64}'))\"")
+
+
+def patch_env(c):
+    env = run(c, f"cat {ROOT}/.env")
+    lines_to_add = []
+    if "KING_TOKEN_ADDRESS=" not in env:
+        lines_to_add.append("KING_TOKEN_ADDRESS=0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1")
+    if "RSS_TOKEN_ADDRESS=" not in env:
+        lines_to_add.append("RSS_TOKEN_ADDRESS=0x7a305D07B537359cf468eAea9bb176E5308bC337")
+    if "RSS_LIQUID_RESERVE=" not in env:
+        lines_to_add.append("RSS_LIQUID_RESERVE=21000000")
+    if "KING_TOKEN_PRIVATE_KEY=" not in env:
+        lines_to_add.append("# KING_TOKEN_PRIVATE_KEY=0x...  # RSS treasury only — set via SSH, never fleet key")
+    if "MORPHO_RSS_MARKET_ID=" not in env and "# MORPHO_RSS_MARKET_ID" not in env:
+        lines_to_add.append("# MORPHO_RSS_MARKET_ID=  # set after Morpho createMarket for RSS on Base")
+    if lines_to_add:
+        env = env.rstrip() + "\n\n# RSS treasury (separate from fleet EVM_PRIVATE_KEY)\n" + "\n".join(lines_to_add) + "\n"
+        write(c, f"{ROOT}/.env", env)
+        print("  patched .env (KING_TOKEN_PRIVATE_KEY must be set by King via SSH)")
+
+
+def patch_plugin(c):
+    plugin = run(c, f"cat {ROOT}/src/plugin.ts")
+    if "rssTreasuryActions" not in plugin:
+        plugin = plugin.replace(
+            'import { fleetDataProvider } from "./providers/fleet.ts";',
+            'import { fleetDataProvider } from "./providers/fleet.ts";\nimport { rssTreasuryActions } from "./actions/rss-treasury.ts";',
+        ).replace(
+            "  actions: [directReplyAction, ...allFleetActions, kesovShellAction],",
+            "  actions: [directReplyAction, ...rssTreasuryActions, ...allFleetActions, kesovShellAction],",
+        )
+        write(c, f"{ROOT}/src/plugin.ts", plugin)
+        print("  patched plugin.ts")
+
+
+def patch_character(c):
+    char = run(c, f"cat {ROOT}/src/character.ts")
+    rss_system = (
+        "RSS_TREASURY = King's RSS wallet 0x6708… only (KING_TOKEN_PRIVATE_KEY). Token 0x7a305… — balance/stake via RSS_TREASURY_STATUS and RSS_TREASURY_STAKE_MORPHO. "
+        "Keep 21M RSS liquid. NEVER use EVM_PRIVATE_KEY (fleet 0xcbD8…) for RSS. "
+    )
+    if "RSS_TREASURY" not in char:
+        char = char.replace(
+            '"FLEET_DATA = live kingdom.db. FLEET ACTIONS',
+            f'"{rss_system}FLEET_DATA = live kingdom.db. FLEET ACTIONS',
+        )
+        # template instructions
+        char = char.replace(
+            "- For explicit fleet/EVM/shell commands from the King: use REPLY first (brief acknowledgment), then the matching fleet action.",
+            "- For RSS/elephant token treasury (0x7a305…, wallet 0x6708…): use RSS_TREASURY_STATUS or RSS_TREASURY_STAKE_MORPHO — never fleet EVM actions.\n"
+            "- For explicit fleet/EVM/shell commands from the King: use REPLY first (brief acknowledgment), then the matching fleet action.",
+        )
+        write(c, f"{ROOT}/src/character.ts", char)
+        print("  patched character.ts")
+
+
+def patch_actions_provider(c):
+    prov = run(c, f"cat {ROOT}/src/providers/actions.ts")
+    if "RSS_TREASURY" not in prov:
+        prov = prov.replace(
+            "Use REPLY for conversation (plain text in <text>). Use fleet actions only when the King orders fleet/EVM/shell work.",
+            "Use REPLY for conversation. RSS token ops: RSS_TREASURY_STATUS, RSS_TREASURY_STAKE_MORPHO (KING_TOKEN wallet only). Fleet EVM actions are for fleet wallet only — not RSS.",
+        )
+        write(c, f"{ROOT}/src/providers/actions.ts", prov)
+        print("  patched providers/actions.ts")
+
+
+def main():
+    c = ssh()
+    run(c, f"cp -a {ROOT}/src {ROOT}/src.bak-rss-treasury-{TS}")
+
+    write(c, f"{ROOT}/src/lib/rss-wallet.ts", RSS_WALLET_TS)
+    write(c, f"{ROOT}/src/actions/rss-treasury.ts", RSS_TREASURY_TS)
+    patch_plugin(c)
+    patch_character(c)
+    patch_actions_provider(c)
+    patch_env(c)
+
+    print("=== build ===")
+    print(run(c, f"cd {ROOT} && bun run build 2>&1", t=180))
+
+    print("=== restart ===")
+    print(run(c, "pm2 restart king-agent --update-env 2>&1 | tail -5"))
+
+    time.sleep(8)
+    print("\n=== logs ===")
+    print(run(c, "pm2 logs king-agent --lines 20 --nostream 2>&1 | tail -15"))
+
+    c.close()
+    print("\n=== RSS treasury deployed ===")
+    print("King must set KING_TOKEN_PRIVATE_KEY in /opt/elizaos-agent/king-agent/.env via SSH, then: pm2 restart king-agent --update-env")
+
+
+if __name__ == "__main__":
+    main()
