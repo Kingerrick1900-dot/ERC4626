@@ -1,0 +1,31 @@
+{
+  "chainId": 8453,
+  "factory": "0xFf62A7c278C62eD665133147129245053Bbf5918",
+  "vault": "0xF80C0529bD94C773844E459853CD91B9263dD525",
+  "name": "King RSS USDC Vault",
+  "symbol": "yRSS-USDC",
+  "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "owner": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "curator": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "allocator": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "feeRecipient": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "managementFee": "0%",
+  "performanceFee": "10%",
+  "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+  "market": {
+    "loanToken": "USDC",
+    "collateralToken": "RSS 0x7a305D07B537359cf468eAea9bb176E5308bC337",
+    "lltv": "77%",
+    "supplyCapUSDC": "15000",
+    "allocationNote": "15% of $100k target TVL"
+  },
+  "selfSeed": "DEFERRED — King USDC dust ~$0.38; need USDC for 7.5% seed",
+  "createTx": "CREATE2 salt 0xa550ed165d67eb9a3e1e4529216a93a08d512ffd2677fdc33a885ad576923164 → vault live",
+  "configTxs": {
+    "setFeeRecipient": "0x00de0f60ca64f52e09ccea7c441326001f7afd7b5a10ecdc28168f2d97ed6d10",
+    "setFee": "0xe3f22276a5769c695b5a8d8826d40fea15884193a25e278fffe4687c52d0c0cd",
+    "submitCap": "0xc78f97a194cac1d463819abc6483eb20bad08a47dc88fb68096d8c203aa7f9b0",
+    "acceptCap": "0x06cbd02ac52a2e33c59d40f47ce0d17a0b4e01834bb06f1788bf0a8344f8b17f",
+    "setSupplyQueue": "0x3476814b469aae509c123f6437f26088d27a130d256c374ce452fcf785096cb4"
+  }
+}
