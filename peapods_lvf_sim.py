@@ -34,8 +34,8 @@ def live_checks() -> dict:
         addr = cast("call", UNI_FACTORY, "getPool(address,address,uint24)(address)", RSS, USDC, str(fee)).split()[0]
         pools[str(fee)] = addr
     oracle_raw = int(cast("call", MORPHO_ORACLE, "price()(uint256)").split()[0])
-    # Morpho: 1e18 RSS * price / 1e36 = USDC (6dp) → usd = oracle_raw / 1e30
-    rss_usd = oracle_raw / 1e30
+    # Morpho: (1e18 RSS * price / 1e36) / 1e6 USDC decimals → usd = oracle_raw / 1e24
+    rss_usd = oracle_raw / 1e24
     gas_price = int(cast("gas-price").split()[0])
     eth_usd = int(cast("call", ETH_USD_FEED, "latestAnswer()(int256)").split()[0]) / 1e8
     uni_live = any(int(a, 16) != 0 for a in pools.values())
