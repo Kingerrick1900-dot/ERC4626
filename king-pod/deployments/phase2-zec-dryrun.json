@@ -1,0 +1,40 @@
+{
+  "title": "Phase 2 dry-run — USDC (Base) → ZEC → Cake",
+  "ranAt": "2026-07-16T02:21Z",
+  "priorStatus": "NOT dry-run before this pass",
+  "result": "QUOTE_LIVE — ChangeNOW USDC_BASE→ZEC estimates succeed; no funds sent",
+  "safetyTruth": {
+    "phase1": "On-chain atomic (revert-or-success). Bulletproof by EVM.",
+    "phase2": "Cross-chain swap via exchange provider — NOT the same atomic guarantee. Bulletproof ops = fixed quote + pre-verified Cake address + small probe then full size + confirm ZEC credit before next hop."
+  },
+  "liveQuotes_ChangeNOW_v1": {
+    "pair": "usdcbase_zec",
+    "minAmountUsdc": 0.389418,
+    "samples": [
+      {"usdcIn": 100, "zecOutEst": 0.1748288, "etaMin": "10-60"},
+      {"usdcIn": 1000, "zecOutEst": 1.7431271, "etaMin": "10-60"},
+      {"usdcIn": 10000, "zecOutEst": 17.4290865, "etaMin": "10-60"}
+    ],
+    "endpoint": "https://api.changenow.io/v1/exchange-amount/{amount}/usdcbase_zec"
+  },
+  "sideshift": {
+    "USDC-base": "listed",
+    "ZEC-zcash settle": "SHIFT_UNAVAILABLE / access denied from this runner — do not use SideShift for this rail until re-checked from King session"
+  },
+  "cakePath": {
+    "receive": "Cake shielded ZEC address (King provides before any create-tx)",
+    "inAppExchange": "Cake built-in exchange supports ZEC shielded (ZZEC) — preferred UX once Phase 1 USDC is in King-controlled wallet Cake can spend from, OR send USDC_BASE to provider deposit then ZEC to Cake"
+  },
+  "bulletproofChecklist_beforeRealSend": [
+    "Phase 1 receipt: kingUsdc +B AND morpho borrowShares==0",
+    "King pastes Cake shielded receive address; checksum verified twice",
+    "Create fixed-rate (or locked) quote; record min ZEC out",
+    "PROBE: send dust-above-min USDC_BASE first; wait until ZEC hits Cake",
+    "Only then full size in one or few tranches",
+    "Never send to a deposit address from chat/screenshot alone — only from API/Cake UI you opened"
+  ],
+  "blockedUntilKing": [
+    "Cake shielded address",
+    "Go to create real exchange order (still no broadcast of Phase 1 without Go)"
+  ]
+}
