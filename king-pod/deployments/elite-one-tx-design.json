@@ -81,11 +81,42 @@
       "kingRss": "reduced by fill slice; remainder free or still posted per params"
     }
   },
+  "safetyGate": {
+    "priority": "Loan repaid + King USDC landed BEFORE any privacy move",
+    "atomicRule": "CrownEliteClose reverts whole tx if fill/repay fails — King is never left with open Morpho debt and no cash from a half-run close",
+    "preBroadcast": ["eth_call must show kingUsdc +B AND borrowShares==0", "owner-only closer", "King Morpho auth only to CrownEliteClose"],
+    "noPublicFireWithoutDryRun": true
+  },
+  "privacyLayer": {
+    "note": "Runs ONLY after safetyGate green. Do not fold ZEC swap into Morpho close tx.",
+    "steps": [
+      {
+        "i": 1,
+        "action": "Submit CrownEliteClose via private RPC",
+        "detail": "Flashbots Protect (rpc.flashbots.net) is Ethereum mainnet. On Base use a private/sequencer submission path (MEV-aware private relay or trusted Base RPC) so the close is not sitting in a public mempool sandwich window."
+      },
+      {
+        "i": 2,
+        "action": "CrownEliteClose executes",
+        "detail": "Borrow → repay Morpho via CrownSeedFill → King keeps USDC. Confirm receipt + debt 0 on-chain."
+      },
+      {
+        "i": 3,
+        "action": "Swap USDC → ZEC",
+        "detail": "Privacy rail only after Step 2 confirmed. Separate tx(s)."
+      },
+      {
+        "i": 4,
+        "action": "Send ZEC to Cake shielded wallet",
+        "detail": "Off-chain sovereign custody. Kingdom funds leave the hot Base surface."
+      }
+    ]
+  },
   "buildOnGo": [
-    "CrownEliteClose.sol — single entry closeElite(rssCollateral, borrowB, rssSellForRepay) owning the rail+Morpho sequence (Bundler3-compatible adapter style)",
-    "KingSeedDesk repay-target hook or EliteClose owns inventory pull",
-    "Fork test: assert USDC.balanceOf(King) rises by B and Morpho borrowShares(King)==0",
-    "eth_call dry-run on Base before broadcast"
+    "Deploy CrownEliteClose + KingSeedDesk filler wiring on Base",
+    "eth_call dry-run: kingUsdc +B, borrowShares==0",
+    "Broadcast close via Base private submission path",
+    "Only then: USDC→ZEC→Cake shielded"
   ],
   "execute": "LOCKED until King says Go"
 }
