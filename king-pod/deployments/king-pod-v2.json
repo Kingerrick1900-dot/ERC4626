@@ -1,0 +1,36 @@
+{
+  "chainId": 8453,
+  "label": "KingPod V2 — releaseCollateral + swapRssForSusdc",
+  "factory": "0x80004b571C30Bf55A39104A0282CC3f34e1D3953",
+  "pod": "0x630ad2aFa731Dd9C614D43105E5fDD494226d435",
+  "market": "0x3F0fdA29E541C48098C45Cf1d26f5A672D820cF4",
+  "pair": "0xfD87a39cFA7727e026a1461A29AE195a316B774B",
+  "sUsdc": "0x09cC1a0D0000B474a3754cc88117a48c03B4D55f",
+  "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "deployFactoryTx": "0xf871ec0377114030aaa9cf445c0ef01bcd207db543429b92dfc51698a8d00103",
+  "deployStackTx": "0xe700ddc2eb7ede8fce676ed7d20ccccd2dc16de526d2671c79a76c73f10381d6",
+  "bootstrap": {
+    "flashUsdc": "25000000000",
+    "rssSeeded": "227261096879999999999999",
+    "note": "Pulled from prior KingRssSale stock"
+  },
+  "sellIntoPool": {
+    "morphoWithdrawTx": "0xbbe642b070e1dd5c8fb237d036dcb90e74f153620864db3b58917e3cba4651ce",
+    "morphoWithdrawRss": "783117005740000000000000",
+    "swapTx": "0xf0329c8150b92d5da558b310838947244b459baa5485a60b8a1a5d7cda3d458a",
+    "releaseCollateralTx": "0xac153e5f9762e3e5169994a731f4715a551c75c464033083b0a0ba3daf81f363",
+    "burnTx": "0x63d92caacdfc3c4a46eb2d1851cd46d4c63f4fc5f4767e82be0e4d5ca4fdeb4b"
+  },
+  "proved": {
+    "swapRssForSusdc": true,
+    "releaseCollateral": true,
+    "pairBurn": true
+  },
+  "blocked": {
+    "v1Migrate": "Impossible — V1 market 0x50A61cA6… has no releaseCollateral; ~$170k LP stranded",
+    "usdcRedeem": "sUSDC vault totalAssets=0 after bootstrap borrow. Swap/burn return sUSDC shares that redeem to 0 USDC until idle USDC is deposited or debt repaid into vault.",
+    "morphoDebt": "Still open (~$700k). Needs real USDC to selfDeleverage.",
+    "shield": "No USDC to ChangeNOW/ZEC"
+  },
+  "architectureLesson": "Option A bootstrap creates paper sUSDC depth then pulls the underlying USDC out to repay the flash. Pool sell cannot print wallet USDC without new external USDC entering the vault."
+}

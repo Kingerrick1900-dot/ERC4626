@@ -1,0 +1,74 @@
+{
+  "market": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+  "rss_amount": 18499999.999999978,
+  "rss_usd": 0.049999999999999996,
+  "collateral_usd": 925000.0,
+  "lltv": 0.77,
+  "max_borrow_usd": 712250.0,
+  "live_supply_assets_raw": 4,
+  "primary": {
+    "seed_amount_S": 100000,
+    "borrow_amount_B": 100000,
+    "net_usdc_in_wallet": 99999.99,
+    "gas_cost": 0.01,
+    "hf_after_borrow": 7.12,
+    "can_execute_live": "No",
+    "can_execute_if_seeded": "Yes"
+  },
+  "scale": [
+    {
+      "seed_amount_S": 100000,
+      "borrow_amount_B": 100000,
+      "net_usdc_in_wallet": 99999.99,
+      "gas_cost": 0.01,
+      "hf_after_borrow": 7.12,
+      "can_execute_live": "No",
+      "can_execute_if_seeded": "Yes"
+    },
+    {
+      "seed_amount_S": 250000,
+      "borrow_amount_B": 250000,
+      "net_usdc_in_wallet": 249999.99,
+      "gas_cost": 0.01,
+      "hf_after_borrow": 2.85,
+      "can_execute_live": "No",
+      "can_execute_if_seeded": "Yes"
+    },
+    {
+      "seed_amount_S": 500000,
+      "borrow_amount_B": 500000,
+      "net_usdc_in_wallet": 499999.99,
+      "gas_cost": 0.01,
+      "hf_after_borrow": 1.42,
+      "can_execute_live": "No",
+      "can_execute_if_seeded": "Yes"
+    },
+    {
+      "seed_amount_S": 700000,
+      "borrow_amount_B": 700000,
+      "net_usdc_in_wallet": 699999.99,
+      "gas_cost": 0.01,
+      "hf_after_borrow": 1.02,
+      "can_execute_live": "No",
+      "can_execute_if_seeded": "Yes"
+    },
+    {
+      "seed_amount_S": 712250.0,
+      "borrow_amount_B": 712250.0,
+      "net_usdc_in_wallet": 712249.99,
+      "gas_cost": 0.01,
+      "hf_after_borrow": 1.0,
+      "can_execute_live": "No",
+      "can_execute_if_seeded": "Yes"
+    }
+  ],
+  "scribe_return": [
+    "Seed amount (S) $100000.00",
+    "Borrow amount (B) $100000.00",
+    "Net USDC in wallet $99999.99",
+    "Gas cost $0.01",
+    "HF after borrow 7.12",
+    "Can it execute? No",
+    "Exact net $99999.99"
+  ]
+}
