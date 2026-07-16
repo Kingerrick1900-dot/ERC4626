@@ -1,6 +1,11 @@
 {
   "title": "Elite One-Tx — King keeps USDC, Morpho made whole",
-  "status": "DESIGN_ONLY — await King Go for build/deploy/execute",
+  "status": "IMPLEMENTED — unit tests green; broadcast LOCKED until King Go",
+  "implemented": {
+    "CrownEliteClose": "king-pod/src/CrownEliteClose.sol",
+    "CrownSeedFill": "KingSeedDesk.fillSellRss + isFiller",
+    "tests": "king-pod/test/CrownEliteClose.t.sol — King USDC +B, Morpho debt 0"
+  },
   "chainId": 8453,
   "goal": {
     "kingWalletUsdc": "free and clear (borrow proceeds stay with King)",

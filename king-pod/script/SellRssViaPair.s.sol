@@ -11,8 +11,8 @@ import {KingRssSale} from "../src/KingRssSale.sol";
 contract SellRssViaPair is Script {
     address constant RSS = 0x7a305D07B537359cf468eAea9bb176E5308bC337;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
-    address constant SUSDC = 0x4af86ac17eb6f12588b2f3b70969f304933d1021;
-    address constant PAIR = 0x56ebfc0af28e1a9d8e6f9d0f3262ff1ad1a78f8c;
+    address constant SUSDC = 0x4af86Ac17Eb6F12588b2f3B70969f304933d1021;
+    address constant PAIR = 0x56EbFC0Af28E1a9D8e6F9d0F3262ff1ad1a78F8c;
     address constant KING = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     uint256 constant PRICE = 50_000;
 
