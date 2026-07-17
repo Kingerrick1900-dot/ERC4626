@@ -1,29 +1,24 @@
 {
   "chainId": 8453,
-  "status": "DEPLOYED_WIRED — fire blocked until CrownSeedFill inventory + Morpho market liquidity",
-  "plan": "Post RSS → borrow USDC to Cake treasury → CrownSeedFill sell → repay Morpho → withdraw leftover RSS",
-  "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
-  "cakeTreasury": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
+  "status": "PROVEN_LIVE — probe elite close succeeded; scale next",
+  "receiverVault": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
+  "opsDrip": "REMOVED — 100% to receiver",
   "kingSeedDesk": "0xF43B75B686e3Faa2C7FD4ac9a041b6316C63e8DF",
   "crownEliteClose": "0x7CF0499E68D3444a47f4d85B4325C32475E922D9",
-  "priceUsdcPerRss": 50000,
-  "priceHuman": "$0.05/RSS",
-  "morpho": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
-  "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
-  "wiring": {
-    "deskFiller": true,
-    "morphoAuthorizationTx": "0x677e55bd591ad2ce56bf8b127a066f38e47329d48423523c2ef7b2acc9841c68",
-    "rssApproveTx": "0x1b45d3e647fea4e251f008fd20557523c3760a219ad7358515fa27e60629f3b0"
+  "crownFlashOpen": "0x15F9C1cF54A4360F1a564675D2B71Be731Fc2A7d",
+  "probe": {
+    "borrowUsdc": "2000000",
+    "borrowHuman": "$2.00",
+    "cakeUsdcAfter": "2000000",
+    "morphoDebtAfter": 0,
+    "tx": "0x3539bacfe0dac12d1cecbbce3a1e3127ab3fcdc48f5a51e8794310f167768500",
+    "seedDeskTx": "0xcdd03b6599d4ba8a8a22ebef894afbdf913edf90b1326057a429b15de2e70d82",
+    "morphoSupplyTx": "0x63a87289c65f0543af2d3301903a7c0869642793eedf7de814cf6a7242f6ae16"
   },
-  "dryRun": {
-    "call": "eliteClose(~28.57k RSS coll, $1000 borrow, 20k RSS fill)",
-    "result": "REVERT insufficient liquidity — Morpho market supply ~0",
-    "deskInventoryUsdc": 0
-  },
-  "gatesBeforeFire": [
-    "Seed KingSeedDesk with USDC inventory >= borrow size B (CrownSeedFill)",
-    "Morpho RSS/USDC market totalSupply - totalBorrow >= B",
-    "eth_call eliteClose green: Cake USDC +B and King borrowShares == 0"
-  ],
-  "phase2AfterLand": "Gradual USDC→ZEC from Cake; bulk stays USDC; probe then size"
+  "scaleTo700k": {
+    "deskInventoryUsdc": 700000000000,
+    "morphoMarketLiquidityUsdc": 700000000000,
+    "rssCollateralApprox": "18.2M+",
+    "receiver": "0xA1aFcb46a64C9173519180458C1cF302179c832a"
+  }
 }
