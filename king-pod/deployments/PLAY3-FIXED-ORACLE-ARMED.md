@@ -17,5 +17,8 @@ If idle is still zero at fire time, the same OK arms the cross-flash treasury pa
 ## What will not be touched without a separate OK
 Flash NAV against other curators vaults. Withdrawal queue drain of depositors in foreign vaults. Deploy of new uncapped elite oracle markets. Broadcast of any new treasury fire.
 
+## Paired play
+Play 5 Self-Supply Boost is armed alongside this pack. Play 5 can place King USDC into the market as idle; Play 3 borrows that idle to KingVault and holds the debt.
+
 ## Status
 Play chosen. Fire pack ready. No further deploy or broadcast until King OK.
