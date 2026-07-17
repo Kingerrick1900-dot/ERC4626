@@ -1,0 +1,58 @@
+{
+  "chainId": 8453,
+  "label": "King Morpho Sovereign Desk \u2014 LIVE",
+  "morpho": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+  "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "rss": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+  "irm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+  "lltv": "770000000000000000",
+  "lltvHuman": "0.77",
+  "oracle": "0x284EC3A9674e6C62ea552Bf75BDeE9B799627D2e",
+  "oraclePrice": "5e22",
+  "oraclePriceUsdPerRss": "0.05",
+  "desk": "0x831b86E9AA185088CB095748bFBeF53F0D312472",
+  "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+  "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "selfLend": {
+    "rssCollateral": "20000000000000000000000000",
+    "rssCollateralHuman": "20000000",
+    "flashUsdc": "500000000000",
+    "flashUsdcHuman": "500000",
+    "healthFactorApprox": "1.54",
+    "openTx": "0x6a4db1592251c0ae3e5ed7cc2e9babcd78e4df29b83f457b69b7b31a23083b05",
+    "authTx": "0x53de751c3c9bd027ead8740eaa503709dc39fd206834dcf90b172503c7cb3719",
+    "scaled": {
+      "rssCollateralAddedHuman": "500000",
+      "flashUsdcHuman": "12500",
+      "tx": "0x98baa372210c7390c5298440fbea9e765a292348a8bc5f79db97bc5177318e42",
+      "approveTx": "0xe8e746880717e6b1921176739e1744e3d04d9defd770f01ea8c4d2e9062efd2d",
+      "bookUsdcApprox": "512504",
+      "healthFactorApprox": "1.54",
+      "liquidRssLeftApprox": "500000"
+    },
+    "bookUsdcApprox": "512504",
+    "liquidRssLeftApprox": "500000"
+  },
+  "hfFloor": "1.05",
+  "hfTarget": "1.15",
+  "telegram": [
+    "morpho status",
+    "morpho floors <floor> <target>",
+    "morpho deleverage [usdcAmount]",
+    "pod status",
+    "rescue status",
+    "rescue enroll 0x\u2026",
+    "rescue remove 0x\u2026"
+  ],
+  "notes": [
+    "Self-lend is circular Morpho book (supply=borrow) \u2014 not free deployable USDC.",
+    "Revenue path: VIP Rescue Desk (opt-in ~7%) + any future real USDC interest.",
+    "Guardian auto selfDeleverages when HF < floor toward target."
+  ],
+  "quietScaler": "ENABLED \u2014 reserve 500k (armed; auto-steps when RSS > reserve). RPC=publicnode.",
+  "vipTelegram": [
+    "rescue status",
+    "rescue enroll 0x\u2026",
+    "rescue remove 0x\u2026"
+  ]
+}
