@@ -1,32 +1,38 @@
-# THE PLAN (locked)
+# THE PLAN — LOANS + TOKENS (arb killed)
 
-## Name
-**Flash leftover → vault**
+## Plain English
+King has RSS tokens. Those tokens are the collateral.
+Morpho is the bank. Bank gives a USDC loan against the RSS.
+USDC goes into the vault. The loan stays open. RSS stays locked.
+Not a sale. Not a lucky arb shot. A credit line against the token.
 
-## Why this one
-Every Morpho “seed then borrow RSS” version is the same dead loop. Killed.
-Wallet has: **~18.5M RSS**, **~$4.87 USDC**, dust ETH/gas. No WETH/cbBTC size for deep markets.
+## Live numbers
+| Item | Number |
+|------|--------|
+| RSS on King | ~18.49M |
+| Oracle | $0.05 / RSS |
+| Collateral value | ~$924,722 |
+| LLTV | 77% |
+| Max loan | ~$712,036 |
+| Safe band (HF≈1.4) | ~$508,597 |
+| Safe band (HF≈2) | ~$356,018 |
+| Market loan float now | ~0 (must seed S before borrow) |
 
-## Machine (already live)
-1. Morpho flashes USDC into `CrownFlashArb` for one tx.
-2. Arb buys cheap / sells high on Base.
-3. Repays Morpho in the same tx.
-4. Leftover USDC → King treasury/vault.
+## Fire (one contract)
+`CrownPowerBorrow.powerBorrow(seedUsdc, rssCollateral, borrowUsdc)`
+1. Pull seed USDC from King → supply Morpho (loan float)
+2. Pull RSS from King → post collateral
+3. Borrow USDC → **vault**
+4. STOP. Debt held.
 
-Contracts:
-- Router `0x13734BffdDFf6CbDE474B3F5467d86e813232577`
-- Arb `0xD17D5aF60fDF495C50E5aced46CdC1C0E68F366d`
+## Size
+`borrowUsdc <= seedUsdc` and inside LLTV. King picks the number.
 
-## Steps
-1. King says **GO**.
-2. Scribe arms scanner: only fire when profit > fee + gas + cushion.
-3. Hits land hard USDC in vault.
-4. No hit = no tx. No dust theater.
+## Not this
+- Flash arb
+- Elite-close (zeros debt, eats fill)
+- Self-lend circular book ($0 vault)
+- Dust loops
 
-## Not this plan
-- Seed King’s RSS Morpho market then borrow
-- Elite-close dust loops
-- Liquidation bots
-- Public depositor pitches
-
-Greenlight = start. No greenlight = parked.
+## Rule
+No deploy / no fire without King greenlight.
