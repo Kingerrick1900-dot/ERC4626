@@ -23,16 +23,30 @@ Base is cheap. Failures come from **one tx trying to do too much**, or from a **
 
 If a step OOGs, it reverts; retry with a smaller step. **Do not raise the gasLimit theater.**
 
-## Run
+## Run (manual batch)
 ```bash
 export LOOP_PRIVATE_KEY=...   # loop wallet key (never commit)
 export PRIVATE_KEY=...        # King hot
+export LOOP_SEND_RPC=...      # private/Base RPC (avoid public 429)
 export MAX_LOOPS=20
 export MIN_USDC=100000        # stop under $0.10
 export HARD_GAS_CAP=350000    # per-step budget ceiling
 # export OFFPEAK_ONLY=1       # optional quiet-window gate
 python3 script/king_loop.py
 ```
+
+## Run (automatic — no hand on the tiller)
+```bash
+export LOOP_PRIVATE_KEY=...
+export PRIVATE_KEY=...
+export LOOP_SEND_RPC=...      # or put URL in /tmp/loop_rpc.txt
+export AUTO_RESTART=1
+export MAX_LOOPS=50
+export RESTART_SLEEP=45
+bash script/king_loop_auto.sh
+# or: tmux new -d -s king-loop 'bash script/king_loop_auto.sh'
+```
+Stops only on USDC/gas floor; otherwise sleeps `RESTART_SLEEP` and fires the next batch.
 
 ## Notes
 - Cake stays kingdom trough / receive for final spoils; loop wallet keeps the cycle alive.

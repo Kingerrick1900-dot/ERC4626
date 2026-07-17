@@ -17,7 +17,8 @@ Gas discipline (King):
 - Elixir/Circle USDC paymaster is a future AA rail (not EOA here).
 
 Env: PRIVATE_KEY, LOOP_PRIVATE_KEY, MAX_LOOPS, MIN_USDC, BASE_RPC_URL,
-     GAS_BUFFER, HARD_GAS_CAP, OFFPEAK_ONLY
+     LOOP_SEND_RPC, GAS_BUFFER, HARD_GAS_CAP, OFFPEAK_ONLY,
+     AUTO_RESTART, RESTART_SLEEP
 """
 
 from __future__ import annotations
@@ -29,24 +30,30 @@ from eth_account import Account
 from web3 import Web3
 
 def pick_rpc() -> str:
-    # Prefer less rate-limited endpoints; public mainnet.base.org 429s mid-lap.
-    for url in (
+    # Prefer private/send RPC; demote public mainnet.base.org (429 + stale reads).
+    base = (os.environ.get("BASE_RPC_URL") or "").strip()
+    publicish = {"https://mainnet.base.org", "https://base.publicnode.com"}
+    candidates = [
         os.environ.get("LOOP_SEND_RPC"),
-        os.environ.get("BASE_RPC_URL"),
-        "https://1rpc.io/base",
+        base if base and base.rstrip("/") not in publicish else None,
         "https://base.llamarpc.com",
         "https://rpc.ankr.com/base",
+        "https://1rpc.io/base",
+        base if base else None,
         "https://mainnet.base.org",
-    ):
-        if not url:
+    ]
+    seen: set[str] = set()
+    for url in candidates:
+        if not url or url in seen:
             continue
+        seen.add(url)
         try:
             w = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": 25}))
             _ = w.eth.block_number
             return url
         except Exception:
             continue
-    return "https://1rpc.io/base"
+    return "https://mainnet.base.org"
 
 
 RPC = pick_rpc()
@@ -76,6 +83,8 @@ GAS_BUFFER = int(os.environ.get("GAS_BUFFER", "20000"))  # small headroom over e
 # Per-step hard cap — budget, not ambition. Lower than wallet can afford.
 HARD_GAS_CAP = int(os.environ.get("HARD_GAS_CAP", "350000"))
 OFFPEAK_ONLY = os.environ.get("OFFPEAK_ONLY", "").strip() in ("1", "true", "yes")
+AUTO_RESTART = os.environ.get("AUTO_RESTART", "").strip().lower() in ("1", "true", "yes")
+RESTART_SLEEP = int(os.environ.get("RESTART_SLEEP", "45"))
 
 
 def load_pk(name: str, fallback: str | None = None) -> str:
@@ -470,4 +479,13 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # AUTO_RESTART=1 → engine keeps cycling until gas/USDC floor; no hand on the tiller.
+    while True:
+        try:
+            main()
+        except Exception as e:
+            print(f"ENGINE fault: {type(e).__name__}: {e}")
+        if not AUTO_RESTART:
+            break
+        print(f"AUTO_RESTART: sleep {RESTART_SLEEP}s then fire again")
+        time.sleep(RESTART_SLEEP)
