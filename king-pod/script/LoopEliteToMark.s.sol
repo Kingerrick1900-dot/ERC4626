@@ -104,7 +104,7 @@ contract LoopEliteToMark is Script {
                 console2.log("RAILS_DRY desk", deskBal);
                 console2.log("vault", vault);
                 console2.log("loops_fired", loops);
-                console2.log("reload King/desk USDC and re-run — loop stacks to mark");
+                console2.log("rails dry - reload desk USDC and re-run");
                 break;
             }
 
