@@ -1,0 +1,45 @@
+{
+  "chainId": 8453,
+  "executedAt": "live",
+  "step": "1-scale-pod",
+  "tx": "0x00d9ce8219dafc0697b9cd487c9327660a405ef498894ab551819f4d8bb6dba0",
+  "blockNumber": 48750521,
+  "oracle": {
+    "address": "0x284EC3A9674e6C62ea552Bf75BDeE9B799627D2e",
+    "price": "1e24",
+    "priceHuman": "$1/RSS"
+  },
+  "pricesAligned": {
+    "deskUsdcPerRss": "1000000",
+    "saleUsdcPerRss": "1000000",
+    "deskPriceTx": "0x115f69176fef1f1e42aff0f0b8b9e703314baab3d985f6f41e7026430ea2de06",
+    "salePriceTx": "0x3083a9a2b5d4cba17280e8a6457e17801762e268601c6b928e902e220b83a14d",
+    "deskRescueTx": "0x29747e53bb775db09261dd41454d7daba83224c4b73c2453804d6117083a20c8"
+  },
+  "priorBook": {
+    "supplyUsdc": 2500000,
+    "borrowUsdc": 2500000,
+    "collateralRss": 5000000,
+    "utilization": "100%",
+    "healthFactor": 1.54
+  },
+  "scale": {
+    "rssAdded": 13499998.999999978,
+    "flashUsdcAdded": 6749999.499999,
+    "pattern": "openSelfLend half-collateral @ $1 oracle → HF~1.54"
+  },
+  "bookAfter": {
+    "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+    "marketSupplyUsdc": 9250015.550193,
+    "marketBorrowUsdc": 9250015.550186,
+    "utilization": "100%",
+    "collateralRss": 18499998.999999978,
+    "kingHotRssLeft": 1,
+    "healthFactor": 1.5399973278653094
+  },
+  "next": [
+    "Strike scan big Base USDC books",
+    "Curator packet with $9.25M util proof",
+    "On external/PA USDC: borrow-to-KingVault"
+  ]
+}
