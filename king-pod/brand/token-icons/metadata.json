@@ -1,0 +1,9 @@
+{
+  "name": "elephanToken",
+  "symbol": "RSS",
+  "decimals": 18,
+  "address": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+  "chainId": 8453,
+  "logoURI": "./rss-256.png",
+  "description": "RSS — King Errick crowned elephant token on Base. Oracle-priced collateral for Morpho."
+}

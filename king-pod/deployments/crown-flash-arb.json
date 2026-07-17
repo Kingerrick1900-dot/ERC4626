@@ -1,0 +1,12 @@
+{
+  "chainId": 8453,
+  "CrownFlashRouter": "0x13734BffdDFf6CbDE474B3F5467d86e813232577",
+  "CrownFlashArb": "0xD17D5aF60fDF495C50E5aced46CdC1C0E68F366d",
+  "operator": "0xcbD8Ac7e09aB6944A0Ae8f2DecaBbDbC8F3EC564",
+  "treasury": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "owner": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "feeBps": 5,
+  "flashSource": "Morpho Blue 0% wholesale via CrownFlashRouter",
+  "note": "LIVE arb executor \u2014 Fleet operator, King treasury/owner",
+  "deployTx": "0x3d11610d9e8afa449742392055281d7250a77aa47c1a56acd107b368b1bb7df5"
+}

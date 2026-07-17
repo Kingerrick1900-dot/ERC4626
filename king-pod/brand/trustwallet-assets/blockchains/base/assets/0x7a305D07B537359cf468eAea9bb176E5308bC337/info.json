@@ -1,0 +1,12 @@
+{
+  "name": "elephanToken",
+  "website": "",
+  "description": "RSS (elephanToken) — King Errick sovereign token on Base. Morpho Blue collateral.",
+  "explorer": "https://basescan.org/token/0x7a305D07B537359cf468eAea9bb176E5308bC337",
+  "type": "ERC20",
+  "symbol": "RSS",
+  "decimals": 18,
+  "status": "active",
+  "id": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+  "links": []
+}

@@ -1,0 +1,20 @@
+{
+  "chainId": 8453,
+  "CrownFlashRouter": "0x13734BffdDFf6CbDE474B3F5467d86e813232577",
+  "morpho": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+  "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "treasury": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "owner": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "feeBps": 5,
+  "feeHuman": "0.05%",
+  "desk": "0x831b86E9AA185088CB095748bFBeF53F0D312472",
+  "morphoMarketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+  "morphoBook": {
+    "supplyUsdc": "700000",
+    "borrowUsdc": "700000",
+    "collateralRss": "20500000",
+    "hfApprox": "1.127"
+  },
+  "openSelfLendTx": "0x1f8f4fffb12ad8585dd295537e4f47fb1423420d897e1f63e9e5383fbb4a5a73",
+  "note": "Morpho 0% wholesale flash; Crown charges 5 bps to treasury on each flashLoan()"
+}
