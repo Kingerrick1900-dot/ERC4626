@@ -1,8 +1,8 @@
 {
   "chainId": 8453,
-  "status": "PROVEN_LIVE — probe elite close succeeded; scale next",
+  "status": "PROVEN_LIVE \u2014 vault accumulating; scale rail next",
   "receiverVault": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
-  "opsDrip": "REMOVED — 100% to receiver",
+  "opsDrip": "REMOVED \u2014 100% to receiver",
   "kingSeedDesk": "0xF43B75B686e3Faa2C7FD4ac9a041b6316C63e8DF",
   "crownEliteClose": "0x7CF0499E68D3444a47f4d85B4325C32475E922D9",
   "crownFlashOpen": "0x15F9C1cF54A4360F1a564675D2B71Be731Fc2A7d",
@@ -20,5 +20,17 @@
     "morphoMarketLiquidityUsdc": 700000000000,
     "rssCollateralApprox": "18.2M+",
     "receiver": "0xA1aFcb46a64C9173519180458C1cF302179c832a"
-  }
+  },
+  "vaultUsdcNow": "2870614",
+  "vaultUsdcHuman": "$2.87",
+  "scaleFires": [
+    {
+      "tx": "0x3539bacfe0dac12d1cecbbce3a1e3127ab3fcdc48f5a51e8794310f167768500",
+      "usdc": "2000000"
+    },
+    {
+      "tx": "0x7d2fe0a48918fb19c99d762cd05bd38694fa887efed902dde922e4f83f2dcfec",
+      "usdc": "870614"
+    }
+  ]
 }
