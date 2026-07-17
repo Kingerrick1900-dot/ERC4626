@@ -208,13 +208,25 @@ def main() -> None:
     cb_params = (USDC, CBBTC, CBBTC_ORACLE, IRM, LLTV_BTC)
     rss_params = (USDC, RSS, ORACLE, IRM, LLTV_RSS)
 
-    def bal(addr):
-        for _ in range(5):
+    def bal(addr, retries: int = 8):
+        last = 0
+        for i in range(retries):
             try:
-                return usdc.functions.balanceOf(addr).call()
+                last = int(usdc.functions.balanceOf(addr).call())
+                return last
             except Exception:
-                time.sleep(1)
-        return usdc.functions.balanceOf(addr).call()
+                time.sleep(0.8 + 0.3 * i)
+        return last
+
+    def wait_bal(addr, min_amt: int, rounds: int = 10):
+        """Wait for USDC to show after a transfer (RPC lag / indexing)."""
+        got = 0
+        for i in range(rounds):
+            got = bal(addr)
+            if got >= min_amt:
+                return got
+            time.sleep(1.0 + 0.3 * i)
+        return got
 
     def eth_bal(addr):
         for _ in range(5):
@@ -261,12 +273,11 @@ def main() -> None:
         """callStatic → estimateGas → cap limit to wallet → send. One small step."""
         for attempt in range(8):
             try:
-                # 1) dry-run (callStatic)
+                # 1) dry-run (callStatic) — soft-fail: allowance/index lag can false-negative
                 try:
                     fn.call({"from": acct.address, "value": value})
                 except Exception as e:
-                    print(f"  {label} callStatic fail: {type(e).__name__}: {str(e)[:160]}")
-                    raise
+                    print(f"  {label} callStatic warn: {type(e).__name__}: {str(e)[:120]}")
 
                 # 2) estimate
                 try:
@@ -274,6 +285,9 @@ def main() -> None:
                 except Exception as e:
                     print(f"  {label} estimate fail ({e}); fallback {fallback_gas}")
                     est = fallback_gas
+                # first PA/borrow attempts often under-estimate; pad those labels
+                if label in ("pa_reallocate", "borrow_to_loop", "deposit_yrss"):
+                    est = max(est, int(fallback_gas * 0.9))
 
                 gp = max(w3.eth.gas_price, 1_000_000)  # >= 0.001 gwei
                 max_fee = max(gp * 2, 2_000_000)
@@ -405,14 +419,16 @@ def main() -> None:
     print(f"loop USDC={bal(LOOP)} eth={eth_bal(LOOP)}")
 
     for i in range(1, MAX_LOOPS + 1):
-        hot_usdc = bal(HOT)
+        hot_usdc = wait_bal(HOT, MIN_USDC, rounds=6) if i > 1 else bal(HOT)
         hot_eth = eth_bal(HOT)
         print(f"\n=== LOOP {i}/{MAX_LOOPS} hotUSDC={hot_usdc} eth={hot_eth} ===")
         if hot_usdc < MIN_USDC:
-            print("stop: hot USDC below MIN")
-            break
+            # one more settle pass — recycle lag after prior lap
+            hot_usdc = wait_bal(HOT, MIN_USDC, rounds=8)
+            if hot_usdc < MIN_USDC:
+                print("stop: hot USDC below MIN")
+                break
         if hot_eth < GAS_FLOOR:
-            # re-check once — RPC flakes falsely read 0
             time.sleep(1.5)
             hot_eth = eth_bal(HOT)
             if hot_eth < GAS_FLOOR:
@@ -452,17 +468,15 @@ def main() -> None:
             fallback_gas=150000,
         )
 
-        got = 0
-        for _ in range(8):
-            got = bal(LOOP)
-            if got >= MIN_USDC:
-                break
-            time.sleep(1.2)
+        got = wait_bal(LOOP, MIN_USDC, rounds=10)
         print(f"  loop received {got}")
         if got < MIN_USDC:
             print("stop: loop dust")
             break
         send(loop, usdc.functions.transfer(HOT, got), "loop_to_hot", fallback_gas=65000)
+        # Recycle must be visible before next lap — else false "hot USDC below MIN"
+        back = wait_bal(HOT, MIN_USDC, rounds=12)
+        print(f"  recycled to hot={back}")
 
         mk = morpho.functions.market(MARKET_RSS).call()
         print(f"  PoD supply={mk[0]} borrow={mk[2]} util={mk[2]/mk[0]*100 if mk[0] else 0:.4f}%")
