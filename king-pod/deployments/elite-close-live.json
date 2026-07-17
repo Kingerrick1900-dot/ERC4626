@@ -41,5 +41,13 @@
     "marketBorrowApprox": 700000000000,
     "vaultUnchanged": true,
     "note": "Morpho elephant fed via flash \u2014 Peapods book live. Vault fill still needs desk rail."
+  },
+  "unwind": {
+    "crownUnwind": "0x2dbAb1C8B7873944a63fD050a783d6143a400263",
+    "tx": "0x691775ac09378cd9b3078c2400ba6c971c242275b4bb52969dd226e6a4217660",
+    "morphoDebt": 0,
+    "morphoCollateral": 0,
+    "rssReturnedApprox": "18.5M",
+    "status": "King owes nobody"
   }
 }
