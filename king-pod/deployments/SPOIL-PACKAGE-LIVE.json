@@ -1,0 +1,37 @@
+{
+  "chainId": 8453,
+  "package": "curator + PA spoil rail",
+  "spoilOfWar": {
+    "kingVaultUsdc": 8.119254,
+    "priorUsdc": 4.870611,
+    "deltaUsdc": 3.248643,
+    "source": "cbBTC dust → Uniswap V3 → KingVault",
+    "tx": "0xf5c6dbe917bf40d50552af73fdac0e20ccb975e200bcfa84a64d84fc4af5caa2"
+  },
+  "crownSpoilFire": {
+    "address": "0xcFF60f3B071c09C17853bA715ceDc0Fc2e6645Fa",
+    "morphoAuthorized": true,
+    "role": "PA.reallocateTo → Morpho.borrow → KingVault"
+  },
+  "publicAllocator": {
+    "yRss": "0xF80C0529bD94C773844E459853CD91B9263dD525",
+    "pa": "0xA090dD1a701408Df1d4d0B85b716c87565f90467",
+    "fee": 0,
+    "supplyQueue": ["cbBTC/USDC", "WETH/USDC", "RSS/USDC"],
+    "flowCapsUsdc": 14000000,
+    "markets": {
+      "cbBTC": "0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836",
+      "WETH": "0x8793cf302b8ffd655ab97bd1c695dbd967807e8367a65cb2f4edaf1380ba1bda",
+      "RSS": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794"
+    }
+  },
+  "podBook": {
+    "supplyBorrowUsdc": 9250000,
+    "util": "100%",
+    "collateralRss": 18500000,
+    "hf": 1.54,
+    "borrowHeadroomUsdcApprox": 5000000
+  },
+  "curatorPacket": "deployments/CURATOR-LISTING-PACKET.md",
+  "fireWhen": "external vault maxIn > 0 OR yRSS TVL on cbBTC/WETH with PA reallocate into RSS"
+}

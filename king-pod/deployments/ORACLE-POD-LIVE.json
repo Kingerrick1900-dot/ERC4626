@@ -1,0 +1,42 @@
+{
+  "chainId": 8453,
+  "executedAt": "live",
+  "oracle": {
+    "address": "0x284EC3A9674e6C62ea552Bf75BDeE9B799627D2e",
+    "price": "1e24",
+    "priceHuman": "$1/RSS",
+    "tx": "0xf3cba39241a1a45e7dd0917e022caef03ed056aa583236e49934444049c2e14a"
+  },
+  "fees": {
+    "crownFlashRouterTreasury": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
+    "crownFlashFeeBps": 30,
+    "yRssFeeRecipient": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
+    "txs": [
+      "0x914d94aaef5d6cf3d3c9b54ad0058b03b0c4be171ecdbbafa47e8f04581afe86",
+      "0x059d72e48df13c137f8eb2fb6bca5824c0f25d8ee81c3b6953338b5363b47118",
+      "0x4b6f698a6ae3dd986a61b06ca711d3fd7ebf1553643d3441ed45e8075d27e024"
+    ]
+  },
+  "yRssPipe": {
+    "vault": "0xF80C0529bD94C773844E459853CD91B9263dD525",
+    "supplyCapUsdc": "14000000",
+    "paMaxInUsdc": "14000000",
+    "paMaxOutUsdc": "14000000",
+    "publicAllocator": "0xA090dD1a701408Df1d4d0B85b716c87565f90467"
+  },
+  "proofOfDemandBook": {
+    "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+    "rssCollateral": "5000000",
+    "flashUsdc": "2500000",
+    "marketSupplyUsdc": "2500000",
+    "marketBorrowUsdc": "2500000",
+    "utilization": "100%",
+    "healthFactor": "1.54",
+    "tx": "0x421637196ac97a3d7a11f95a8fa5464ba0ace9e0f0c8bc7cbaaedfa9205bb540",
+    "pattern": "Peapods-style self-lend PoD — MorphoFixedOracle $1"
+  },
+  "strikeScanBigMarkets": {
+    "cbBTC_WETH_USDe_USDC": "0 liquidatable HF<1 at scan time"
+  },
+  "rejected": ["Flash NAV vault depositor drain"]
+}
