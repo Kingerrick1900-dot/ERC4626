@@ -1,0 +1,25 @@
+{
+  "action": "free_rss_from_morpho",
+  "chainId": 8453,
+  "executedAt": "2026-07-15T00:35:00Z",
+  "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "desk": "0x831b86E9AA185088CB095748bFBeF53F0D312472",
+  "morpho": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+  "rss": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+  "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+  "result": {
+    "morphoCollateralRss": "0",
+    "morphoBorrowUsdc": "0",
+    "morphoSupplyUsdc": "0",
+    "kingRssWallet": "20999999999999999999999999",
+    "kingRssHuman": "21000000",
+    "note": "Full Morpho unwind. Remaining dust debt repaid; 20.5M RSS withdrawCollateral to King. morpho-guardian left STOPPED."
+  },
+  "txs": {
+    "selfDeleverageDust": "0xdd20e1d6a876d1b541ca614933c77b06fb8b3555d37823961b686be9f47ad1e8",
+    "usdcApproveMorpho": "0xe68ba5ece350c658e42419552152c402768ed103baca32693eb93fb1498dfb37",
+    "repayDustShares": "0xac5c80b6e147e876d6b124afda6aad10dc6692c928d6ea612cb439345bfc124b",
+    "withdrawCollateral20_5M": "0x87ffcd290fe42bc4a73030ddca2ff9f6cd674f10deeb35b3a28d01014b913b48",
+    "withdrawSupplyDust": "0xe74daeb95edde47b0d0ecc649fd36c76eea5065baa083f24154e8e123805675a"
+  }
+}
