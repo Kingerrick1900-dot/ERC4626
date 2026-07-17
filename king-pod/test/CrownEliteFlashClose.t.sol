@@ -232,8 +232,10 @@ contract CrownEliteFlashCloseTest is Test {
         desk.seed(700_000e6);
         vm.stopPrank();
 
-        vm.prank(king);
+        vm.startPrank(king);
         desk.setFiller(address(closer), true);
+        desk.setSeeder(address(closer), true); // auto rail reload
+        vm.stopPrank();
 
         rss.mint(king, 30_000_000 ether);
         vm.startPrank(king);
@@ -245,38 +247,58 @@ contract CrownEliteFlashCloseTest is Test {
         usdc.mint(address(morpho), 2_000_000e6);
     }
 
-    function testFlashClose_VaultGetsB_WithDeskOnly_NoMorphoPrefund() public {
+    function testFlashClose_AutoReloadsRails_Default() public {
         uint256 B = 100_000e6;
         uint256 rssForFill = (B * 1e18) / PRICE_USDC_PER_RSS;
         uint256 rssCollateral = (rssForFill * 100) / 70;
 
-        // Market empty before fire.
         bytes32 mid = keccak256(abi.encode(params));
-        assertEq(morpho.totalSupply(mid), 0, "market empty");
-
+        uint256 deskBefore = desk.inventoryUsdc();
         uint256 vaultBefore = usdc.balanceOf(vault);
 
         vm.prank(king);
         closer.eliteFlashClose(rssCollateral, B, rssForFill);
 
-        assertEq(usdc.balanceOf(vault), vaultBefore + B, "vault +B");
+        // Default railBps=100% — profit auto back on desk; vault unchanged.
+        assertEq(desk.inventoryUsdc(), deskBefore, "rails reloaded");
+        assertEq(usdc.balanceOf(vault), vaultBefore, "vault hold");
         (, uint128 borrowShares, uint128 coll) = morpho.position(mid, king);
         assertEq(uint256(borrowShares), 0, "debt");
         assertEq(uint256(coll), 0, "coll");
-        assertEq(desk.inventoryUsdc(), 700_000e6 - B, "desk spent B");
-        // Temporary rail withdrawn — market empty again.
         assertEq(morpho.totalSupply(mid), 0, "rail cleared");
     }
 
-    function testFlashClose_700kPath_DeskOnlyCapital() public {
-        uint256 B = 700_000e6;
-        uint256 rssForFill = 14_000_000 ether;
-        uint256 rssCollateral = 18_200_000 ether;
+    function testFlashClose_RoundAfterRound_RailsStayLoaded() public {
+        uint256 B = 50_000e6;
+        uint256 rssForFill = (B * 1e18) / PRICE_USDC_PER_RSS;
+        uint256 rssCollateral = (rssForFill * 100) / 70;
 
-        uint256 vaultBefore = usdc.balanceOf(vault);
         vm.prank(king);
         closer.eliteFlashClose(rssCollateral, B, rssForFill);
-        assertEq(usdc.balanceOf(vault), vaultBefore + B, "700k vault");
+        assertEq(desk.inventoryUsdc(), 700_000e6, "after r1");
+
+        vm.prank(king);
+        closer.eliteFlashClose(rssCollateral, B, rssForFill);
+        assertEq(desk.inventoryUsdc(), 700_000e6, "after r2");
+    }
+
+    function testFlashClose_SplitRailsAndVault() public {
+        uint256 B = 100_000e6;
+        uint256 rssForFill = (B * 1e18) / PRICE_USDC_PER_RSS;
+        uint256 rssCollateral = (rssForFill * 100) / 70;
+
+        vm.prank(king);
+        closer.setRailBps(5000); // 50% rails / 50% vault
+
+        uint256 vaultBefore = usdc.balanceOf(vault);
+        uint256 deskBefore = desk.inventoryUsdc();
+
+        vm.prank(king);
+        closer.eliteFlashClose(rssCollateral, B, rssForFill);
+
+        assertEq(usdc.balanceOf(vault), vaultBefore + B / 2, "vault half");
+        // Desk spent B then got B/2 back → deskBefore - B/2
+        assertEq(desk.inventoryUsdc(), deskBefore - B / 2, "rails half");
     }
 
     function testFlashClose_RevertsIfFillShort() public {

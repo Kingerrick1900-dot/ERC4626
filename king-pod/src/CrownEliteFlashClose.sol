@@ -63,21 +63,29 @@ interface ICrownSeedFillFlash {
     function priceUsdcPerRss() external view returns (uint256);
 }
 
-/// @notice Capital-halving elite vault load.
-/// @dev Flashes 2×B from Morpho's global USDC float, self-supplies the Morpho rail,
-///      borrows B to treasury, clears debt, sells RSS into desk for B, repays flash.
-///      Seat capital needed = desk B only (not desk B + Morpho B).
+interface IDeskSeed {
+    function seed(uint256 usdcAmount) external;
+}
+
+/// @notice Elite flash close with auto rail reload.
+/// @dev Every landed USDC is split in-tx: `railBps` auto-seeds the desk (next round fuel),
+///      remainder goes to kingdom vault. Default railBps = 100% so rails never go dry mid-run.
 contract CrownEliteFlashClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     using SafeTransfer for IERC20;
+
+    uint256 public constant BPS = 10_000;
 
     IMorphoFlashElite public immutable morpho;
     IERC20 public immutable usdc;
     IERC20 public immutable rss;
     ICrownSeedFillFlash public immutable fill;
+    IDeskSeed public immutable desk;
     address public immutable king;
     bytes32 public immutable marketId;
 
     address public treasury;
+    /// @notice Share of each landing that auto-seeds the desk rail. 10000 = all to rails.
+    uint256 public railBps = BPS;
 
     IMorphoFlashElite.MarketParams public marketParams;
 
@@ -86,13 +94,17 @@ contract CrownEliteFlashClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
     uint256 private _rssForFill;
     uint256 private _rssCollateral;
 
-    event EliteFlashClosed(uint256 borrowUsdc, uint256 rssSold, uint256 vaultUsdcAfter, uint256 flashUsdc);
+    event EliteFlashClosed(
+        uint256 borrowUsdc, uint256 rssSold, uint256 vaultPaid, uint256 railSeeded, uint256 flashUsdc
+    );
     event TreasurySet(address treasury);
+    event RailBpsSet(uint256 railBps);
 
     error Zero();
     error Auth();
     error FillShort();
     error FlashSize();
+    error Bps();
 
     constructor(
         address morpho_,
@@ -104,11 +116,12 @@ contract CrownEliteFlashClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
         IMorphoFlashElite.MarketParams memory params_,
         address owner_
     ) Ownable(owner_) {
-        if (king_ == address(0) || treasury_ == address(0)) revert Zero();
+        if (king_ == address(0) || treasury_ == address(0) || fill_ == address(0)) revert Zero();
         morpho = IMorphoFlashElite(morpho_);
         usdc = IERC20(usdc_);
         rss = IERC20(rss_);
         fill = ICrownSeedFillFlash(fill_);
+        desk = IDeskSeed(fill_);
         king = king_;
         treasury = treasury_;
         marketParams = params_;
@@ -121,7 +134,13 @@ contract CrownEliteFlashClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
         emit TreasurySet(t);
     }
 
-    /// @notice Vault +B in one tx. Desk needs B. Morpho rail is flashed (no Morpho pre-fund).
+    function setRailBps(uint256 bps) external onlyOwner {
+        if (bps > BPS) revert Bps();
+        railBps = bps;
+        emit RailBpsSet(bps);
+    }
+
+    /// @notice Fire one round. Landed USDC auto-loads rails (railBps) + vault (remainder).
     function eliteFlashClose(uint256 rssCollateral, uint256 borrowUsdc, uint256 rssForFill)
         external
         onlyOwner
@@ -145,7 +164,23 @@ contract CrownEliteFlashClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
         _rssForFill = 0;
         _rssCollateral = 0;
 
-        emit EliteFlashClosed(borrowUsdc, rssForFill, usdc.balanceOf(treasury), flashUsdc);
+        // Landed B sits here after flash repay - auto-split to rails + vault.
+        uint256 landed = usdc.balanceOf(address(this));
+        uint256 railSeeded;
+        uint256 vaultPaid;
+        if (landed > 0) {
+            railSeeded = (landed * railBps) / BPS;
+            vaultPaid = landed - railSeeded;
+            if (railSeeded > 0) {
+                usdc.safeApprove(address(desk), railSeeded);
+                desk.seed(railSeeded);
+            }
+            if (vaultPaid > 0) {
+                usdc.safeTransfer(treasury, vaultPaid);
+            }
+        }
+
+        emit EliteFlashClosed(borrowUsdc, rssForFill, vaultPaid, railSeeded, flashUsdc);
 
         uint256 dust = rss.balanceOf(address(this));
         if (dust > 0) rss.safeTransfer(king, dust);
@@ -159,24 +194,20 @@ contract CrownEliteFlashClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
         uint256 collRss = _rssCollateral;
         if (assets != B * 2) revert FlashSize();
 
-        // 1) Temporary Morpho rail from flash (no pre-fund).
         usdc.safeApprove(address(morpho), B);
         morpho.supply(marketParams, B, 0, king, bytes(""));
 
-        // 2) Post RSS + borrow full stack straight to kingdom vault.
         rss.safeTransferFrom(king, address(this), collRss);
         rss.safeApprove(address(morpho), collRss);
         morpho.supplyCollateral(marketParams, collRss, king, bytes(""));
-        morpho.borrow(marketParams, B, 0, king, treasury);
+        // Borrow to this closer - split to rails/vault after flash settles.
+        morpho.borrow(marketParams, B, 0, king, address(this));
 
-        // 3) Clear Morpho debt with the other half of the flash.
         usdc.safeApprove(address(morpho), B);
         morpho.repay(marketParams, B, 0, king, bytes(""));
 
-        // 4) Pull temporary rail back.
         morpho.withdraw(marketParams, B, 0, king, address(this));
 
-        // 5) Sell RSS into desk → second B to repay flash.
         morpho.withdrawCollateral(marketParams, sellRss, king, address(this));
         rss.safeApprove(address(fill), sellRss);
         uint256 usdcOut = fill.fillSellRss(sellRss, B, address(this));
@@ -187,7 +218,6 @@ contract CrownEliteFlashClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
             morpho.withdrawCollateral(marketParams, uint256(collLeft), king, king);
         }
 
-        // Morpho pulls `assets` (= 2B) via transferFrom after callback.
         usdc.safeApprove(address(morpho), assets);
     }
 }

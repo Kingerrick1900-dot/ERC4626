@@ -7,9 +7,10 @@ import {IMorphoFlashElite} from "../src/CrownEliteFlashClose.sol";
 
 interface IDeskWire {
     function setFiller(address who, bool allowed) external;
+    function setSeeder(address who, bool allowed) external;
 }
 
-/// @notice Deploy capital-halving closer; wire filler on live KingSeedDesk.
+/// @notice Deploy flash closer with auto rail reload; wire filler+seeder on live desk.
 contract DeployEliteFlashClose is Script {
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
@@ -38,7 +39,8 @@ contract DeployEliteFlashClose is Script {
         console2.log("CrownEliteFlashClose", address(closer));
 
         IDeskWire(DESK).setFiller(address(closer), true);
-        console2.log("filler wired on live desk");
+        IDeskWire(DESK).setSeeder(address(closer), true);
+        console2.log("filler+seeder wired - auto rail reload live");
 
         vm.stopBroadcast();
     }
