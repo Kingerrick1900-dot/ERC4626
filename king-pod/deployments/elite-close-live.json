@@ -32,5 +32,14 @@
       "tx": "0x7d2fe0a48918fb19c99d762cd05bd38694fa887efed902dde922e4f83f2dcfec",
       "usdc": "870614"
     }
-  ]
+  ],
+  "flashOpen700k": {
+    "tx": "0x7fcf33a2e4d9ed6d5b6bb3e7d324370d6f0ddb26a648d2de0155a602c744ad0d",
+    "flashUsdc": 700000000000,
+    "rssCollateral": "18200000000000000000000000",
+    "marketSupplyApprox": 700002000004,
+    "marketBorrowApprox": 700000000000,
+    "vaultUnchanged": true,
+    "note": "Morpho elephant fed via flash \u2014 Peapods book live. Vault fill still needs desk rail."
+  }
 }
