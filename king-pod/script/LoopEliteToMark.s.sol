@@ -51,7 +51,7 @@ interface IMorphoL {
 /// @notice Loop the proven $2 elite-flash pattern until vault hits mark or rails are dry.
 /// @dev Each iteration: harvest Morpho leftover → seed desk with all King USDC → fire flash close.
 ///      Vault grows by exactly the USDC that was on the rails that round.
-///      Re-run anytime new USDC hits King — loop keeps stacking toward $700k.
+///      Re-run anytime new USDC hits King - loop keeps stacking toward $700k.
 contract LoopEliteToMark is Script {
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant RSS = 0x7a305D07B537359cf468eAea9bb176E5308bC337;
@@ -65,7 +65,7 @@ contract LoopEliteToMark is Script {
     bytes32 constant MARKET_ID = 0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794;
 
     uint256 constant MARK = 700_000e6;
-    uint256 constant MIN_SHOT = 1e5; // $0.10 floor — same pattern as $2 test
+    uint256 constant MIN_SHOT = 1e5; // $0.10 floor - same pattern as $2 test
     uint256 constant PRICE = 50_000; // $0.05 / RSS
     uint256 constant MAX_LOOPS = 50;
 
