@@ -39,3 +39,4 @@ python3 script/king_loop.py
 - Each lap adds PoD supply (via yRSS) + King borrow while recycling the same USDC.
 - Stops on low hot USDC, gas floor, or max loops.
 - Fleet stays untouched unless King orders otherwise.
+- Prefer `LOOP_SEND_RPC` / `BASE_RPC_URL` over public `mainnet.base.org` (429 + stale idle=0 can strand a lap mid-PA). Idle is re-read with retries after PA.

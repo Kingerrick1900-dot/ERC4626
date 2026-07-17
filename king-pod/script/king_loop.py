@@ -29,21 +29,24 @@ from eth_account import Account
 from web3 import Web3
 
 def pick_rpc() -> str:
+    # Prefer less rate-limited endpoints; public mainnet.base.org 429s mid-lap.
     for url in (
         os.environ.get("LOOP_SEND_RPC"),
         os.environ.get("BASE_RPC_URL"),
-        "https://mainnet.base.org",
+        "https://1rpc.io/base",
         "https://base.llamarpc.com",
+        "https://rpc.ankr.com/base",
+        "https://mainnet.base.org",
     ):
         if not url:
             continue
         try:
-            w = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": 20}))
+            w = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": 25}))
             _ = w.eth.block_number
             return url
         except Exception:
             continue
-    return "https://mainnet.base.org"
+    return "https://1rpc.io/base"
 
 
 RPC = pick_rpc()
@@ -329,15 +332,20 @@ def main() -> None:
                 time.sleep(1.5)
         raise RuntimeError("cbbtc_assets failed")
 
-    def idle():
-        for _ in range(8):
+    def idle(min_expected: int = 0, rounds: int = 12):
+        """Read market idle with retries. Public RPCs sometimes return stale 0."""
+        last = 0
+        for i in range(rounds):
             try:
                 mk = morpho.functions.market(MARKET_RSS).call()
-                return max(0, mk[0] - mk[2])
+                last = max(0, int(mk[0]) - int(mk[2]))
+                if last >= min_expected or (min_expected == 0 and i >= 2):
+                    return last
+                print(f"  idle={last} < expected {min_expected}; retry {i}")
             except Exception as e:
                 print(f"  idle retry: {type(e).__name__}")
-                time.sleep(1.5)
-        raise RuntimeError("idle failed")
+            time.sleep(1.2 + 0.4 * i)
+        return last
 
     if OFFPEAK_ONLY:
         # Quiet windows: Sat/Sun UTC or 04:00–12:00 UTC weekdays
@@ -420,14 +428,17 @@ def main() -> None:
             fallback_gas=250000,
         )
 
-        idle_amt = idle()
+        # After PA, idle should be ≈ pull. Don't trust a single flaky 0.
+        idle_amt = idle(min_expected=min(pull, MIN_USDC), rounds=14)
         print(f"  idle={idle_amt}")
         if idle_amt < MIN_USDC:
-            print("stop: no idle")
+            print("stop: no idle after retries")
             break
+        # Borrow only what is idle (never more than pull this lap)
+        borrow_amt = min(idle_amt, pull)
         send(
             hot,
-            morpho.functions.borrow(rss_params, idle_amt, 0, HOT, LOOP),
+            morpho.functions.borrow(rss_params, borrow_amt, 0, HOT, LOOP),
             "borrow_to_loop",
             fallback_gas=150000,
         )
