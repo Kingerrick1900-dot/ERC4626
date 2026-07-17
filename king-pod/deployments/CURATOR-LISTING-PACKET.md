@@ -1,6 +1,6 @@
 # Unit D — Curator listing packet (FINISHED / SUBMIT NOW)
 
-**Status:** COMPLETE. Submit to Gauntlet + Steakhouse. PoD live. King PA armed. Foreign `maxIn` still **0** — this packet unlocks step 3 size.
+**Status:** COMPLETE — broadcast of the engineered position. Oracle $1. PoD ~$9.25M @ 100% util. King PA maxIn $700k. Submit so their PA can answer the position with USDC.
 
 ## 5-step Kingdom rail
 1. Finish curator package ← **this doc**
