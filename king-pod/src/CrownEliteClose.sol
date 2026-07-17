@@ -51,9 +51,8 @@ interface ICrownSeedFill {
     function priceUsdcPerRss() external view returns (uint256);
 }
 
-/// @notice Elite one-tx: borrow USDC to treasury, repay Morpho via CrownSeedFill (repay-with-collateral).
-/// @dev Flash bridges the Morpho HF rule (cannot withdraw collateral underwater).
-///      Debt/collateral on `king`; borrowed USDC lands on `treasury` (e.g. Cake hot receive).
+/// @notice Elite vault load: borrow full USDC stack to treasury, repay Morpho via RSS sell, debt cleared.
+/// @dev Sole vault = `treasury` (receiver). No ops drip. No caps. Full amount in one tx.
 contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     using SafeTransfer for IERC20;
 
@@ -64,7 +63,6 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     address public immutable king;
     bytes32 public immutable marketId;
 
-    /// @notice USDC borrow receiver (Cake). Separated from Morpho position owner (`king`).
     address public treasury;
 
     IMorphoElite.MarketParams public marketParams;
@@ -73,10 +71,9 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     uint256 private _borrowB;
     uint256 private _rssForFill;
 
-    event EliteClosed(uint256 borrowUsdc, uint256 rssSold, uint256 rssReturned, uint256 treasuryUsdcAfter);
+    event EliteClosed(uint256 borrowUsdc, uint256 rssSold, uint256 vaultUsdcAfter);
     event TreasurySet(address treasury);
 
-    error NotReady();
     error Zero();
     error Auth();
     error FillShort();
@@ -108,10 +105,7 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         emit TreasurySet(t);
     }
 
-    /// @notice One atomic elite close.
-    /// @param rssCollateral RSS posted as Morpho collateral (pulled from King).
-    /// @param borrowUsdc USDC borrowed to treasury wallet (stays there).
-    /// @param rssForFill RSS withdrawn after flash-repay and sold into CrownSeedFill to cover flash.
+    /// @notice Full stack → treasury in one tx. Morpho debt cleared. No drip.
     function eliteClose(uint256 rssCollateral, uint256 borrowUsdc, uint256 rssForFill)
         external
         onlyOwner
@@ -120,7 +114,6 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         if (rssCollateral == 0 || borrowUsdc == 0 || rssForFill == 0) revert Zero();
         if (rssForFill > rssCollateral) revert Zero();
 
-        // Preflight: fill rail can cover repay.
         uint256 expectedUsdc = (rssForFill * fill.priceUsdcPerRss()) / 1e18;
         if (expectedUsdc < borrowUsdc) revert FillShort();
 
@@ -128,7 +121,6 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         rss.safeApprove(address(morpho), rssCollateral);
 
         morpho.supplyCollateral(marketParams, rssCollateral, king, bytes(""));
-        // Debt on King position; cash to treasury (Cake) — the sovereign keep.
         morpho.borrow(marketParams, borrowUsdc, 0, king, treasury);
 
         _inElite = true;
@@ -139,8 +131,8 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         _borrowB = 0;
         _rssForFill = 0;
 
-        emit EliteClosed(borrowUsdc, rssForFill, rss.balanceOf(address(this)), usdc.balanceOf(treasury));
-        // Any dust RSS left on this contract → King
+        emit EliteClosed(borrowUsdc, rssForFill, usdc.balanceOf(treasury));
+
         uint256 dust = rss.balanceOf(address(this));
         if (dust > 0) rss.safeTransfer(king, dust);
     }
@@ -153,24 +145,19 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         require(assets == B, "FLASH");
 
         usdc.safeApprove(address(morpho), B);
-        // Clear King's debt so collateral can move (Morpho HF gate).
         morpho.repay(marketParams, B, 0, king, bytes(""));
 
-        // Repay-with-collateral: pull RSS slice to this adapter.
         morpho.withdrawCollateral(marketParams, sellRss, king, address(this));
 
-        // CrownSeedFill — Kingdom Paraswap equivalent.
         rss.safeApprove(address(fill), sellRss);
         uint256 usdcOut = fill.fillSellRss(sellRss, B, address(this));
         if (usdcOut < B) revert FillShort();
 
-        // Return leftover collateral to King.
         (, , uint128 collLeft) = morpho.position(marketId, king);
         if (collLeft > 0) {
             morpho.withdrawCollateral(marketParams, uint256(collLeft), king, king);
         }
 
-        // Morpho pulls flash repayment via transferFrom(this).
         usdc.safeApprove(address(morpho), assets);
     }
 }
