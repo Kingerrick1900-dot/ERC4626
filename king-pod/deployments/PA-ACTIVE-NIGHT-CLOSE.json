@@ -1,0 +1,33 @@
+{
+  "chainId": 8453,
+  "nightClose": true,
+  "publicAllocator": {
+    "status": "ACTIVE",
+    "yRss": "0xF80C0529bD94C773844E459853CD91B9263dD525",
+    "pa": "0xA090dD1a701408Df1d4d0B85b716c87565f90467",
+    "isAllocator": true,
+    "fee": 0,
+    "supplyQueue": ["cbBTC/USDC", "WETH/USDC", "RSS/USDC"],
+    "flowCapsUsdc": 14000000,
+    "rssMarketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794"
+  },
+  "crownSpoilFire": {
+    "address": "0xcFF60f3B071c09C17853bA715ceDc0Fc2e6645Fa",
+    "morphoAuthorized": true
+  },
+  "spoilTonight": {
+    "kingVaultUsdc": 8.119254,
+    "method": "same as prior — find idle asset, swap to USDC → KingVault",
+    "landed": {
+      "cbBTC_dust_swap_usdc": 3.248643,
+      "tx": "0xf5c6dbe917bf40d50552af73fdac0e20ccb975e200bcfa84a64d84fc4af5caa2"
+    },
+    "secondSweep": "no further convertible dust on kingdom wallets",
+    "note": "20k target parked — King called it over-ambitious; rail cocked for next inbound"
+  },
+  "podBook": {
+    "approxUsdc": 9250000,
+    "util": "100%",
+    "hf": 1.54
+  }
+}
