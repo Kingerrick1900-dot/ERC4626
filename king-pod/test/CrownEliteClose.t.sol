@@ -201,7 +201,7 @@ contract CrownEliteCloseTest is Test {
         });
 
         closer = new CrownEliteClose(
-            address(morpho), address(usdc), address(rss), address(desk), king, params, king
+            address(morpho), address(usdc), address(rss), address(desk), king, king, params, king
         );
 
         // Liquidity on Morpho market (external lender — Morpho book).
@@ -246,8 +246,8 @@ contract CrownEliteCloseTest is Test {
         vm.prank(king);
         closer.eliteClose(rssCollateral, B, rssForFill);
 
-        // King keeps borrowed USDC free and clear.
-        assertEq(usdc.balanceOf(king), kingUsdcBefore + B, "king usdc");
+        // Treasury (King in unit test) keeps borrowed USDC free and clear.
+        assertEq(usdc.balanceOf(king), kingUsdcBefore + B, "treasury usdc");
 
         // Morpho debt cleared.
         bytes32 mid = keccak256(abi.encode(params));

@@ -51,9 +51,9 @@ interface ICrownSeedFill {
     function priceUsdcPerRss() external view returns (uint256);
 }
 
-/// @notice Elite one-tx: borrow USDC to King, repay Morpho via CrownSeedFill (repay-with-collateral).
-/// @dev Flash bridges the Morpho HF rule (cannot withdraw collateral underwater). Borrowed USDC stays with King.
-///      Broadcast locked until King Go.
+/// @notice Elite one-tx: borrow USDC to treasury, repay Morpho via CrownSeedFill (repay-with-collateral).
+/// @dev Flash bridges the Morpho HF rule (cannot withdraw collateral underwater).
+///      Debt/collateral on `king`; borrowed USDC lands on `treasury` (e.g. Cake hot receive).
 contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     using SafeTransfer for IERC20;
 
@@ -64,13 +64,17 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     address public immutable king;
     bytes32 public immutable marketId;
 
+    /// @notice USDC borrow receiver (Cake). Separated from Morpho position owner (`king`).
+    address public treasury;
+
     IMorphoElite.MarketParams public marketParams;
 
     bool private _inElite;
     uint256 private _borrowB;
     uint256 private _rssForFill;
 
-    event EliteClosed(uint256 borrowUsdc, uint256 rssSold, uint256 rssReturned, uint256 kingUsdcAfter);
+    event EliteClosed(uint256 borrowUsdc, uint256 rssSold, uint256 rssReturned, uint256 treasuryUsdcAfter);
+    event TreasurySet(address treasury);
 
     error NotReady();
     error Zero();
@@ -83,21 +87,30 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         address rss_,
         address fill_,
         address king_,
+        address treasury_,
         IMorphoElite.MarketParams memory params_,
         address owner_
     ) Ownable(owner_) {
+        if (king_ == address(0) || treasury_ == address(0)) revert Zero();
         morpho = IMorphoElite(morpho_);
         usdc = IERC20(usdc_);
         rss = IERC20(rss_);
         fill = ICrownSeedFill(fill_);
         king = king_;
+        treasury = treasury_;
         marketParams = params_;
         marketId = keccak256(abi.encode(params_));
     }
 
+    function setTreasury(address t) external onlyOwner {
+        if (t == address(0)) revert Zero();
+        treasury = t;
+        emit TreasurySet(t);
+    }
+
     /// @notice One atomic elite close.
     /// @param rssCollateral RSS posted as Morpho collateral (pulled from King).
-    /// @param borrowUsdc USDC borrowed to King wallet (stays there).
+    /// @param borrowUsdc USDC borrowed to treasury wallet (stays there).
     /// @param rssForFill RSS withdrawn after flash-repay and sold into CrownSeedFill to cover flash.
     function eliteClose(uint256 rssCollateral, uint256 borrowUsdc, uint256 rssForFill)
         external
@@ -115,8 +128,8 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         rss.safeApprove(address(morpho), rssCollateral);
 
         morpho.supplyCollateral(marketParams, rssCollateral, king, bytes(""));
-        // Debt on King, cash to King — the sovereign keep.
-        morpho.borrow(marketParams, borrowUsdc, 0, king, king);
+        // Debt on King position; cash to treasury (Cake) — the sovereign keep.
+        morpho.borrow(marketParams, borrowUsdc, 0, king, treasury);
 
         _inElite = true;
         _borrowB = borrowUsdc;
@@ -126,7 +139,7 @@ contract CrownEliteClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         _borrowB = 0;
         _rssForFill = 0;
 
-        emit EliteClosed(borrowUsdc, rssForFill, rss.balanceOf(address(this)), usdc.balanceOf(king));
+        emit EliteClosed(borrowUsdc, rssForFill, rss.balanceOf(address(this)), usdc.balanceOf(treasury));
         // Any dust RSS left on this contract → King
         uint256 dust = rss.balanceOf(address(this));
         if (dust > 0) rss.safeTransfer(king, dust);
