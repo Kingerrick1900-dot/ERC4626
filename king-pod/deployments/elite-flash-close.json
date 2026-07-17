@@ -1,0 +1,28 @@
+{
+  "chainId": 8453,
+  "status": "LIVE PROVEN — capital-halving closer worked on Base",
+  "crownEliteFlashClose": "0x2192251a8FD4a31843fDE1222C43Ac0ad64ccD25",
+  "liveDesk": "0xF43B75B686e3Faa2C7FD4ac9a041b6316C63e8DF",
+  "receiverVault": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
+  "capitalBefore": "desk B + Morpho B (= $1.4M for $700k vault)",
+  "capitalAfter": "desk B only (= $700k for $700k vault)",
+  "morphoGlobalUsdcFloatApprox": "$190M",
+  "probe": {
+    "borrowUsdc": "499999",
+    "borrowHuman": "$0.50",
+    "deskOnly": true,
+    "morphoPrefund": 0,
+    "flashUsdc": "999998",
+    "cakeUsdcAfter": "4870611",
+    "cakeUsdcHuman": "$4.87",
+    "morphoDebtAfter": 0,
+    "tx": "0x26091e65b864521f050b18d3fb9d682185661ede3d5105f6f98aa2e20369950d",
+    "deployTx": "broadcast/DeployEliteFlashClose.s.sol/8453/run-latest.json",
+    "authTx": "0xb7742f54d940eb33db2832077f4976b2499b250ccb3e53873c9386294ec4d68d"
+  },
+  "scaleTo700k": {
+    "seatUsdcNeeded": 700000000000,
+    "note": "Half of old $1.4M rail — seed desk $700k then eliteFlashClose",
+    "script": "FLASH_CLOSER=0x2192251a8FD4a31843fDE1222C43Ac0ad64ccD25 forge script script/ScaleEliteFlash700k.s.sol --broadcast"
+  }
+}
