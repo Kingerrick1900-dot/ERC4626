@@ -48,7 +48,7 @@ interface IMorphoL {
         returns (uint256, uint256);
 }
 
-/// @notice Loop the proven $2 elite-flash pattern until Cake hits mark or rails are dry.
+/// @notice Loop the proven $2 elite-flash pattern until vault hits mark or rails are dry.
 /// @dev Each iteration: harvest Morpho leftover → seed desk with all King USDC → fire flash close.
 ///      Vault grows by exactly the USDC that was on the rails that round.
 ///      Re-run anytime new USDC hits King — loop keeps stacking toward $700k.
@@ -61,7 +61,7 @@ contract LoopEliteToMark is Script {
     address constant DESK = 0xF43B75B686e3Faa2C7FD4ac9a041b6316C63e8DF;
     address constant CLOSER = 0x2192251a8FD4a31843fDE1222C43Ac0ad64ccD25;
     address constant KING = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
-    address constant CAKE = 0xA1aFcb46a64C9173519180458C1cF302179c832a;
+    address constant VAULT = 0xA1aFcb46a64C9173519180458C1cF302179c832a;
     bytes32 constant MARKET_ID = 0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794;
 
     uint256 constant MARK = 700_000e6;
@@ -70,7 +70,7 @@ contract LoopEliteToMark is Script {
     uint256 constant MAX_LOOPS = 50;
 
     function run() external {
-        uint256 vault = IERC20L(USDC).balanceOf(CAKE);
+        uint256 vault = IERC20L(USDC).balanceOf(VAULT);
         console2.log("loop start vault", vault);
         console2.log("mark", MARK);
 
@@ -83,7 +83,7 @@ contract LoopEliteToMark is Script {
 
         uint256 loops;
         while (loops < MAX_LOOPS) {
-            vault = IERC20L(USDC).balanceOf(CAKE);
+            vault = IERC20L(USDC).balanceOf(VAULT);
             if (vault >= MARK) {
                 console2.log("MARK HIT", vault);
                 break;
@@ -122,13 +122,13 @@ contract LoopEliteToMark is Script {
             console2.log("shot USDC", B);
             IFlashCloserL(CLOSER).eliteFlashClose(rssColl, B, rssFill);
 
-            vault = IERC20L(USDC).balanceOf(CAKE);
+            vault = IERC20L(USDC).balanceOf(VAULT);
             console2.log("vault after", vault);
             loops++;
         }
 
         vm.stopBroadcast();
-        console2.log("loop done vault", IERC20L(USDC).balanceOf(CAKE));
+        console2.log("loop done vault", IERC20L(USDC).balanceOf(VAULT));
         console2.log("loops", loops);
     }
 

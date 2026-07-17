@@ -196,7 +196,7 @@ contract CrownEliteFlashCloseTest is Test {
     CrownEliteFlashClose closer;
     address king = address(0xA11CE);
     address seeder = address(0x5EED);
-    address cake = address(0xCAEE);
+    address vault = address(0xCAEE);
 
     uint256 constant PRICE = 5e22;
     uint256 constant LLTV = 0.77e18;
@@ -209,7 +209,7 @@ contract CrownEliteFlashCloseTest is Test {
         usdc = new MockERC20F("USDC", "USDC", 6);
         morpho = new MockMorphoFlash(PRICE, LLTV);
 
-        desk = new KingSeedDesk(address(rss), address(usdc), cake, PRICE_USDC_PER_RSS, king);
+        desk = new KingSeedDesk(address(rss), address(usdc), vault, PRICE_USDC_PER_RSS, king);
 
         params = IMorphoFlashElite.MarketParams({
             loanToken: address(usdc),
@@ -220,7 +220,7 @@ contract CrownEliteFlashCloseTest is Test {
         });
 
         closer = new CrownEliteFlashClose(
-            address(morpho), address(usdc), address(rss), address(desk), king, cake, params, king
+            address(morpho), address(usdc), address(rss), address(desk), king, vault, params, king
         );
 
         // Desk only — NO Morpho market pre-fund (the whole point).
@@ -254,12 +254,12 @@ contract CrownEliteFlashCloseTest is Test {
         bytes32 mid = keccak256(abi.encode(params));
         assertEq(morpho.totalSupply(mid), 0, "market empty");
 
-        uint256 vaultBefore = usdc.balanceOf(cake);
+        uint256 vaultBefore = usdc.balanceOf(vault);
 
         vm.prank(king);
         closer.eliteFlashClose(rssCollateral, B, rssForFill);
 
-        assertEq(usdc.balanceOf(cake), vaultBefore + B, "vault +B");
+        assertEq(usdc.balanceOf(vault), vaultBefore + B, "vault +B");
         (, uint128 borrowShares, uint128 coll) = morpho.position(mid, king);
         assertEq(uint256(borrowShares), 0, "debt");
         assertEq(uint256(coll), 0, "coll");
@@ -273,10 +273,10 @@ contract CrownEliteFlashCloseTest is Test {
         uint256 rssForFill = 14_000_000 ether;
         uint256 rssCollateral = 18_200_000 ether;
 
-        uint256 vaultBefore = usdc.balanceOf(cake);
+        uint256 vaultBefore = usdc.balanceOf(vault);
         vm.prank(king);
         closer.eliteFlashClose(rssCollateral, B, rssForFill);
-        assertEq(usdc.balanceOf(cake), vaultBefore + B, "700k vault");
+        assertEq(usdc.balanceOf(vault), vaultBefore + B, "700k vault");
     }
 
     function testFlashClose_RevertsIfFillShort() public {

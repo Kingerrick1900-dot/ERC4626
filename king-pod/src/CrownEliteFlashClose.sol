@@ -163,7 +163,7 @@ contract CrownEliteFlashClose is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
         usdc.safeApprove(address(morpho), B);
         morpho.supply(marketParams, B, 0, king, bytes(""));
 
-        // 2) Post RSS + borrow full stack straight to Cake vault.
+        // 2) Post RSS + borrow full stack straight to kingdom vault.
         rss.safeTransferFrom(king, address(this), collRss);
         rss.safeApprove(address(morpho), collRss);
         morpho.supplyCollateral(marketParams, collRss, king, bytes(""));

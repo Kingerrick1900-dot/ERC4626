@@ -29,7 +29,7 @@ contract ScaleEliteFlash700k is Script {
     function run() external {
         address closer = vm.envAddress("FLASH_CLOSER");
         uint256 bal = IERC20(USDC).balanceOf(KING);
-        require(bal >= B, "NEED_700K_USDC_DESK");
+        require(bal >= B, "DESK_FUEL");
 
         vm.startBroadcast();
         IERC20(USDC).approve(DESK, B);

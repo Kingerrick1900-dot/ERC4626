@@ -19,7 +19,7 @@ contract DeployEliteFlashClose is Script {
     uint256 constant LLTV = 770000000000000000;
 
     address constant KING = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
-    address constant CAKE = 0xA1aFcb46a64C9173519180458C1cF302179c832a;
+    address constant VAULT = 0xA1aFcb46a64C9173519180458C1cF302179c832a;
     address constant DESK = 0xF43B75B686e3Faa2C7FD4ac9a041b6316C63e8DF;
 
     function run() external {
@@ -34,7 +34,7 @@ contract DeployEliteFlashClose is Script {
         });
 
         CrownEliteFlashClose closer =
-            new CrownEliteFlashClose(MORPHO, USDC, RSS, DESK, KING, CAKE, params, KING);
+            new CrownEliteFlashClose(MORPHO, USDC, RSS, DESK, KING, VAULT, params, KING);
         console2.log("CrownEliteFlashClose", address(closer));
 
         IDeskWire(DESK).setFiller(address(closer), true);

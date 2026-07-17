@@ -1,5 +1,5 @@
 {
-  "policy": "ONE_VAULT — no ops drip, no caps, no release agent",
+  "policy": "ONE_VAULT \u2014 no ops drip, no caps, no release agent",
   "receiver": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
   "rule": "100% of elite-close USDC lands on receiver in one tx and stays there",
   "kingSeedDesk": "0xF43B75B686e3Faa2C7FD4ac9a041b6316C63e8DF",
@@ -7,5 +7,6 @@
   "crownFlashOpen": "0x15F9C1cF54A4360F1a564675D2B71Be731Fc2A7d",
   "treasuryOnCloser": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
   "opsDrip": "REMOVED",
-  "next": "Private seat into KingSeedDesk at size B unlocks eliteClose → full B to receiver"
+  "next": "Fire eliteFlashClose whenever desk holds USDC \u2014 100% to receiver",
+  "receiverName": "kingdom vault"
 }
