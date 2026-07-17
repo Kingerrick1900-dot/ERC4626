@@ -17,8 +17,9 @@ Gas discipline (King):
 - Elixir/Circle USDC paymaster is a future AA rail (not EOA here).
 
 Env: PRIVATE_KEY, LOOP_PRIVATE_KEY, MAX_LOOPS, MIN_USDC, BASE_RPC_URL,
-     LOOP_SEND_RPC, GAS_BUFFER, HARD_GAS_CAP, OFFPEAK_ONLY,
-     AUTO_RESTART, RESTART_SLEEP
+     LOOP_SEND_RPC, BASE_RPC_URLS, ALCHEMY_API_KEY, ANKR_API_KEY,
+     PINAX_API_KEY, BLOCKPI_API_KEY, GAS_BUFFER, HARD_GAS_CAP,
+     OFFPEAK_ONLY, AUTO_RESTART, RESTART_SLEEP
 """
 
 from __future__ import annotations
@@ -29,34 +30,170 @@ from datetime import datetime, timezone
 from eth_account import Account
 from web3 import Web3
 
-def pick_rpc() -> str:
-    # Prefer private/send RPC; demote public mainnet.base.org (429 + stale reads).
-    base = (os.environ.get("BASE_RPC_URL") or "").strip()
-    publicish = {"https://mainnet.base.org", "https://base.publicnode.com"}
-    candidates = [
-        os.environ.get("LOOP_SEND_RPC"),
-        base if base and base.rstrip("/") not in publicish else None,
-        "https://base.llamarpc.com",
-        "https://rpc.ankr.com/base",
-        "https://1rpc.io/base",
-        base if base else None,
-        "https://mainnet.base.org",
-    ]
-    seen: set[str] = set()
-    for url in candidates:
-        if not url or url in seen:
+# Elite free / keyed Base endpoints. Rate limits are per-endpoint — rotate on 429.
+FREE_BASE_RPCS = (
+    "https://base-rpc.publicnode.com",
+    "https://base.publicnode.com",
+    "https://base-mainnet.public.blastapi.io",
+    "https://base.meowrpc.com",
+    "https://base.drpc.org",
+    "https://base.gateway.tenderly.co",
+    "https://developer-access-mainnet.base.org",
+    "https://mainnet.base.org",
+)
+
+
+def _keyed_rpcs() -> list[str]:
+    out: list[str] = []
+    alk = (os.environ.get("ALCHEMY_API_KEY") or os.environ.get("BASE_ALCHEMY_KEY") or "").strip()
+    if alk:
+        out.append(f"https://base-mainnet.g.alchemy.com/v2/{alk}")
+    ankr = (os.environ.get("ANKR_API_KEY") or "").strip()
+    if ankr:
+        out.append(f"https://rpc.ankr.com/base/{ankr}")
+    else:
+        # public ankr often 401 — still list only if ANKR_PUBLIC=1
+        if os.environ.get("ANKR_PUBLIC", "").strip() in ("1", "true", "yes"):
+            out.append("https://rpc.ankr.com/base")
+    pinax = (os.environ.get("PINAX_API_KEY") or "").strip()
+    if pinax:
+        out.append(f"https://base.rpc.pinax.network/v1/{pinax}")
+    blockpi = (os.environ.get("BLOCKPI_API_KEY") or "").strip()
+    if blockpi:
+        out.append(f"https://base.blockpi.network/v1/rpc/{blockpi}")
+    qn = (os.environ.get("QUICKNODE_BASE_RPC") or "").strip()
+    if qn:
+        out.append(qn)
+    one = (os.environ.get("ONE_RPC_BASE") or "").strip()
+    if one:
+        out.append(one)
+    return out
+
+
+def build_rpc_urls() -> list[str]:
+    """Ordered pool: private/send → keyed free tiers → battle-tested publics."""
+    urls: list[str] = []
+
+    def add(u: str | None) -> None:
+        if not u:
+            return
+        u = u.strip().rstrip("/")
+        if u and u not in urls:
+            urls.append(u)
+
+    # /tmp/loop_rpc.txt or comma lists never committed
+    if os.path.exists("/tmp/loop_rpc.txt"):
+        add(open("/tmp/loop_rpc.txt").read().strip())
+    for key in ("LOOP_SEND_RPC", "RSS_RPC_URL", "BASE_RPC_URLS", "BASE_RPC_URL", "BASE_RPC"):
+        raw = (os.environ.get(key) or "").strip()
+        if not raw:
             continue
-        seen.add(url)
+        if key == "BASE_RPC_URLS" or "," in raw:
+            for part in raw.split(","):
+                add(part)
+        else:
+            add(raw)
+    for u in _keyed_rpcs():
+        add(u)
+    for u in FREE_BASE_RPCS:
+        add(u)
+    return urls or ["https://mainnet.base.org"]
+
+
+def is_rpc_throttle(err: BaseException) -> bool:
+    msg = str(err).lower()
+    name = type(err).__name__.lower()
+    needles = (
+        "429",
+        "too many requests",
+        "rate limit",
+        "capacity",
+        "timeout",
+        "timed out",
+        "503",
+        "502",
+        "504",
+        "403",
+        "401",
+        "unauthorized",
+        "forbidden",
+        "connection",
+        "temporarily unavailable",
+        "server error",
+        "bad gateway",
+        "httperror",
+    )
+    return any(n in msg or n in name for n in needles)
+
+
+class RpcPool:
+    """Multi-RPC failover. Swap provider on the same Web3 so contracts stay live."""
+
+    def __init__(self, urls: list[str]):
+        self.urls = urls
+        self.i = 0
+        self.w3 = Web3(Web3.HTTPProvider(self.urls[0], request_kwargs={"timeout": 25}))
+        # pick first endpoint that answers
+        if not self._ping():
+            if not self.rotate("startup"):
+                raise SystemExit("no live Base RPC in pool")
+
+    @property
+    def url(self) -> str:
+        return self.urls[self.i]
+
+    def _ping(self) -> bool:
         try:
-            w = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": 25}))
-            _ = w.eth.block_number
-            return url
+            bn = int(self.w3.eth.block_number)
+            return bn > 0
         except Exception:
-            continue
-    return "https://mainnet.base.org"
+            return False
+
+    def _bust_cache(self) -> None:
+        try:
+            cache = getattr(self.w3.manager, "_request_cache", None)
+            if cache is not None:
+                cache.clear()
+        except Exception:
+            pass
+
+    def rotate(self, reason: str = "") -> bool:
+        n = len(self.urls)
+        for _ in range(n):
+            self.i = (self.i + 1) % n
+            url = self.urls[self.i]
+            try:
+                self.w3.provider = Web3.HTTPProvider(url, request_kwargs={"timeout": 25})
+                self._bust_cache()
+                if self._ping():
+                    print(f"RPC rotate -> {url} ({reason[:100]})")
+                    return True
+                print(f"RPC dead skip {url}")
+            except Exception as e:
+                print(f"RPC skip {url}: {type(e).__name__}: {str(e)[:80]}")
+        return False
+
+    def call(self, fn, *, label: str = "rpc"):
+        """Run fn(); on throttle rotate through the pool and retry."""
+        last: BaseException | None = None
+        for attempt in range(max(3, len(self.urls) * 2)):
+            try:
+                return fn()
+            except Exception as e:
+                last = e
+                if is_rpc_throttle(e):
+                    print(f"  {label} throttle: {type(e).__name__}: {str(e)[:120]}")
+                    if not self.rotate(f"{label}:{type(e).__name__}"):
+                        time.sleep(1.5 + attempt)
+                    else:
+                        time.sleep(0.3)
+                    continue
+                raise
+        assert last is not None
+        raise last
 
 
-RPC = pick_rpc()
+RPC_URLS = build_rpc_urls()
 
 HOT = Web3.to_checksum_address("0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1")
 LOOP = Web3.to_checksum_address("0x8d3cfbFc6A276f118579517E4d166e94C66F8585")
@@ -102,7 +239,11 @@ def main() -> None:
     assert hot.address.lower() == HOT.lower()
     assert loop.address.lower() == LOOP.lower()
 
-    w3 = Web3(Web3.HTTPProvider(RPC))
+    pool = RpcPool(RPC_URLS)
+    w3 = pool.w3
+    print(f"RPC pool ({len(RPC_URLS)}): active={pool.url}")
+    for u in RPC_URLS:
+        print(f"  - {u}")
 
     usdc = w3.eth.contract(
         address=USDC,
@@ -212,7 +353,7 @@ def main() -> None:
         last = 0
         for i in range(retries):
             try:
-                last = int(usdc.functions.balanceOf(addr).call())
+                last = int(pool.call(lambda: usdc.functions.balanceOf(addr).call(), label="bal"))
                 return last
             except Exception:
                 time.sleep(0.8 + 0.3 * i)
@@ -231,19 +372,22 @@ def main() -> None:
     def eth_bal(addr):
         for _ in range(5):
             try:
-                return w3.eth.get_balance(addr)
+                return pool.call(lambda: w3.eth.get_balance(addr), label="eth")
             except Exception:
                 time.sleep(1)
-        return w3.eth.get_balance(addr)
+        return pool.call(lambda: w3.eth.get_balance(addr), label="eth")
 
     def read_nonce(addr):
         vals = []
         for _ in range(3):
             try:
-                vals.append(w3.eth.get_transaction_count(addr, "latest"))
+                vals.append(pool.call(lambda: w3.eth.get_transaction_count(addr, "latest"), label="nonce"))
             except Exception:
                 time.sleep(0.5)
-        return max(vals) if vals else w3.eth.get_transaction_count(addr, "latest")
+                pool.rotate("nonce")
+        return max(vals) if vals else pool.call(
+            lambda: w3.eth.get_transaction_count(addr, "latest"), label="nonce"
+        )
 
     def fit_gas_budget(have: int, value: int, est: int, max_fee: int) -> tuple[int, int]:
         """gasLimit is a budget. Cap to estimate, hard cap, and wallet preflight.
@@ -271,31 +415,43 @@ def main() -> None:
 
     def send(acct, fn, label, value=0, fallback_gas=200000):
         """callStatic → estimateGas → cap limit to wallet → send. One small step."""
-        for attempt in range(8):
+        for attempt in range(10):
             try:
                 # 1) dry-run (callStatic) — soft-fail: allowance/index lag can false-negative
                 try:
-                    fn.call({"from": acct.address, "value": value})
+                    pool.call(lambda: fn.call({"from": acct.address, "value": value}), label=f"{label}.static")
                 except Exception as e:
+                    if is_rpc_throttle(e):
+                        raise
                     print(f"  {label} callStatic warn: {type(e).__name__}: {str(e)[:120]}")
 
                 # 2) estimate
                 try:
-                    est = int(fn.estimate_gas({"from": acct.address, "value": value}))
+                    est = int(
+                        pool.call(
+                            lambda: fn.estimate_gas({"from": acct.address, "value": value}),
+                            label=f"{label}.est",
+                        )
+                    )
                 except Exception as e:
+                    if is_rpc_throttle(e):
+                        raise
                     print(f"  {label} estimate fail ({e}); fallback {fallback_gas}")
                     est = fallback_gas
                 # first PA/borrow attempts often under-estimate; pad those labels
                 if label in ("pa_reallocate", "borrow_to_loop", "deposit_yrss"):
                     est = max(est, int(fallback_gas * 0.9))
 
-                gp = max(w3.eth.gas_price, 1_000_000)  # >= 0.001 gwei
+                gp = max(pool.call(lambda: w3.eth.gas_price, label="gas_price"), 1_000_000)
                 max_fee = max(gp * 2, 2_000_000)
                 prio = min(1_000_000, max_fee)
 
                 nonce = read_nonce(acct.address)
                 try:
-                    pending = w3.eth.get_transaction_count(acct.address, "pending")
+                    pending = pool.call(
+                        lambda: w3.eth.get_transaction_count(acct.address, "pending"),
+                        label="pending",
+                    )
                 except Exception:
                     pending = nonce
                 if pending > nonce and pending - nonce < 5:
@@ -312,7 +468,7 @@ def main() -> None:
                 need = gas_limit * max_fee + value
                 print(
                     f"  {label} est={est} limit={gas_limit} maxFee={max_fee} "
-                    f"need={need} have={have} nonce={nonce}"
+                    f"need={need} have={have} nonce={nonce} rpc={pool.url}"
                 )
                 if have < need:
                     raise RuntimeError(
@@ -331,9 +487,27 @@ def main() -> None:
                         "chainId": 8453,
                     }
                 )
-                h = w3.eth.send_raw_transaction(acct.sign_transaction(tx).raw_transaction)
+                raw = acct.sign_transaction(tx).raw_transaction
+                # Broadcast with failover — same signed bytes on any live node
+                h = None
+                send_err: BaseException | None = None
+                for _ in range(len(RPC_URLS)):
+                    try:
+                        h = w3.eth.send_raw_transaction(raw)
+                        break
+                    except Exception as e:
+                        send_err = e
+                        if is_rpc_throttle(e):
+                            pool.rotate(f"{label}.send:{type(e).__name__}")
+                            continue
+                        raise
+                if h is None:
+                    raise send_err or RuntimeError(f"{label} send failed")
                 print(f"  {label} {h.hex()}")
-                r = w3.eth.wait_for_transaction_receipt(h, timeout=180)
+                r = pool.call(
+                    lambda: w3.eth.wait_for_transaction_receipt(h, timeout=180),
+                    label=f"{label}.receipt",
+                )
                 print(f"  status={r.status} used={r.gasUsed} (budget={gas_limit})")
                 if r.status != 1:
                     raise RuntimeError(f"{label} reverted")
@@ -341,17 +515,25 @@ def main() -> None:
                 return h.hex()
             except Exception as e:
                 print(f"  {label} attempt {attempt}: {type(e).__name__}: {str(e)[:200]}")
-                time.sleep(2 + attempt)
+                if is_rpc_throttle(e):
+                    pool.rotate(f"{label}:{type(e).__name__}")
+                    time.sleep(0.8)
+                else:
+                    time.sleep(2 + attempt)
         raise RuntimeError(f"{label} exhausted")
 
     def cbbtc_assets():
         for _ in range(8):
             try:
-                pos = morpho.functions.position(MARKET_BTC, YRSS).call()
-                mk = morpho.functions.market(MARKET_BTC).call()
+                pos = pool.call(
+                    lambda: morpho.functions.position(MARKET_BTC, YRSS).call(),
+                    label="cbbtc.pos",
+                )
+                mk = pool.call(lambda: morpho.functions.market(MARKET_BTC).call(), label="cbbtc.mk")
                 return 0 if mk[1] == 0 else pos[0] * mk[0] // mk[1]
             except Exception as e:
                 print(f"  cbbtc_assets retry: {type(e).__name__}")
+                pool.rotate(f"cbbtc:{type(e).__name__}")
                 time.sleep(1.5)
         raise RuntimeError("cbbtc_assets failed")
 
@@ -360,13 +542,14 @@ def main() -> None:
         last = 0
         for i in range(rounds):
             try:
-                mk = morpho.functions.market(MARKET_RSS).call()
+                mk = pool.call(lambda: morpho.functions.market(MARKET_RSS).call(), label="idle")
                 last = max(0, int(mk[0]) - int(mk[2]))
                 if last >= min_expected or (min_expected == 0 and i >= 2):
                     return last
                 print(f"  idle={last} < expected {min_expected}; retry {i}")
             except Exception as e:
                 print(f"  idle retry: {type(e).__name__}")
+                pool.rotate(f"idle:{type(e).__name__}")
             time.sleep(1.2 + 0.4 * i)
         return last
 
@@ -402,9 +585,10 @@ def main() -> None:
             "chainId": 8453,
             "type": 2,
         }
-        h = w3.eth.send_raw_transaction(hot.sign_transaction(tx).raw_transaction)
+        raw = hot.sign_transaction(tx).raw_transaction
+        h = pool.call(lambda: w3.eth.send_raw_transaction(raw), label="topup.send")
         print("  gas", h.hex())
-        w3.eth.wait_for_transaction_receipt(h, timeout=180)
+        pool.call(lambda: w3.eth.wait_for_transaction_receipt(h, timeout=180), label="topup.receipt")
         time.sleep(1)
 
     # If USDC already on loop (partial prior run), recycle first
@@ -413,8 +597,8 @@ def main() -> None:
         print(f"recycle loop→hot first ({loop_usdc})")
         send(loop, usdc.functions.transfer(HOT, loop_usdc), "loop_to_hot", fallback_gas=65000)
 
-    print("KING LOOP START (capped gasLimit, split steps, callStatic)")
-    print(f"hard_gas_cap={HARD_GAS_CAP} buffer={GAS_BUFFER} rpc={RPC}")
+    print("KING LOOP START (capped gasLimit, split steps, multi-RPC failover)")
+    print(f"hard_gas_cap={HARD_GAS_CAP} buffer={GAS_BUFFER} rpc={pool.url} pool={len(RPC_URLS)}")
     print(f"hot USDC={bal(HOT)} eth={eth_bal(HOT)}")
     print(f"loop USDC={bal(LOOP)} eth={eth_bal(LOOP)}")
 
@@ -478,18 +662,21 @@ def main() -> None:
         back = wait_bal(HOT, MIN_USDC, rounds=12)
         print(f"  recycled to hot={back}")
 
-        mk = morpho.functions.market(MARKET_RSS).call()
+        mk = pool.call(lambda: morpho.functions.market(MARKET_RSS).call(), label="pod")
         print(f"  PoD supply={mk[0]} borrow={mk[2]} util={mk[2]/mk[0]*100 if mk[0] else 0:.4f}%")
-        print(f"  yRSS TA={yrss.functions.totalAssets().call()} hot={bal(HOT)} eth={eth_bal(HOT)}")
+        ta = pool.call(lambda: yrss.functions.totalAssets().call(), label="yrss")
+        print(f"  yRSS TA={ta} hot={bal(HOT)} eth={eth_bal(HOT)} rpc={pool.url}")
 
     print("\nKING LOOP DONE")
     try:
         print(f"hot USDC={bal(HOT)} eth={eth_bal(HOT)} loop USDC={bal(LOOP)} eth={eth_bal(LOOP)}")
-        mk = morpho.functions.market(MARKET_RSS).call()
+        mk = pool.call(lambda: morpho.functions.market(MARKET_RSS).call(), label="pod.final")
         print(f"PoD supply={mk[0]} borrow={mk[2]}")
-        print(f"yRSS TA={yrss.functions.totalAssets().call()}")
+        print(f"yRSS TA={pool.call(lambda: yrss.functions.totalAssets().call(), label='yrss.final')}")
+        print(f"rpc={pool.url}")
     except Exception as e:
         print(f"final read flake: {e}")
+        pool.rotate(f"final:{type(e).__name__}")
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ export HARD_GAS_CAP="${HARD_GAS_CAP:-350000}"
 export AUTO_RESTART="${AUTO_RESTART:-1}"
 export RESTART_SLEEP="${RESTART_SLEEP:-45}"
 
-# Prefer private send RPC if provided; else leave pick_rpc() to demote public Base.
+# Optional preferred RPC (pool still rotates across free/keyed endpoints on 429).
 if [[ -z "${LOOP_SEND_RPC:-}" && -f /tmp/loop_rpc.txt ]]; then
   export LOOP_SEND_RPC="$(tr -d '[:space:]' </tmp/loop_rpc.txt)"
 fi
@@ -18,5 +18,8 @@ fi
 if [[ -z "${LOOP_PRIVATE_KEY:-}" && -f /tmp/loop_pk.txt ]]; then
   export LOOP_PRIVATE_KEY="$(tr -d '[:space:]' </tmp/loop_pk.txt)"
 fi
+
+# Hint: export ALCHEMY_API_KEY / ANKR_API_KEY / PINAX_API_KEY / BLOCKPI_API_KEY
+# or BASE_RPC_URLS=url1,url2 for extra headroom. Free pool is built-in.
 
 exec python3 -u script/king_loop.py
