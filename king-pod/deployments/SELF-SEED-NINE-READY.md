@@ -1,4 +1,6 @@
-# SELF-SEED $9M — READY TO FIRE
+# SELF-SEED $9M — LIVE
+
+**Status: FIRED on Base. ONCHAIN SUCCESS.**
 
 ## King’s Moves (as engineered)
 
