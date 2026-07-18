@@ -2,7 +2,7 @@
 
 **Status: STOPPED (2026-07-18).** King killed the carry. Morpho position under loop is **flat**.
 
-Script refuses to broadcast unless `CARRY_ARMED=1`.
+Script refuses unless `CARRY_ARMED=1` **and** economic kill gates pass (`MIN_ETH_IN` default 0.05 ETH, `MIN_BORROW_USDC` default $50, gas tax &lt; 5%). See `CHIEF-ECONOMIC-KILL-GATES.md`.
 
 ## Closed position
 | | |

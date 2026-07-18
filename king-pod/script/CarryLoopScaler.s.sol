@@ -84,6 +84,7 @@ contract CarryLoopScaler is Script {
 
     function run() external {
         // HALTED 2026-07-18 — King killed carry. Re-arm only with CARRY_ARMED=1.
+        // Economic kill gates: see deployments/CHIEF-ECONOMIC-KILL-GATES.md
         require(vm.envOr("CARRY_ARMED", uint256(0)) == 1, "CARRY_HALTED");
 
         // Prefer LOOP_PRIVATE_KEY; refuse if signer is not the loop ops wallet.
@@ -97,6 +98,10 @@ contract CarryLoopScaler is Script {
         uint256 gasReserve = vm.envOr("GAS_RESERVE", uint256(0.0003 ether));
         uint256 usdcFloor = vm.envOr("USDC_FLOOR", uint256(1e6));
         uint256 loops = vm.envOr("LOOPS", uint256(1));
+        // Defaults kill dust missions (~$7 ETH carry was dead EV).
+        uint256 minEthIn = vm.envOr("MIN_ETH_IN", uint256(0.05 ether));
+        uint256 minBorrowUsdc = vm.envOr("MIN_BORROW_USDC", uint256(50e6));
+        uint256 maxGasTaxBps = vm.envOr("MAX_GAS_TAX_BPS", uint256(500)); // 5%
         require(maxLtvBps > 0 && maxLtvBps <= 7000, "LTV");
         require(loops >= 1 && loops <= 5, "LOOPS");
 
@@ -121,7 +126,11 @@ contract CarryLoopScaler is Script {
             if (swapEth + gasReserve > ethBal) {
                 swapEth = ethBal - gasReserve;
             }
-            require(swapEth >= 0.00005 ether, "ETH_IN_DUST");
+            require(swapEth >= minEthIn, "DEAD_SIZE_ETH");
+
+            // Gas tax gate: ~1.3M gas worst-case multi-step lap vs ETH_IN notional.
+            uint256 gasWei = tx.gasprice * 1_300_000;
+            require(gasWei * 10_000 <= swapEth * maxGasTaxBps, "DEAD_GAS_TAX");
 
             uint256[] memory quoted = IAeroRouter(AERO).getAmountsOut(swapEth, routes);
             uint256 minOut = (quoted[1] * (10_000 - slipBps)) / 10_000;
@@ -131,6 +140,12 @@ contract CarryLoopScaler is Script {
 
             uint256 usdcBefore = IERC20(USDC).balanceOf(king);
             require(usdcBefore >= usdcFloor, "USDC_FLOOR");
+
+            uint256 pxPre = IOracle(ORACLE).price();
+            uint256 collValuePre = (quoted[1] * pxPre) / 1e36;
+            uint256 borrowPre = (((collValuePre * maxLtvBps) / 10_000) * 98) / 100;
+            require(borrowPre >= minBorrowUsdc, "DEAD_SIZE_BORROW");
+            console2.log("borrowPreUSDC", borrowPre);
 
             vm.startBroadcast(pk);
 
@@ -149,7 +164,7 @@ contract CarryLoopScaler is Script {
             require(borrowUsdc > 0, "BORROW0");
             // Keep a 2% buffer under target LTV for interest accrual
             borrowUsdc = (borrowUsdc * 98) / 100;
-            require(borrowUsdc > 0, "BORROW0");
+            require(borrowUsdc >= minBorrowUsdc, "DEAD_SIZE_BORROW");
             console2.log("collValueUSDC", collValue);
             console2.log("borrowUsdc", borrowUsdc);
 

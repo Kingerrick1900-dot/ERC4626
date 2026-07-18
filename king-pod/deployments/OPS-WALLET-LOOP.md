@@ -31,3 +31,6 @@ Hot ops rule: **one tx at a time**, gas limit padded (≥1.5× estimate). Do not
 
 ## HALTED (2026-07-18)
 King stopped carry. Loop Morpho flat. ETH + $1 USDC parked on loop. Scaler requires `CARRY_ARMED=1` to fire again.
+
+## Chief failure (own it)
+~$7–9 ETH carry was a **dead mission** (fees + gas + borrow &gt; any dust yield). Chief should have refused before broadcast. Standing gates: `deployments/CHIEF-ECONOMIC-KILL-GATES.md`. Scripts now revert `DEAD_SIZE_*` / `DEAD_GAS_TAX` under min size.

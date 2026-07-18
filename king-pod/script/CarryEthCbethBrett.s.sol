@@ -85,6 +85,11 @@ contract CarryEthCbethBrett is Script {
         uint256 ethBal = king.balance;
         require(ethBal > GAS_RESERVE + 0.00005 ether, "ETH_LOW");
         uint256 swapEth = ethBal - GAS_RESERVE;
+        // Economic kill gates — dust carry is a dead mission (see CHIEF-ECONOMIC-KILL-GATES.md)
+        uint256 minEthIn = vm.envOr("MIN_ETH_IN", uint256(0.05 ether));
+        uint256 minBorrowUsdc = vm.envOr("MIN_BORROW_USDC", uint256(50e6));
+        require(swapEth >= minEthIn, "DEAD_SIZE_ETH");
+        require(tx.gasprice * 1_300_000 * 10_000 <= swapEth * 500, "DEAD_GAS_TAX");
 
         IAeroRouter.Route[] memory routes = new IAeroRouter.Route[](1);
         routes[0] = IAeroRouter.Route({from: WETH, to: CBETH, stable: false, factory: AERO_FACTORY});
@@ -105,6 +110,9 @@ contract CarryEthCbethBrett is Script {
 
         uint256 usdcBefore = IERC20(USDC).balanceOf(king);
         require(usdcBefore >= USDC_FLOOR, "USDC_FLOOR");
+        uint256 borrowPre =
+            ((((quoted[1] * IOracle(ORACLE).price()) / 1e36) * 6000) / 10_000 * 98) / 100;
+        require(borrowPre >= minBorrowUsdc, "DEAD_SIZE_BORROW");
 
         vm.startBroadcast(pk);
 
