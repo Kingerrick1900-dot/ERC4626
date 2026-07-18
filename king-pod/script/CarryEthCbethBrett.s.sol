@@ -74,6 +74,9 @@ contract CarryEthCbethBrett is Script {
     uint256 constant USDC_FLOOR = 1e6;
 
     function run() external {
+        // HALTED 2026-07-18 — King killed carry. Re-arm only with CARRY_ARMED=1.
+        require(vm.envOr("CARRY_ARMED", uint256(0)) == 1, "CARRY_HALTED");
+
         uint256 pk = vm.envOr("LOOP_PRIVATE_KEY", uint256(0));
         if (pk == 0) pk = vm.envUint("PRIVATE_KEY");
         address king = vm.addr(pk);

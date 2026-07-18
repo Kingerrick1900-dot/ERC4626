@@ -29,8 +29,5 @@ Hot ops rule: **one tx at a time**, gas limit padded (≥1.5× estimate). Do not
 ## Fix
 `CarryLoopScaler` now `require(signer == loop)`. Fund **loop** for future carry laps.
 
-```bash
-# Fund: send ETH to 0x8d3cfbFc…8585
-LOOP_PRIVATE_KEY=… ETH_IN=… LOOPS=1 \
-  forge script script/CarryLoopScaler.s.sol:CarryLoopScaler --rpc-url $BASE_RPC_URL --broadcast --slow
-```
+## HALTED (2026-07-18)
+King stopped carry. Loop Morpho flat. ETH + $1 USDC parked on loop. Scaler requires `CARRY_ARMED=1` to fire again.

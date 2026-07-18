@@ -1,22 +1,23 @@
-# CarryLoopScaler
+# CarryLoopScaler — HALTED
 
-Controlled scaler (not recursive leverage).
+**Status: STOPPED (2026-07-18).** King killed the carry. Morpho position under loop is **flat**.
 
-```bash
-ETH_IN=3500000000000000 MAX_LTV_BPS=6000 LOOPS=1 \
-  forge script script/CarryLoopScaler.s.sol:CarryLoopScaler --rpc-url $BASE_RPC_URL --broadcast
-```
+Script refuses to broadcast unless `CARRY_ARMED=1`.
 
-Env knobs: `ETH_IN`, `MAX_LTV_BPS` (cap 7000), `SLIPPAGE_BPS`, `GAS_RESERVE`, `USDC_FLOOR`, `LOOPS` (1–5).
-
-## Live lap (2026-07-18) — LOOP
-Funded loop USDC floor → ran scaler once from loop key.
-
+## Closed position
 | | |
 |--|--|
-| swapEth | ~0.00435 ETH |
-| cbETH coll | ~0.00383 |
-| borrow @60% | ~$4.70 USDC → yRSS |
-| left on loop | ~0.0003 ETH gas + ~$1 USDC |
+| Morpho cbETH/USDC | **0 / 0** |
+| Loop ETH | ~0.00461 |
+| Loop USDC | ~$1.00 floor |
+| Loop yRSS | dust shares only (~0 assets) |
 
-Broadcast: `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL` (`CarryLoopScaler` run-latest on Base).
+Unwind txs: repay `0x6bf9b9c2…` → withdrawCollateral `0x96c7e568…` → Aero `0xd25eb8e8…`.
+
+## Do not run
+```bash
+# blocked unless armed
+forge script script/CarryLoopScaler.s.sol:CarryLoopScaler --rpc-url $BASE_RPC_URL --broadcast
+# only if King re-arms:
+# CARRY_ARMED=1 LOOP_PRIVATE_KEY=… forge script …
+```

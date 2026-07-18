@@ -83,6 +83,9 @@ contract CarryLoopScaler is Script {
         0xf6f43f1660f1f4779e92a2e21086f4ab49a3fc0cae8a17992808e6a6db488c16;
 
     function run() external {
+        // HALTED 2026-07-18 — King killed carry. Re-arm only with CARRY_ARMED=1.
+        require(vm.envOr("CARRY_ARMED", uint256(0)) == 1, "CARRY_HALTED");
+
         // Prefer LOOP_PRIVATE_KEY; refuse if signer is not the loop ops wallet.
         uint256 pk = vm.envOr("LOOP_PRIVATE_KEY", uint256(0));
         if (pk == 0) pk = vm.envUint("PRIVATE_KEY");
