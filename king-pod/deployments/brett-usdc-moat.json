@@ -1,0 +1,39 @@
+{
+  "chainId": 8453,
+  "role": "oracle-moat",
+  "collateral": {
+    "symbol": "BRETT",
+    "address": "0x532f27101965dd16442E59d40670FaF5eBB142E4",
+    "decimals": 18,
+    "note": "Zero Morpho markets on Base before this deploy; UniV3 depth ~$1M+"
+  },
+  "loan": {
+    "symbol": "USDC",
+    "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  },
+  "oracle": {
+    "address": "0x3378E48fF1e6bEf07d4d7F6Bb1e87C38A58D2619",
+    "type": "MorphoUniV3Oracle",
+    "pool": "0xBF0A0C12E7C0610002F6Aa6E609755EDe42D6A4d",
+    "twapSeconds": 1800,
+    "deployTx": "0x1bdfb4f9a794bb48fbbd010f2450e70d8d4875d32d22175eac8f4965ceb7fae5",
+    "priceSample": "5031000000000000000000"
+  },
+  "market": {
+    "id": "0xf6f43f1660f1f4779e92a2e21086f4ab49a3fc0cae8a17992808e6a6db488c16",
+    "irm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+    "lltv": "625000000000000000",
+    "createTx": "0x694f9308069c1d505254906e51068096a16df576937e85c77a753075a88479a4"
+  },
+  "yRSS": {
+    "vault": "0xF80C0529bD94C773844E459853CD91B9263dD525",
+    "brettSupplyCapUSDC": "2000000000000",
+    "brettMaxIn": "700000000000",
+    "armNote": "ArmYrssFatCurator broadcast 2026-07-18 — BRETT enabled on fat curator vault"
+  },
+  "rssMoat": {
+    "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+    "oracle": "0x284EC3A9674e6C62ea552Bf75BDeE9B799627D2e",
+    "oracleOwner": "0x000000000000000000000000000000000000dEaD"
+  }
+}
