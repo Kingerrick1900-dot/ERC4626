@@ -1,7 +1,9 @@
 # CHIEF ECONOMIC KILL GATES
 
+**OPS FREEZE in force** — see `OPS-FREEZE.md`. Kill gates alone were not enough after capital was already burned on a dead mission.
+
 **Standing order (King Errick / Chief Engineer):**  
-No ops path fires unless unit economics clear a kill gate. “It compiles” and “it broadcasts” are not green lights.
+No ops path fires unless unit economics clear a kill gate. “It compiles” and “it broadcasts” are not green lights. **Costing the user money without gain is a seat failure.**
 
 ## Autopsy — cbETH carry @ ~$7–9 (2026-07-18) — DEAD MISSION
 
