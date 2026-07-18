@@ -57,15 +57,16 @@ interface IMetaMorpho {
 }
 
 /// @notice Controlled scaler: ETH → Aerodrome cbETH → Morpho 60% LTV borrow → yRSS/BRETT.
-/// @dev Env:
-///   PRIVATE_KEY
+/// @dev OPS WALLET = LOOP `0x8d3cfbFc…8585` ONLY. Never fund/run this from hot `0x6708…`.
+///   LOOP_PRIVATE_KEY (required) — signer must be loop
 ///   ETH_IN          — wei to swap (0 = balance - GAS_RESERVE)
 ///   MAX_LTV_BPS     — default 6000 (60%)
 ///   SLIPPAGE_BPS    — default 500 (5%)
 ///   GAS_RESERVE     — default 0.0003 ether
-///   USDC_FLOOR      — default 1e6 ($1) — never drain hot below this
-///   LOOPS           — default 1 (repeat carry on remaining ETH; not recursive leverage)
+///   USDC_FLOOR      — default 1e6 ($1) on loop
+///   LOOPS           — default 1 (not recursive leverage)
 contract CarryLoopScaler is Script {
+    address constant OPS_LOOP = 0x8d3cfbFc6A276f118579517E4d166e94C66F8585;
     address constant AERO = 0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43;
     address constant AERO_FACTORY = 0x420DD381b31aEf6683db6B902084cB0FFECe40Da;
     address constant WETH = 0x4200000000000000000000000000000000000006;
@@ -82,8 +83,11 @@ contract CarryLoopScaler is Script {
         0xf6f43f1660f1f4779e92a2e21086f4ab49a3fc0cae8a17992808e6a6db488c16;
 
     function run() external {
-        uint256 pk = vm.envUint("PRIVATE_KEY");
+        // Prefer LOOP_PRIVATE_KEY; refuse if signer is not the loop ops wallet.
+        uint256 pk = vm.envOr("LOOP_PRIVATE_KEY", uint256(0));
+        if (pk == 0) pk = vm.envUint("PRIVATE_KEY");
         address king = vm.addr(pk);
+        require(king == OPS_LOOP, "OPS_MUST_BE_LOOP");
 
         uint256 maxLtvBps = vm.envOr("MAX_LTV_BPS", uint256(6000));
         uint256 slipBps = vm.envOr("SLIPPAGE_BPS", uint256(500));

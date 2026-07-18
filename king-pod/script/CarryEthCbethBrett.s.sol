@@ -55,8 +55,10 @@ interface IMetaMorpho {
 }
 
 /// @notice ETH → Aerodrome cbETH → Morpho collateral → borrow 60% LTV USDC → yRSS (BRETT).
-/// @dev Market: cbETH/USDC 86% LLTV 0x1c21c59df9db44bf6f645d854ee710a8ca17b479451447e9f56758aee10a2fad
+/// @dev OPS = loop only. Set LOOP_PRIVATE_KEY. Signer must be 0x8d3cfbFc…8585.
+/// Market: cbETH/USDC 86% LLTV 0x1c21c59df9db44bf6f645d854ee710a8ca17b479451447e9f56758aee10a2fad
 contract CarryEthCbethBrett is Script {
+    address constant OPS_LOOP = 0x8d3cfbFc6A276f118579517E4d166e94C66F8585;
     address constant AERO = 0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43;
     address constant AERO_FACTORY = 0x420DD381b31aEf6683db6B902084cB0FFECe40Da;
     address constant WETH = 0x4200000000000000000000000000000000000006;
@@ -72,8 +74,10 @@ contract CarryEthCbethBrett is Script {
     uint256 constant USDC_FLOOR = 1e6;
 
     function run() external {
-        uint256 pk = vm.envUint("PRIVATE_KEY");
+        uint256 pk = vm.envOr("LOOP_PRIVATE_KEY", uint256(0));
+        if (pk == 0) pk = vm.envUint("PRIVATE_KEY");
         address king = vm.addr(pk);
+        require(king == OPS_LOOP, "OPS_MUST_BE_LOOP");
 
         uint256 ethBal = king.balance;
         require(ethBal > GAS_RESERVE + 0.00005 ether, "ETH_LOW");
