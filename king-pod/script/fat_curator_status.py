@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from web3 import Web3
 
-RPC = os.environ.get("BASE_RPC_URL") or "https://mainnet.base.org"
+RPC = os.environ.get("BASE_RPC_URL") or os.environ.get("ETH_RPC_URL") or "https://base.llamarpc.com"
 YRSS = Web3.to_checksum_address("0xF80C0529bD94C773844E459853CD91B9263dD525")
 PA = Web3.to_checksum_address("0xA090dD1a701408Df1d4d0B85b716c87565f90467")
 MORPHO = Web3.to_checksum_address("0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb")
