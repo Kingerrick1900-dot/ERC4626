@@ -50,6 +50,8 @@ interface IMorphoFlashLoanCallback {
 
 interface IVaultV2Elephant {
     function deposit(uint256 assets, address receiver) external returns (uint256);
+    function convertToAssets(uint256 shares) external view returns (uint256);
+    function balanceOf(address) external view returns (uint256);
 }
 
 /// @notice War elephant ATTACK — fully atomic inside Morpho flash.
@@ -77,6 +79,9 @@ contract CrownSelfSeedV2 is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     error BadAmt();
     error Ltv();
     error NoLiquidity();
+    error InvariantShares();
+    error InvariantDebt();
+    error InvariantFlash();
 
     constructor(
         address morpho_,
@@ -141,8 +146,20 @@ contract CrownSelfSeedV2 is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
 
         // 3) Borrow against king's RSS to repay flash
         morpho.borrow(mp, assets, 0, king, address(this));
-        usdc.approve(address(morpho), assets);
 
+        // 4) End-of-callback invariants — fail closed (whole flash reverts)
+        uint256 kingShares = vault.balanceOf(king);
+        uint256 kingVaultAssets = vault.convertToAssets(kingShares);
+        // Allow 1 USDC wei rounding
+        if (kingVaultAssets + 1e6 < assets) revert InvariantShares();
+
+        (, uint128 borrowShares,) = morpho.position(marketId, king);
+        if (borrowShares == 0) revert InvariantDebt();
+
+        uint256 repayBal = usdc.balanceOf(address(this));
+        if (repayBal < assets) revert InvariantFlash();
+
+        usdc.approve(address(morpho), assets);
         emit AttackSeeded(rssAmount, assets, assets, shares);
     }
 }

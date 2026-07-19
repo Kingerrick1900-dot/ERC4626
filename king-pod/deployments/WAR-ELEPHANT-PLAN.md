@@ -110,4 +110,6 @@ KING_GO=1 FIRE_RECOVER=1 RECOVERER=<addr> PRIVATE_KEY=<hot> \
 | `script/FireFeedWarElephant.s.sol` | Gated feed to landing |
 | `script/FireRecoverElephant.s.sol` | Gated repay + free RSS |
 
-**War elephant ready. Ladder first. Full $9M on King’s go only.**
+**War elephant ready. Ladder first. Full $9M on King's go only.**
+
+See also: `AIRTIGHT-LAYER.md` (theft / MEV / custom-code harden).
