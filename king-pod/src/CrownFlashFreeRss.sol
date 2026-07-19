@@ -151,15 +151,20 @@ contract CrownFlashFreeRss is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback
             morpho.withdrawCollateral(mp, coll, king, king);
         }
 
-        // 4) Cover debt−supply gap from yRSS (now liquid — util collapsed after repay)
+        // 4) Cover flash from yRSS (now liquid — util collapsed after repay).
+        //    Self-seed books have king Morpho supplyShares=0; almost all USDC sits in yRSS.
+        //    Share/fee rounding can leave a small gap (~$100–$200 on a $9M book) — prefund
+        //    this contract with a few hundred USDC before freeRss(), or Short() reverts.
         uint256 yrssUsed;
         uint256 have = usdc.balanceOf(address(this));
         if (have < assets) {
             uint256 need = assets - have;
             uint256 maxW = yrss.maxWithdraw(king);
-            if (maxW < need) revert Short();
-            yrss.withdraw(need, address(this), king);
-            yrssUsed = need;
+            uint256 pull = maxW < need ? maxW : need;
+            if (pull > 0) {
+                yrss.withdraw(pull, address(this), king);
+                yrssUsed = pull;
+            }
             have = usdc.balanceOf(address(this));
         }
         if (have < assets) revert Short();
