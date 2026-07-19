@@ -1,6 +1,10 @@
 # War Elephant - Full Battle Plan
 
-**Status: HOLD on multi-flash atomic strike.** See `WHY-FLASH-COMPLEXITY.md` — self-seed does not require 2×/3× Morpho flashes; that plumbing is fragile. King must pick simple ATTACK-only and/or IKR-FEED with real working capital before any live $1k.
+**Status: HOLD — do not take the loan until separate FEED access is proven.**
+
+King’s rule: simple ATTACK is fine in principle, but if USDC cannot be pulled to cold Landing in a **separate** tx while debt stays open, **do not move**.
+
+See `ACCESS-GATE-HOLD.md`. Gas-only exit `0x88b2badd…` proved `forceDeallocate` with **debt closed**, not FEED-to-landing with debt open. Flash FEED still dies on IKR withdraw. Hot has no IKR USDC.
 
 ## Objective
 
