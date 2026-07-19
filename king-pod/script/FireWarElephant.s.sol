@@ -48,7 +48,8 @@ contract FireWarElephant is Script {
         bool kingGo = vm.envOr("KING_GO", uint256(0)) == 1;
         bool fireAttack = vm.envOr("FIRE_ATTACK", uint256(0)) == 1;
         uint256 borrowUsdc = vm.envOr("BORROW_USDC", uint256(9_000_000e6));
-        if (borrowUsdc < 1_000_000e6) borrowUsdc = 9_000_000e6;
+        // Allow micro ladder sizes; default remains $9M when unset
+        if (borrowUsdc == 0) borrowUsdc = 9_000_000e6;
         address existing = vm.envOr("SEEDER", address(0));
 
         uint256 rssBal = IERC20S(RSS).balanceOf(HOT);
