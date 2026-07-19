@@ -1,6 +1,7 @@
 # Vault V2 — fork PASS, live BLOCKED
 
-**Status:** Fork exit proven. **No live deploy until King says so.**
+**Status:** Fork exit proven.  
+**Note:** A live deploy **did land** before the stop fully locked — see `VAULT-V2-LIVE.md`. No further live txs after King’s order.
 
 ## Landing wallet
 
