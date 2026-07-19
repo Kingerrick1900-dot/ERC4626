@@ -16,22 +16,19 @@ The intended liquid bag was **21,000,000 RSS**. That slice was posted as Morpho 
 
 The other **~20.9815B** never left V1 LP from bootstrap.
 
-## Free path A — Morpho 18.5M (proven on fork)
+## Free path A — Morpho 18.5M (proven on fork, $0 USDC prefund)
 
-Existing freer `0x50D9…6418` reverts `Short()` on the current book because:
-
-1. King Morpho `supplyShares = 0` (USDC is in yRSS, not direct Morpho supply)
-2. After repay, yRSS can return ~$9,000,975 but flash repayment needs ~$107 more (share/fee rounding)
-
-**Fix:** new freer + **$500 USDC prefund on hot**, then:
+**Use chunk free (preferred):** no $500 needed. Leaves ~$300 dust debt + ~400 RSS posted.
 
 ```bash
 cd king-pod
-PRIVATE_KEY=<hot 0x6708… key> forge script script/DeployAndFreeRss.s.sol:DeployAndFreeRss \
+PRIVATE_KEY=<hot 0x6708… key> forge script script/DeployAndChunkFreeRss.s.sol:DeployAndChunkFreeRss \
   --rpc-url $BASE_RPC --broadcast
 ```
 
-Fork test `test_free_with_prefund` passes: Morpho debt/coll → 0, hot receives **~18.5M RSS**.
+Fork test `test_chunk_free_to_king_no_prefund` passes: **~18.5M RSS → hot only**.
+
+**Hard rule after free:** do **not** recycle into Morpho/yRSS/Pod until a tested exit exists (`NO-RECYCLE-UNTIL-EXIT.md`). Self-seed scripts are `revert` frozen.
 
 ## Free path B — V1 pair 20.9815B
 

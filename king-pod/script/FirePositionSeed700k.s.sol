@@ -70,6 +70,8 @@ contract FirePositionSeed700k is Script {
     uint256 constant CAP_700K = 700_000e6;
 
     function run() external {
+        // King order: no recycle / re-lock until a tested exit exists.
+        revert("FROZEN: NO-RECYCLE-UNTIL-EXIT");
         uint256 pk = vm.envUint("PRIVATE_KEY");
 
         IMorphoSeed.MarketParams memory rssMp = IMorphoSeed.MarketParams({

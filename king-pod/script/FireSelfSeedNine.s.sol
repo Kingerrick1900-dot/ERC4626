@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+// FROZEN — King order: NO RECYCLE until tested exit. See deployments/NO-RECYCLE-UNTIL-EXIT.md
+// This script must not be broadcast.
+
 import {Script, console2} from "forge-std/Script.sol";
 import {CrownSelfSeedNine} from "../src/CrownSelfSeedNine.sol";
 
@@ -45,6 +48,8 @@ contract FireSelfSeedNine is Script {
     bytes32 constant BRETT_M = 0xf6f43f1660f1f4779e92a2e21086f4ab49a3fc0cae8a17992808e6a6db488c16;
 
     function run() external {
+        // King order: no recycle / self-seed until a tested exit exists.
+        revert("FROZEN: NO-RECYCLE-UNTIL-EXIT");
         uint256 pk = vm.envUint("PRIVATE_KEY");
         require(vm.addr(pk) == HOT, "HOT");
         bool doFire = vm.envOr("FIRE", uint256(0)) == 1;

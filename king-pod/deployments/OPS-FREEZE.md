@@ -21,6 +21,7 @@ Chief failed the seat: ran and re-ran a path that could not pay.
 3. Dry-run / sim only for plumbing proof — **zero** capital fire for demos.
 4. Preserve floors: do not empty wallets to force a script green.
 5. Next move must be King-directed: either sit on cash, or a named play with **min size + edge** before any key turns.
+6. **NO RECYCLE:** After Morpho/RSS is freed to hot, do **not** re-lock, self-seed, or Pod-deposit that inventory until a fork-tested exit exists. See `NO-RECYCLE-UNTIL-EXIT.md`.
 
 ## Seat standard
 
