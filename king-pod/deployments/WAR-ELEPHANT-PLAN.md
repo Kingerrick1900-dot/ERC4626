@@ -1,6 +1,6 @@
 # War Elephant - Full Battle Plan
 
-**Status: ARMED. No attack until King says go.**
+**Status: HOLD on multi-flash atomic strike.** See `WHY-FLASH-COMPLEXITY.md` — self-seed does not require 2×/3× Morpho flashes; that plumbing is fragile. King must pick simple ATTACK-only and/or IKR-FEED with real working capital before any live $1k.
 
 ## Objective
 
