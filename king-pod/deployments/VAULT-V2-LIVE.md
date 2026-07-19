@@ -2,22 +2,20 @@
 
 **Honest status:** Live deploy **did execute** (38 txs from hot) shortly before King’s “no live until I say” order was locked in. RSS was **not** moved. No further live txs after the stop.
 
-## Owner role — intentional, not Morpho default
+## Owner role — intentional (cold / hot split)
 
-Morpho’s sample script sets `OWNER` from env (often = deployer).  
-**King script hardcoded `OWNER = landing`** — that was **my choice**, not an unavoidable factory default.
+**King order:** landing is **cold** once funds land; hot handles **daily affairs**.
 
 | Role | Who | Power |
 |------|-----|--------|
-| **Owner** | landing `0x5Adc…2357` | Highest: `setOwner`, `setCurator`, `setIsSentinel` |
-| **Curator** | hot `0x6708…a7d1` | Caps, adapters, penalty, abdications, timelocks |
-| **Allocator** | hot + landing | `allocate` / `deallocate` / liquidity adapter |
+| **Owner (cold)** | landing `0x5Adc…2357` | Highest: `setOwner`, `setCurator`, `setIsSentinel` — rare admin only |
+| **Curator (hot)** | hot `0x6708…a7d1` | Daily: caps, adapters, penalty, abdications |
+| **Allocator (hot + landing)** | hot primary | Daily: `allocate` / `deallocate` / liquidity adapter |
 
-**Why I set owner = landing:** treated “landing wallet” as final treasury control, not just exit `receiver`.
+Morpho’s sample script sets `OWNER` from env (often = deployer).  
+King script set **owner = landing** on purpose so cold holds supremacy; hot keeps curator/allocator for ops.
 
-**That is stronger than needed for exit routing.** Force-deallocate / withdraw only need landing as the **USDC receiver**. Owner is admin supremacy. If King wants hot (or another key) as owner, **only landing can `setOwner`** now — hot cannot.
-
-Confirm intentional or order a ownership transfer from landing.
+Exit USDC/RSS still **receives** to landing (cold). Hot does not need owner for day-to-day.
 
 ## Live addresses (Base)
 
