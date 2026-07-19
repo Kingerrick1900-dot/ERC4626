@@ -1,38 +1,25 @@
-# NO RECYCLE UNTIL EXIT — King order
+# NO RECYCLE UNTIL EXIT — King order (updated)
 
-**Effective immediately after any Morpho free.**
+## Exit bar — MET
 
-## Rule
+- Vault V2 live + `forceDeallocate` **live-proven** (gas-only). See `VAULT-V2-LIVE-EXIT-PROVEN.md`.
+- Cold landing / hot daily roles set.
 
-Anything freed (RSS on hot, leftover USDC, yRSS residual) must **sit liquid**.
+## Re-lock / loan
 
-Landing wallet (preferred liquid destination): `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357`
+Allowed **only** via war elephant gates on **King’s go**:
 
-**Do not** put it back into:
+- `FireWarElephant.s.sol` — needs `KING_GO=1` + `FIRE_ATTACK=1`
+- `FireFeedWarElephant.s.sol` — needs `KING_GO=1` + `FIRE_FEED=1`
 
-- Morpho `supplyCollateral` / borrow / self-lend / self-seed
-- yRSS deposit as a recycle leg
-- King Pod / KingPair / Market V1 or V2 lock
-- Any new “PoD / TVL / loop” that has no tested unwind
+See `WAR-ELEPHANT-PLAN.md`.
 
-…until there is a **fork-tested exit** that returns the same assets to hot/landing in one proven path **and King green-lights live use**.
+## Still forbidden without King go
 
-## Allowed now
+- Old `FireSelfSeedNine` / V1 yRSS recycle
+- Ad-hoc Morpho re-lock / carry scalers
+- Using exposed/old Cake wallet
 
-1. Leave freed RSS liquid on hot or land on landing wallet. Gas only.
-2. V1 **20.98B** stays stranded — do not add more to it.
-3. Fork-work / simulate Vault V2 deploy — **no live broadcast** until King says.
+## Landing
 
-## Forbidden scripts until King lifts freeze
-
-- `FireSelfSeedNine.s.sol`
-- `FirePositionSeed700k.s.sol`
-- `CrownSelfSeedNine`
-- Any carry/scaler that re-locks King RSS
-- `DeployKingVaultV2.s.sol` **broadcast** (requires King `LIVE_ARMED=1`)
-
-## Exit bar (minimum)
-
-**Vault V2 access (fork):** PASS — see `VAULT-V2-FORK-PASS.md` (`forceDeallocate` ×2 at ~100% util).
-
-Before any re-lock: live V2 must be deployed **only after King green light**, then a live-proven unwind back to landing. No story charts.
+`0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` — cold Cake (new). Never paste seed.
