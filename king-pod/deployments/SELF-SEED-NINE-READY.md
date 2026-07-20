@@ -1,6 +1,6 @@
 # SELF-SEED $9M — LIVE
 
-**Status: FIRED on Base. ONCHAIN SUCCESS.**
+**Status: PHASE 1 RESTORE armed.** Prior live fire succeeded; position was later unwound (RSS free). Re-fire via `PHASE-1-RESTORE.md` with `KING_GO=1 FIRE=1`.
 
 ## King’s Moves (as engineered)
 
@@ -36,7 +36,7 @@ HF vs 77% LLTV  ~1.58
 
 ```bash
 cd king-pod
-FIRE=1 BORROW_USDC=9000000000000 \
+KING_GO=1 FIRE=1 BORROW_USDC=9000000000000 \
   forge script script/FireSelfSeedNine.s.sol:FireSelfSeedNine \
   --rpc-url $BASE_RPC_URL --broadcast --slow --gas-estimate-multiplier 200
 ```
@@ -44,9 +44,11 @@ FIRE=1 BORROW_USDC=9000000000000 \
 Prep-only (deploy + auth + approve, no seed):
 
 ```bash
-FIRE=0 forge script script/FireSelfSeedNine.s.sol:FireSelfSeedNine \
+KING_GO=1 FIRE=0 forge script script/FireSelfSeedNine.s.sol:FireSelfSeedNine \
   --rpc-url $BASE_RPC_URL --broadcast --slow
 ```
+
+Full checklist: `PHASE-1-RESTORE.md`
 
 ## Contracts / knobs
 

@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-// FROZEN — King order: NO RECYCLE until tested exit. See deployments/NO-RECYCLE-UNTIL-EXIT.md
-// This script must not be broadcast.
-
 import {Script, console2} from "forge-std/Script.sol";
 import {CrownSelfSeedNine} from "../src/CrownSelfSeedNine.sol";
 
@@ -31,8 +28,10 @@ interface IMetaMorphoS {
     function supplyQueue(uint256) external view returns (bytes32);
 }
 
-/// @notice Deploy + arm + (optionally) fire Move1+Move2 self-seed.
-/// @dev FIRE=1 to broadcast selfSeed. Default = deploy+authorize+approve only (prep).
+/// @notice PHASE 1 — Restore King self-seed fortress (RSS coll + $9M yRSS war chest).
+/// @dev Gates: KING_GO=1 required for any broadcast.
+///      FIRE=0 → deploy seeder + authorize + approve + set RSS-first queue (prep).
+///      FIRE=1 → also call selfSeed (atomic flash → yRSS deposit → borrow → repay).
 contract FireSelfSeedNine is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
@@ -48,10 +47,10 @@ contract FireSelfSeedNine is Script {
     bytes32 constant BRETT_M = 0xf6f43f1660f1f4779e92a2e21086f4ab49a3fc0cae8a17992808e6a6db488c16;
 
     function run() external {
-        // King order: no recycle / self-seed until a tested exit exists.
-        revert("FROZEN: NO-RECYCLE-UNTIL-EXIT");
         uint256 pk = vm.envUint("PRIVATE_KEY");
         require(vm.addr(pk) == HOT, "HOT");
+        require(vm.envOr("KING_GO", uint256(0)) == 1, "NO-GO: KING_GO=1");
+
         bool doFire = vm.envOr("FIRE", uint256(0)) == 1;
         // Default $9M. Ignore polluted tiny BORROW_USDC env leftovers (< $1k).
         uint256 borrowUsdc = vm.envOr("BORROW_USDC", uint256(9_000_000e6));
@@ -59,13 +58,26 @@ contract FireSelfSeedNine is Script {
         address existing = vm.envOr("SEEDER", address(0));
 
         uint256 rssBal = IERC20S(RSS).balanceOf(HOT);
+        (, uint128 existingDebt, uint128 existingColl) = IMorphoAuth(MORPHO).position(RSS_M, HOT);
+
+        console2.log("=== PHASE 1 RESTORE SELF-SEED ===");
         console2.log("rssBal", rssBal);
         console2.log("borrowUsdc", borrowUsdc);
         console2.log("doFire", doFire ? uint256(1) : uint256(0));
+        console2.log("existingColl", uint256(existingColl));
+        console2.log("existingDebtShares", uint256(existingDebt));
+        console2.log("queue0Before", uint256(IMetaMorphoS(YRSS).supplyQueue(0)));
+
+        require(rssBal > 1e18, "NO RSS ON HOT");
+        if (doFire) {
+            require(existingDebt == 0 && existingColl == 0, "ALREADY IN POSITION");
+            // Soft LTV 70%: borrowUsdc * 1e18 <= rssBal * 0.70 * 1e6
+            require(borrowUsdc * 1e18 <= (rssBal * 7000 * 1e6) / 10_000, "LTV");
+        }
 
         vm.startBroadcast(pk);
 
-        // Ensure RSS-first queue so deposit hits RSS market
+        // Self-seed REQUIRES RSS-first queue so yRSS.deposit hits RSS/USDC market
         bytes32[] memory q = new bytes32[](4);
         q[0] = RSS_M;
         q[1] = CBBTC_M;
@@ -73,6 +85,7 @@ contract FireSelfSeedNine is Script {
         q[3] = BRETT_M;
         if (IMetaMorphoS(YRSS).supplyQueue(0) != RSS_M) {
             IMetaMorphoS(YRSS).setSupplyQueue(q);
+            console2.log("QUEUE SET RSS-FIRST");
         }
 
         CrownSelfSeedNine seeder;
@@ -99,6 +112,7 @@ contract FireSelfSeedNine is Script {
 
         (, uint128 bor, uint128 coll) = IMorphoAuth(MORPHO).position(RSS_M, HOT);
         (uint128 sup,, uint128 mBor,,,) = IMorphoAuth(MORPHO).market(RSS_M);
+        console2.log("=== PHASE 1 RESULT ===");
         console2.log("coll", uint256(coll));
         console2.log("debtShares", uint256(bor));
         console2.log("marketSupply", uint256(sup));
@@ -107,6 +121,11 @@ contract FireSelfSeedNine is Script {
         uint256 sh = IMetaMorphoS(YRSS).balanceOf(HOT);
         console2.log("hotYrssAssets", IMetaMorphoS(YRSS).convertToAssets(sh));
         console2.log("hotUsdc", IERC20S(USDC).balanceOf(HOT));
+        console2.log("queue0After", uint256(IMetaMorphoS(YRSS).supplyQueue(0)));
         console2.log("READY", doFire ? uint256(1) : uint256(0));
+        if (doFire) {
+            require(coll > 0 && bor > 0, "SEED FAILED: no position");
+            require(IMetaMorphoS(YRSS).totalAssets() >= borrowUsdc - 1e6, "SEED FAILED: yRSS TVL");
+        }
     }
 }
