@@ -15,6 +15,16 @@ King ordered fortress restore. Self-seed is **unfrozen** behind gates:
 
 See `PHASE-1-RESTORE.md`.
 
+## Kingdom debt free + ops (AUTHORIZED on King GO)
+
+Pay Morpho loan / free RSS working asset:
+
+- `FireKingdomDebtFree.s.sol` — needs `KING_GO=1`
+  - `FIRE_FREE=0` → deploy freer + auth
+  - `FIRE_FREE=1` → `CrownChunkFreeRss.freeRssToKing()` (+ optional Landing sweep)
+
+See `PHASE-DEBT-OPS.md`. RSS may go lighter when debt is paid — that is the asset’s purpose.
+
 ## War elephant (Vault V2 path)
 
 - `FireWarElephant.s.sol` — needs `KING_GO=1` + `FIRE_ATTACK=1`
@@ -26,7 +36,8 @@ See `WAR-ELEPHANT-PLAN.md`.
 
 - Ad-hoc Morpho re-lock / carry scalers
 - Using exposed/old Cake wallet
-- Mixing Phase 2 FEED into Phase 1 self-seed tx
+- Borrowing against depositor capital
+- Mixing FEED into unrelated txs
 
 ## Landing
 

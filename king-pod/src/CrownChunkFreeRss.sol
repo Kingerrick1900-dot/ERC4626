@@ -42,6 +42,8 @@ interface IMorphoFlashLoanCallback {
 interface IMetaMorphoChunk {
     function withdraw(uint256 assets, address receiver, address owner) external returns (uint256);
     function maxWithdraw(address owner) external view returns (uint256);
+    function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
+    function maxRedeem(address owner) external view returns (uint256);
 }
 
 /// @notice Chunk-unwind Morpho self-seed → free almost all RSS to king hot.
@@ -151,6 +153,18 @@ contract CrownChunkFreeRss is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback
         // Dust USDC on this contract → king (never re-deposit)
         uint256 dust = usdc.balanceOf(address(this));
         if (dust > 0) usdc.safeTransfer(king, dust);
+    }
+
+    /// @notice After debt is dust-cleared: sweep any leftover yRSS liquidity to `landing` (ops treasury).
+    /// @dev Call only after freeRssToKing(). Does not touch Morpho debt/collateral.
+    function sweepYrssToLanding(address landing) external onlyOwner nonReentrant {
+        require(landing != address(0), "landing");
+        uint256 maxR = yrss.maxRedeem(king);
+        if (maxR > 0) {
+            yrss.redeem(maxR, landing, king);
+        }
+        uint256 dust = usdc.balanceOf(address(this));
+        if (dust > 0) usdc.safeTransfer(landing, dust);
     }
 
     function onMorphoFlashLoan(uint256 assets, bytes calldata) external override {
