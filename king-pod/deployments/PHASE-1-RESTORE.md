@@ -1,6 +1,15 @@
 # Phase 1 — Restore King self-seed fortress
 
-**Goal:** Same position as before — RSS collateral posted, ~$9M Morpho debt, ~$9M yRSS war chest, oracle moat live.
+**Status: LIVE ON BASE — SUCCESS**
+
+| Field | Value |
+|-------|-------|
+| Fire tx | `0xcc5bc6c9c78218e1026c7e325927a5c08e8f4a16cbdd9a84c4a2d956ea81345a` |
+| Seeder | `0x036eF26d95E7CA96301c5E37Db1c76BEb3C3A7B2` |
+| Hot coll | ~18.5M RSS |
+| Hot debt | $9M USDC |
+| yRSS TVL | ~$9M |
+| Hot wallet USDC | floor (~$0.10) |
 
 **Access / FEED = Phase 2.** Do not mix.
 
