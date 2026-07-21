@@ -53,7 +53,9 @@ Prior live steel already on-chain stays (desk, helper, posted coll) until King o
 |------|--------|
 | **Never deposit all hot USDC into yRSS** | `FireWakeZeros` keeps `HOT_USDC_FLOOR` (default **$10**) on hot |
 | **Never sweep hot USDC to Landing** | `FireHarvestSpoils` only sweeps **above** floor; fees → Landing OK |
-| **Landing is cold treasury** | Peel **to** hot for ops; do not vacuum hot back unless above floor |
+| **Hot = Morpho signer** | `PRIVATE_KEY` must be hot `0x6708…a7d1` |
+| **Loop = ops float** | `LOOP_PRIVATE_KEY` on `0x8d3cfbFc…8585` funds hot USDC/ETH — **not** Landing cold key |
+| **Landing is cold treasury** | Buyer proceeds only; loop funds hot ops |
 | **Flash fortress ≠ hot payroll** | Self-seed loops lock USDC in yRSS/debt; they do not replace hot float |
 
 If hot USDC hits zero after a fire, **that fire violated this law.**

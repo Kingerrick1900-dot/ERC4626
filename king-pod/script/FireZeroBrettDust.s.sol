@@ -65,7 +65,7 @@ contract FireZeroBrettDust is Script {
         }
 
         require(debt > 0, "NO DEBT");
-        require(IERC20Z(USDC).balanceOf(HOT) >= debt, "NEED HOT USDC peel Landing first");
+        require(IERC20Z(USDC).balanceOf(HOT) >= debt, "NEED HOT USDC fund from loop wallet first");
 
         if (!doFire) {
             console2.log("PREFLIGHT OK - FIRE_BRETT_ZERO=1");
