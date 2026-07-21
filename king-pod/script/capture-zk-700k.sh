@@ -12,6 +12,7 @@ USDC=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 CREDIT=0x01814e15cF01DEcdC7239b739177C36acaBaBA54
 DESK=0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D
 GATE=0xAf9570a3Fe67988AE1c7d4dA0cD5c54CFE147205
+ADVANCE=0xD36ad3bf4E4A619f5b8F8C22DDA90E313F23035B
 
 TARGET="${TARGET_USDC:-700000000000}"  # $700k
 SLEEP_SECS="${SLEEP_SECS:-30}"
@@ -29,13 +30,21 @@ while true; do
   c="$(bal "$CREDIT")"
   land="$(bal "$COLD")"
   raised="$(desk_raised)"
+  adv="$(cast call "$ADVANCE" "raisedUsdc()(uint256)" --rpc-url "$RPC" | awk '{print $1}')"
+  if [[ "$(proven)" != *"true"* ]]; then echo "ZK DOWN — standing by"; sleep "$SLEEP_SECS"; continue; fi
   mb="$(max_borrow)"
   pr="$(proven)"
-  python3 -c "print(f'proven={ \"$pr\".split()[0] } credit=\${int(\"$c\")/1e6:,.2f} maxBorrow=\${int(\"$mb\")/1e6:,.2f} deskRaised=\${int(\"$raised\")/1e6:,.2f} cold=\${int(\"$land\")/1e6:,.2f}')"
+  python3 -c "print(f'proven={ \"$pr\".split()[0] } credit=\${int(\"$c\")/1e6:,.2f} maxBorrow=\${int(\"$mb\")/1e6:,.2f} zkAdvanceRaised=\${int(\"$adv\")/1e6:,.2f} deskRaised=\${int(\"$raised\")/1e6:,.2f} cold=\${int(\"$land\")/1e6:,.2f}')"
 
   # WIN: cold already has seed
   if python3 -c "import sys; sys.exit(0 if int('$land') >= int('$TARGET') else 1)"; then
     echo "SEED COMPLETE on cold Landing"
+    exit 0
+  fi
+
+  # WIN: ZK advance already pushed USDC to Landing (raised tracks fills)
+  if python3 -c "import sys; sys.exit(0 if int('$adv') >= int('$TARGET') else 1)"; then
+    echo "SEED COMPLETE via CrownZkAdvance -> Landing"
     exit 0
   fi
 
