@@ -1,12 +1,13 @@
 # ZK Advance Test — Status
 
-**Order followed.** ZK = counterparty advance layer (not King self-fund).
+**Buyer advances against verified ZK proof.**
 
-| Step | Status |
-|------|--------|
-| isProven(king) | **true** (live) |
-| Ordered path test (500k) | **PASS** — USDC→Landing, kUSD→buyer; reverts if !ZK |
-| Buyer cast / script | **ARMED** — `ZK-FOLLOW-THE-ORDER.md` |
-| Live broadcast ≥\$500k | **HOLD for KING GO** + funded buyer / `BUYER_KEY` |
+| | |
+|--|--|
+| Calldata | **READY** — `BUYER-ADVANCE-CALLDATA.md` |
+| `isProven(hot)` | **true** |
+| Door | `0xD36ad3bf4E4A619f5b8F8C22DDA90E313F23035B` |
+| Live broadcast | **HOLD — awaiting KING GO** |
+| After GO | Fire exact `advance` · report hash immediately |
 
-Door: `0xD36ad3bf4E4A619f5b8F8C22DDA90E313F23035B`
+No mock/sim buyer on live path. Real counterparty or King-controlled wallet with real USDC.
