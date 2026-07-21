@@ -4,6 +4,19 @@
 **No live deployments. No mainnet broadcasts. No new contract creates. No collateral moves. No desk changes.**  
 **Unless the King explicitly says OK / GO / FIRE for that action.**
 
+## King reads first (absolute)
+
+**King must read the written plan before any live deployment.**
+
+| Required before `--broadcast` | |
+|-------------------------------|--|
+| Plan doc in `deployments/` | King has read it |
+| Scope clear | what moves, what wallet, what size |
+| Explicit King words | **OK / GO / FIRE** for **that** plan |
+
+Scribe may write and dry-run. Scribe may **not** live-fire because a script exists or a prior chat implied urgency.  
+**No plan read by King → no live fire.**
+
 Scribe may:
 
 - Write code, scripts, docs, packets  
@@ -18,7 +31,7 @@ Scribe may **not** without King OK:
 - Spend hot gas or move RSS/USDC  
 
 Prior live steel already on-chain stays (desk, helper, posted coll) until King orders change.  
-**No further live until OK.**
+**No further live until King has read the plan and said OK.**
 
 ## Debt law (King order — never again)
 
