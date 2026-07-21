@@ -12,6 +12,7 @@ MORPHO=0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb
 YRSS=0xF80C0529bD94C773844E459853CD91B9263dD525
 RSS77=0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794
 RSS91=0x3a5ba11fdbd0a3ef70e98445afeaa5d3d73aac297bcfdcca120114bff5954126
+BOND=0x2D743eF8bf8eE188F44239Acc1e4795fe8cA3039
 
 usd() { python3 -c "print(f'\${int('$1')/1e6:,.2f}')"; }
 rss_amt() { python3 -c "print(f'{int('$1')/1e18:,.0f}')"; }
@@ -32,6 +33,9 @@ bor77=$(echo "$pos77" | sed -n '2p' | awk '{print $1}')
 coll77=$(echo "$pos77" | sed -n '3p' | awk '{print $1}')
 idle77=$(idle "$RSS77")
 idle91=$(idle "$RSS91")
+bond_live=$(cast call "$BOND" "live()(bool)" --rpc-url "$RPC")
+bond_stock=$(cast call "$BOND" "rssForBond()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
+bond_raised=$(cast call "$BOND" "raisedUsdc()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
 
 echo "=== POST-ZERO PLAY BOARD ==="
 echo "Hot RSS:     $(rss_amt "$hot_rss")"
@@ -40,9 +44,10 @@ echo "Desk live:   $desk_live  forSale=$(rss_amt "$desk_sale") RSS @ \$1  raised
 echo "yRSS TVL:    $(usd "$yrss_tvl")"
 echo "Morpho77:    bor=$bor77 coll=$coll77 idle=$(usd "$idle77")"
 echo "Morpho91:    idle=$(usd "$idle91") (high-LLTV book seeded)"
+echo "Bond live:   $bond_live  forBond=$(rss_amt "$bond_stock") RSS @ \$0.97  raised=$(usd "$bond_raised")"
 echo ""
 echo "PLAY 1 DESK @ \$1     LIVE — helper $HELPER fillPhase1()"
-echo "PLAY 2 BOND @ discount  SHELF — FireRssBond.s.sol (fork test RssBondFork.t.sol)"
+echo "PLAY 2 BOND @ \$0.97   LIVE — $BOND bondWithUsdc(amount)"
 echo "PLAY 3 CREDIT LINE      SHELF — FireArmCreditLine when idle faces book"
 echo "PLAY 4 yRSS RE-ARM      SHELF — after USDC inflow"
 echo ""

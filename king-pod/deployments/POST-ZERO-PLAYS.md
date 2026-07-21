@@ -33,16 +33,17 @@ King controls fire. Scribe builds and sims. **No broadcast without KING_OK.**
 
 ---
 
-## Play 2 — Bond @ discount (SHELF · fork-proven)
+## Play 2 — Bond @ discount (LIVE)
 
 Olympus-class: sell RSS **below $1 oracle** for urgency. USDC → Landing.
 
 | | |
 |--|--|
-| Contract | `CrownRssBond.sol` |
-| Fire | `FireRssBond.s.sol` |
-| Default | $0.97/RSS · ~520k RSS stocked · Phase 1 meter |
-| Test | `test/RssBondFork.t.sol` |
+| Contract | **`0x2D743eF8bf8eE188F44239Acc1e4795fe8cA3039`** |
+| Fire | `FireRssBond.s.sol` (fired) |
+| Stock | **520k RSS @ $0.97** |
+| Phase 1 meter | $500k USDC |
+| Packet | `BOND-COUNTERPARTY-PACKET.md` |
 
 **Why two rails:** Desk = peg. Bond = **discount = act today**.
 
