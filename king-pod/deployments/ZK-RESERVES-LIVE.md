@@ -1,6 +1,6 @@
 # ZK Reserves ≥ $700K — LIVE ON BASE
 
-**FIRED. Complete.**
+**FIRED. Proof is the loan ticket.**
 
 | Contract | Address |
 |----------|---------|
@@ -12,15 +12,7 @@
 |-------|-------|
 | Subject | hot `0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1` |
 | `isProven` | **true** |
-| Threshold | **700_000e6** ($700,000) |
-| minThreshold | 700_000e6 |
-| Credit `maxBorrow` | **0** until USDC is supplied to credit |
+| Threshold | **\$700,000** |
+| Proof tx | `0x356017a9f494cf0e5a1b83671e72c24b8b818d7c95bdea37248c53f3128b9e11` |
 
-### Tx trail
-- Deploy: see `broadcast/FireZkDeploy.s.sol/8453/run-latest.json`
-- Proof submit: see `broadcast/FireZkSubmitProof.s.sol/8453/run-latest.json`
-
-### Next (capture)
-Counterparty / King book: `credit.supply(usdc)` → King `credit.borrow(amt)` (cap 70% of attested = \$490k when book has depth).
-
-Circuit + prove: `zk/scripts/prove.sh` · Counterparty reads `gate.isProven(hot)`.
+**How to use:** [`ZK-PROOF-HOW-TO-USE.md`](./ZK-PROOF-HOW-TO-USE.md) — counterparty verifies gate → advances USDC against attestation.
