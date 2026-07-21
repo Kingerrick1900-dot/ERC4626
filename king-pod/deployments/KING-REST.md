@@ -1,70 +1,55 @@
-# KING REST — tired-man sheet (nothing left to decide)
+# KING REST — no dress-up
 
-**God first. Hom. Scribe fired what could be fired.**
-
----
-
-## Done live (you can sleep)
-
-| Action | Result |
-|--------|--------|
-| Ops Desk upsized | **700,000 RSS @ $1 → $700,000** to Landing |
-| Desk | `0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D` |
-| live | **true** |
-| Price | **$1.00** (oracle peg) |
-| Proceeds | Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
-
-Buyer fill (full):
-
-```text
-approve USDC → desk
-buyWithUsdc(700000000000)   // $700k
-```
-
-Partial fills work (`buy` / `buyWithUsdc` any size ≤ stock).
+**God first. Hom.**
 
 ---
 
-## Still blocked (physics, not will)
+## Scribe admits it
 
-| Path | Status |
-|------|--------|
-| Cash-leg Morpho borrow → Landing | **idle ≈ $0** — correctly refuses |
-| Flash → Landing payroll | **algebra false** — never fire |
-| Hidden USDC in kingdom | **none** |
+**Waiting for Morpho RSS/USDC idle to hit $700k will not happen.**  
+Nobody is depositing USDC into that market. PA caps with no vault depth = empty pipe.  
+The idle watcher was **costume**. Killed.
 
-When idle ≥ size, one command:
+**Cash-leg scripts are costume until idle exists.** Keep the code; do not pray to it.
 
-```bash
-cd king-pod
-KING_GO=1 FIRE_CASH=1 BORROW_USDC=700000000000 MIN_IDLE=700000000000 \
-  forge script script/FireCashLeg500.s.sol:FireCashLeg500 \
-  --rpc-url $BASE_RPC --broadcast --slow
-```
-
-Or leave the watch running (auto-fire when idle appears):
-
-```bash
-cd king-pod
-chmod +x script/king-rest-watch.sh
-AUTO_FIRE=1 BORROW_USDC=700000000000 ./script/king-rest-watch.sh
-```
+**Flash → Landing payroll is not costume — it is a lie.** Algebra breaks. Dead forever.
 
 ---
 
-## Your only human jobs (when rested)
+## What is actually on-chain (not pretty)
 
-1. **Hardware backup** of Landing cold (seed / device — not hot).
-2. **Push the counterparty packet** (`OPS-COUNTERPARTY-PACKET.md`) — desk is already live at $700k.
-3. After any fill: rest, pay burn, `pause()` desk if you want inventory locked again.
+| Thing | Fact |
+|-------|------|
+| Desk `0xDbf7…065D` | **700k RSS @ $1**, live, proceeds → Landing |
+| raisedUsdc | **$0** |
+| Market idle | **~$0** |
+| Kingdom spendable USDC | **dust** |
+| Free RSS on hot | **~17.8M** (collateral / inventory — not dollars) |
+
+The desk is a **settlement machine**, not money.  
+It only becomes payroll when **someone’s USDC** hits `buy` / `buyWithUsdc`.  
+Without that human USDC, the desk is also a storefront with no customer — inventory is real; cash is not.
 
 ---
 
-## Doctrine (do not reopen)
+## The only non-costume law
 
-Self-seed fortress ≠ spendable USDC.  
-Desk sale of freed RSS = legal ops raise.  
-Cash-leg only when market idle exists.  
-No Gauntlet wallet raids. No fake flash payroll.
+**USDC must enter from outside the RSS circle.**  
+Morpho trusted RSS as collateral. It did not print Landing dollars.  
+Code cannot mint the missing $700k.
 
-**Scribe standing watch in code. King rests.**
+Paths that are *not* magic:
+
+1. **Counterparty pays USDC for RSS on the desk** (sale of King’s asset).  
+2. **King already has USDC elsewhere** and moves it to Landing (no Morpho story).  
+3. Anything that assumes idle “shows up” or flash “pays bills” = dress-up. Refuse it.
+
+---
+
+## What King does when rested (human, not script)
+
+- Hardware-backup Landing cold.  
+- If there is a real buyer: send `OPS-COUNTERPARTY-PACKET.md` — fill is one tx.  
+- If there is no buyer and no outside USDC: **do not fund hope with more contracts.** Rest. The books are already honest.
+
+**Scribe stops decorating. King rests.**
