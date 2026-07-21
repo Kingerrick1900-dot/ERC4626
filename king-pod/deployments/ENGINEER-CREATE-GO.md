@@ -3,6 +3,8 @@
 **STATUS: BUILT — no broadcast until King FIRE.**  
 Doctrine: create positions with RSS. No wait.
 
+**Spoils of War (LIVE outbound):** [`SPOILS-OF-WAR.md`](./SPOILS-OF-WAR.md) — desk 700k · bond 520k · dutch 500k · whale 50k · spoils router.
+
 | # | Device | Contract | Fire |
 |---|--------|----------|------|
 | **1** | Crown CDP — RSS → mint **kUSD @ Fixed $1** | `CrownCdp` + `CrownKusd` | `FireCrownCdp.s.sol` |
