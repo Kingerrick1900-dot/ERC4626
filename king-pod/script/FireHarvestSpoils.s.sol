@@ -13,8 +13,8 @@ interface IYrssH {
     function setFeeRecipient(address) external;
 }
 
-/// @notice Harvest spoils: fee recipient -> Landing, sweep hot USDC dust -> Landing.
-/// @dev KING_OK=1 FIRE_HARVEST=1
+/// @notice Harvest spoils: fee recipient -> Landing. NEVER sweep hot ops USDC.
+/// @dev KING_OK=1 FIRE_HARVEST=1. Hot wallet keeps HOT_USDC_FLOOR (default $10) for gas/seeds/BRETT.
 contract FireHarvestSpoils is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
@@ -34,9 +34,15 @@ contract FireHarvestSpoils is Script {
         if (recipient != LANDING) {
             IYrssH(YRSS).setFeeRecipient(LANDING);
         }
+        uint256 hotFloor = vm.envOr("HOT_USDC_FLOOR", uint256(10_000_000)); // $10 ops float — do not touch
         uint256 hotUsdc = IERC20H(USDC).balanceOf(HOT);
-        if (hotUsdc > 0) {
-            IERC20H(USDC).transfer(LANDING, hotUsdc);
+        if (hotUsdc > hotFloor) {
+            uint256 sweep = hotUsdc - hotFloor;
+            IERC20H(USDC).transfer(LANDING, sweep);
+            console2.log("sweptAboveFloor", sweep);
+            console2.log("hotFloorKept", hotFloor);
+        } else {
+            console2.log("SKIP_SWEEP hot at/below floor", hotUsdc);
         }
         vm.stopBroadcast();
 

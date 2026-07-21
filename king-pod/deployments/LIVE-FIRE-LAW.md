@@ -28,13 +28,26 @@ Prior live steel already on-chain stays (desk, helper, posted coll) until King o
 - **Do the job ordered.** If King says clear debt, clear debt — full stop. No pivot to other objectives.
 - If chunk-unwind cannot hit zero in one contract, **chain `CrownZeroMorpho.zeroBooks()` in the same fire plan** before reporting success.
 
+## Hot wallet law (King order — ops USDC)
+
+**Hot `0x6708…a7d1` is the token/ops wallet.** It must **always** hold spendable USDC for seeds, BRETT scale, Ignition, and fire gas discipline.
+
+| Rule | Detail |
+|------|--------|
+| **Never deposit all hot USDC into yRSS** | `FireWakeZeros` keeps `HOT_USDC_FLOOR` (default **$10**) on hot |
+| **Never sweep hot USDC to Landing** | `FireHarvestSpoils` only sweeps **above** floor; fees → Landing OK |
+| **Landing is cold treasury** | Peel **to** hot for ops; do not vacuum hot back unless above floor |
+| **Flash fortress ≠ hot payroll** | Self-seed loops lock USDC in yRSS/debt; they do not replace hot float |
+
+If hot USDC hits zero after a fire, **that fire violated this law.**
+
 ## Zero doctrine (King order)
 
 Kingdom-controlled rails **must not sit at zero** when inventory exists to arm them:
 
 | Must not be zero | Wake with |
 |------------------|-----------|
-| yRSS TVL | Deposit USDC (hot/Landing peel) + reallocate to markets |
+| yRSS TVL | Deposit USDC **above hot floor only** (Landing peel → hot, keep ops float) + reallocate |
 | Morpho RSS collateral (when armed posture) | `FireArmCreditLine` / `FireWakeZeros` |
 | BRETT/USDC + RSS/USDC market supply | yRSS reallocate / lender deposit |
 | Desk / bond **inventory** | `stock()` from hot RSS |

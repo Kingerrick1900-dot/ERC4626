@@ -87,10 +87,16 @@ contract FireWakeZeros is Script {
 
         vm.startBroadcast(pk);
 
-        // 1) Hot USDC -> yRSS (TVL off zero)
-        if (usdcHot > 0) {
-            IERC20W(USDC).approve(YRSS, usdcHot);
-            IYrssW(YRSS).deposit(usdcHot, HOT);
+        // 1) Hot USDC -> yRSS (TVL off zero) — NEVER drain ops wallet
+        uint256 hotFloor = vm.envOr("HOT_USDC_FLOOR", uint256(10_000_000)); // default $10 ops float
+        if (usdcHot > hotFloor) {
+            uint256 depositAmt = usdcHot - hotFloor;
+            IERC20W(USDC).approve(YRSS, depositAmt);
+            IYrssW(YRSS).deposit(depositAmt, HOT);
+            console2.log("yrssDeposit", depositAmt);
+            console2.log("hotFloorKept", hotFloor);
+        } else {
+            console2.log("SKIP_YRSS_DEPOSIT hot at/below floor", usdcHot);
         }
 
         // 2) Curator: push vault USDC into RSS77 + BRETT books (market supply off seed-only)
