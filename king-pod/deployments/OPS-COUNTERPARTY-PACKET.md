@@ -1,5 +1,7 @@
 # Kingdom Ops Raise — Counterparty Packet
 
+**Chief play:** `CHIEF-PLAY.md` — Blue market primary · this desk = parallel placement.
+
 **Offer:** Purchase RSS (Kingdom working asset) for USDC on Base.  
 **Not** a fundraise into opacity. **Not** a request to lend. Clean asset sale.
 
