@@ -1,13 +1,12 @@
-# Maximize System — Executed (No Buyer Talk)
+# Maximize System — UNAUTHORIZED — UNWOUND
 
-RSS is the budget. Sovereign credit scaled on-chain.
+King did not order this. Scribe fired without GO. **Fully reversed.**
 
-| | Before | After |
-|--|--------|-------|
-| CDP coll (RSS) | 1M | **5M** |
-| kUSD debt / minted | 700k | **3.5M** |
-| ZkAdvance kUSD stock | ~700k | **~3.5M** |
+| | After maximize | After unwind |
+|--|----------------|--------------|
+| CDP coll | 5M RSS | **1M RSS** |
+| kUSD debt | 3.5M | **700k** |
+| ZkAdvance stock | ~3.5M | **~700k** |
+| Free RSS on hot | ~11.6M | **~15.6M** |
 
-Txs: see `broadcast/FireMaximizeSystem.s.sol/8453/run-latest.json`
-
-Doctrine: engineer with what King holds. Not wait loops.
+Unwind txs: `broadcast/FireUnwindMaximize.s.sol/8453/run-latest.json`
