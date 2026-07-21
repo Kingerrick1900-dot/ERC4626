@@ -79,6 +79,27 @@ contract ZkReservesTest is Test {
         assertEq(usdc.balanceOf(HOT), 400_000e6);
     }
 
+    function test_borrowTo_cold_atomic() public {
+        vm.skip(pub[0] != 1);
+        gate.submitProof(a, b, c, pub);
+
+        address cold = address(0xC01D);
+        address lp = address(0xBEEF);
+        usdc.mint(lp, 700_000e6);
+        vm.startPrank(lp);
+        usdc.approve(address(credit), 700_000e6);
+        credit.supply(700_000e6);
+        vm.stopPrank();
+
+        vm.prank(HOT);
+        credit.setLltv(1e18);
+
+        vm.prank(HOT);
+        credit.borrowTo(cold, 700_000e6);
+        assertEq(usdc.balanceOf(cold), 700_000e6);
+        assertEq(usdc.balanceOf(HOT), 0);
+    }
+
     function test_verifier_rejects_ok_zero_via_gate() public {
         pub[0] = 0;
         vm.expectRevert(CrownZkReservesGate.BadProof.selector);

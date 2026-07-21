@@ -23,12 +23,14 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
     event Supplied(address indexed user, uint256 amt);
     event Withdrawn(address indexed user, uint256 amt);
     event Borrowed(address indexed user, uint256 amt);
+    event BorrowedTo(address indexed user, address indexed to, uint256 amt);
     event Repaid(address indexed user, uint256 amt);
 
     error BadAmt();
     error NotProven();
     error Unsafe();
     error Insolvent();
+    error ColdMiss();
 
     constructor(address usdc_, address gate_, address king_, address owner_) Ownable(owner_) {
         usdc = IERC20(usdc_);
@@ -61,16 +63,29 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
 
     /// @notice Borrow against ZK-proven reserves. Cap = attested threshold * LLTV.
     function borrow(uint256 amt) external nonReentrant {
+        _borrowTo(msg.sender, msg.sender, amt);
+    }
+
+    /// @notice Atomic cold-or-revert: USDC goes to `to` (Landing) in one tx. Fail → full revert, no debt.
+    function borrowTo(address to, uint256 amt) external nonReentrant {
+        if (to == address(0)) revert BadAmt();
+        _borrowTo(msg.sender, to, amt);
+    }
+
+    function _borrowTo(address borrower, address to, uint256 amt) internal {
         if (amt == 0) revert BadAmt();
-        if (!gate.isProven(msg.sender)) revert NotProven();
-        (uint256 threshold,,) = _att(msg.sender);
+        if (!gate.isProven(borrower)) revert NotProven();
+        (uint256 threshold,,) = _att(borrower);
         uint256 cap = (threshold * lltv) / 1e18;
-        debtOf[msg.sender] += amt;
+        debtOf[borrower] += amt;
         totalDebt += amt;
-        if (debtOf[msg.sender] > cap) revert Unsafe();
+        if (debtOf[borrower] > cap) revert Unsafe();
         if (amt > usdc.balanceOf(address(this))) revert Insolvent();
-        usdc.safeTransfer(msg.sender, amt);
-        emit Borrowed(msg.sender, amt);
+        uint256 before = usdc.balanceOf(to);
+        usdc.safeTransfer(to, amt);
+        if (usdc.balanceOf(to) < before + amt) revert ColdMiss();
+        emit Borrowed(borrower, amt);
+        if (to != borrower) emit BorrowedTo(borrower, to, amt);
     }
 
     function repay(uint256 amt) external nonReentrant {
