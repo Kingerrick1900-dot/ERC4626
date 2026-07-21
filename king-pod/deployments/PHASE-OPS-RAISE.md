@@ -2,6 +2,8 @@
 
 **Status: OPS DESK LIVE ON BASE**
 
+**Find:** `DESK-NUMBER-DISK.md` — desk = the disk; PA caps mirror at $700k; King’s $500–700k band already on-chain.
+
 | Field | Value |
 |-------|--------|
 | Desk | `0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D` |
