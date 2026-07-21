@@ -1,15 +1,15 @@
-# OUTBOUND — Dual Rail (copy/send)
+# OUTBOUND — Spoils Rails (copy/send)
 
 **King Errick of Yahudah · Kingdom RSS · Base**
 
-Two live rails. Same asset. Same Landing settlement. Pick peg or discount.
+Four live rails. Same asset. Same Landing settlement. Pick peg, fixed discount, Dutch urgency, or whale rebate.
 
 ---
 
 ## Copy block (Telegram / DM / email)
 
 ```
-Kingdom RSS — Base — two live settlement rails
+Kingdom RSS — Base — four live settlement rails
 
 ASSET
 RSS 0x7a305D07B537359cf468eAea9bb176E5308bC337
@@ -33,7 +33,20 @@ Fill:     approve USDC → bond.bondWithUsdc(amount)
 $500k ≈ 515,464 RSS at $0.97
 Proceeds: same Landing
 
+RAIL C — DUTCH @ $0.94→$0.99 (500k RSS live, price rises daily)
+Dutch:    0x8A4C17c5FAB0ba334dAe4CdECa8BaC60a8Cc5E81
+Fill:     approve USDC → dutch.bondWithUsdc(amount)
+Now:      currentPrice() on Basescan — early = deeper discount
+Proceeds: same Landing
+
+RAIL D — FIRST WHALE (50k RSS rebate for ≥$500k yRSS deposit)
+Whale:    0xC33256BCb972db576d116D5Ca5B56A8B457337E8
+Fill:     approve USDC → whale.depositAsWhale(amount) until ≥$500k cumulative
+          then whale.claimRebate() for 50k RSS
+Creates yRSS TVL; Kingdom captures idle → borrow → Landing after fill.
+
 USDC Base: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+Spoils router (King sweep): 0xF7B90BE47fa67100dF91ea6E52C588063d1E5bE0
 
 Not a fundraise. Not a loan. On-chain asset sale. Atomic settlement.
 Reply with size or fill direct on Basescan.
@@ -44,9 +57,11 @@ Reply with size or fill direct on Basescan.
 ## Short ping (Twitter / public)
 
 ```
-RSS on Base — two live OTC rails:
+RSS on Base — four live OTC rails:
 • $1.00 desk (700k) — 0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D
 • $0.97 bond (520k) — 0x2D743eF8bf8eE188F44239Acc1e4795fe8cA3039
+• Dutch $0.94→$0.99 (500k) — 0x8A4C17c5FAB0ba334dAe4CdECa8BaC60a8Cc5E81
+• First Whale 50k RSS rebate — 0xC33256BCb972db576d116D5Ca5B56A8B457337E8
 Morpho-proven collateral. Zero kingdom debt. USDC → cold Landing. DM for size.
 ```
 

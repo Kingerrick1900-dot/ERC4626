@@ -13,6 +13,9 @@ YRSS=0xF80C0529bD94C773844E459853CD91B9263dD525
 RSS77=0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794
 RSS91=0x3a5ba11fdbd0a3ef70e98445afeaa5d3d73aac297bcfdcca120114bff5954126
 BOND=0x2D743eF8bf8eE188F44239Acc1e4795fe8cA3039
+DUTCH=0x8A4C17c5FAB0ba334dAe4CdECa8BaC60a8Cc5E81
+WHALE=0xC33256BCb972db576d116D5Ca5B56A8B457337E8
+SPOILS=0xF7B90BE47fa67100dF91ea6E52C588063d1E5bE0
 
 usd() { python3 -c "print(f'\${int('$1')/1e6:,.2f}')"; }
 rss_amt() { python3 -c "print(f'{int('$1')/1e18:,.0f}')"; }
@@ -36,6 +39,12 @@ idle91=$(idle "$RSS91")
 bond_live=$(cast call "$BOND" "live()(bool)" --rpc-url "$RPC")
 bond_stock=$(cast call "$BOND" "rssForBond()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
 bond_raised=$(cast call "$BOND" "raisedUsdc()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
+dutch_live=$(cast call "$DUTCH" "live()(bool)" --rpc-url "$RPC")
+dutch_stock=$(cast call "$DUTCH" "rssForBond()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
+dutch_price=$(cast call "$DUTCH" "currentPrice()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
+dutch_raised=$(cast call "$DUTCH" "raisedUsdc()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
+whale_live=$(cast call "$WHALE" "live()(bool)" --rpc-url "$RPC")
+whale_rebate=$(cast call "$WHALE" "rebateBudget()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
 
 echo "=== POST-ZERO PLAY BOARD ==="
 echo "Hot RSS:     $(rss_amt "$hot_rss")"
@@ -45,9 +54,14 @@ echo "yRSS TVL:    $(usd "$yrss_tvl")"
 echo "Morpho77:    bor=$bor77 coll=$coll77 idle=$(usd "$idle77")"
 echo "Morpho91:    idle=$(usd "$idle91") (high-LLTV book seeded)"
 echo "Bond live:   $bond_live  forBond=$(rss_amt "$bond_stock") RSS @ \$0.97  raised=$(usd "$bond_raised")"
+echo "Dutch live:  $dutch_live  forBond=$(rss_amt "$dutch_stock") RSS @ \$$(python3 -c "print(f'{int('$dutch_price')/1e6:.4f}')")  raised=$(usd "$dutch_raised")"
+echo "Whale live:  $whale_live  rebate=$(rss_amt "$whale_rebate") RSS  contract=$WHALE"
+echo "Spoils:      $SPOILS (King sweep → Landing)"
 echo ""
 echo "PLAY 1 DESK @ \$1     LIVE — helper $HELPER fillPhase1()"
 echo "PLAY 2 BOND @ \$0.97   LIVE — $BOND bondWithUsdc(amount)"
+echo "PLAY 5 DUTCH          LIVE — $DUTCH bondWithUsdc(amount)"
+echo "PLAY 6 FIRST WHALE    LIVE — $WHALE depositAsWhale(amount)"
 echo "PLAY 3 CREDIT LINE      SHELF — FireArmCreditLine when idle faces book"
 echo "PLAY 4 yRSS RE-ARM      SHELF — after USDC inflow"
 echo ""

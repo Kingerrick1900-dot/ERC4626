@@ -81,6 +81,21 @@ See `BRETT-FINISHED.md`. Re-fire `FireFinishBrett.s.sol` to upsize when more ETH
 
 ---
 
+## Play 6 — War chest (Dutch + First Whale + Spoils) — **LIVE**
+
+Spoils engines above the call of duty. RSS pays; USDC returns to Landing.
+
+| | |
+|--|--|
+| Fire | `FireWarChest.s.sol` (fired) |
+| Dutch | **`0x8A4C17c5FAB0ba334dAe4CdECa8BaC60a8Cc5E81`** — 500k RSS, $0.94→$0.99 over 7d |
+| First Whale | **`0xC33256BCb972db576d116D5Ca5B56A8B457337E8`** — 50k RSS rebate for ≥$500k yRSS deposit |
+| Spoils router | **`0xF7B90BE47fa67100dF91ea6E52C588063d1E5bE0`** — King sweep → Landing |
+| Harvest | `FireHarvestSpoils.s.sol` — yRSS fee recipient → Landing (fired) |
+| Packet | `SPOILS-OF-WAR.md` · `OUTBOUND-DUAL-RAIL.md` |
+
+---
+
 ## Scribe queue (building · not broadcasting)
 
 1. Bond buyer packet (mirror desk packet, discount terms)
