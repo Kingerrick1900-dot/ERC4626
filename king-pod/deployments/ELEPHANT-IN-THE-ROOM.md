@@ -10,4 +10,4 @@ Kingdom is engineered — not waiting.
 
 **Hot:** ~16.6M RSS · Morpho flat · thin Aero pool.
 
-Elephant is in the room. Venues and proofs built. Capture needs FIRE.
+Elephant is in the room. Venues and proofs built. Doctrine: [`SOVEREIGN-LIQUIDITY-PLAN.md`](./SOVEREIGN-LIQUIDITY-PLAN.md).
