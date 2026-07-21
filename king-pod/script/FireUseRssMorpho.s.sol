@@ -26,10 +26,11 @@ interface IMorphoR {
     function idToMarketParams(bytes32) external view returns (MarketParams memory);
 }
 
-/// @notice USE THE RSS — post tokens Morpho marks @ $1, borrow all idle USDC to Hot. No flash. No cbBTC detour.
-/// @dev KING_OK=1 KING_GO=1 FIRE_RSS=1
-///      POST_RSS default 1M. POST_ALL=1 posts entire hot RSS across RSS77 + RSS91.
-///      MIN_BORROW default 1 wei — borrows whatever idle exists (even ~$1).
+/// @notice ORACLE POWER MOVE — Fixed $1 burned oracle prices RSS collateral; post + borrow idle to Hot.
+/// @dev Plan: deployments/ORACLE-POWER-MOVE.md
+///      KING_OK=1 KING_GO=1 FIRE_RSS=1
+///      POST_RSS default 1M. POST_ALL=1 = full inventory power move.
+///      MIN_BORROW default 1 wei — draw whatever idle the $1 book has.
 contract FireUseRssMorpho is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;

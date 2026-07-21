@@ -10,9 +10,10 @@ See `LIVE-FIRE-LAW.md`.
 
 | # | Plan | File | Live status |
 |---|------|------|-------------|
-| 1 | **Create opportunities** (solo King — no bring / no someone) | [`CREATE-OPPORTUNITIES.md`](./CREATE-OPPORTUNITIES.md) | **PLAN ONLY** |
+| 0 | **ORACLE POWER MOVE** — Fixed $1 credit against RSS | [`ORACLE-POWER-MOVE.md`](./ORACLE-POWER-MOVE.md) | **PLAN ONLY — primary** |
+| 1 | Create opportunities (Aero / bribes) | [`CREATE-OPPORTUNITIES.md`](./CREATE-OPPORTUNITIES.md) | PLAN ONLY — secondary |
 | 2 | Live fire law (gates) | [`LIVE-FIRE-LAW.md`](./LIVE-FIRE-LAW.md) | **LOCKED** |
-| 3 | Accessible loan (Morpho RSS → spendable USDC) | [`ACCESSIBLE-LOAN.md`](./ACCESSIBLE-LOAN.md) | Script shelf — needs pool idle |
+| 3 | Accessible loan (Morpho RSS → spendable USDC) | [`ACCESSIBLE-LOAN.md`](./ACCESSIBLE-LOAN.md) | Script = power move engine |
 | 4 | Token as capital (RSS budget) | [`TOKEN-AS-CAPITAL.md`](./TOKEN-AS-CAPITAL.md) | Doctrine |
 | 5 | Whale USDC depth (cbBTC book) | [`WHALE-ENG-BRIEF.md`](./WHALE-ENG-BRIEF.md) | Plan — needs cbBTC |
 
