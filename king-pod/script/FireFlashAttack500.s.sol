@@ -50,6 +50,11 @@ contract FireFlashAttack500 is Script {
         require(vm.addr(pk) == HOT, "HOT");
         require(vm.envOr("KING_OK", uint256(0)) == 1, "KING_OK");
         require(vm.envOr("KING_GO", uint256(0)) == 1, "KING_GO");
+        // Debt access law: fortress creates Morpho debt with $0 spendable USDC. Default FORBIDDEN.
+        require(
+            vm.envOr("ALLOW_FORTRESS_DEBT", uint256(0)) == 1,
+            "FORBIDDEN: fortress debt with no spendable USDC - need ALLOW_FORTRESS_DEBT=1"
+        );
 
         bool doFire = vm.envOr("FIRE_ATTACK", uint256(0)) == 1;
         uint256 borrowUsdc = vm.envOr("BORROW_USDC", uint256(500_000e6));

@@ -22,6 +22,9 @@ interface IMorphoExtract {
         bytes memory data
     ) external returns (uint256, uint256);
 
+    function withdrawCollateral(MarketParams memory marketParams, uint256 assets, address onBehalf, address receiver)
+        external;
+
     function position(bytes32 id, address user) external view returns (uint256, uint128, uint128);
 
     function market(bytes32 id)
@@ -56,7 +59,7 @@ contract CrownExtractFortress is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
 
     bool private _locking;
 
-    event Extracted(uint256 debtRepaid, uint256 yrssPulled, uint256 landingPaid);
+    event Extracted(uint256 debtRepaid, uint256 yrssPulled, uint256 landingPaid, uint256 rssFreed);
 
     error OnlyMorpho();
     error NoDebt();
@@ -90,9 +93,10 @@ contract CrownExtractFortress is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
         });
     }
 
-    /// @notice Extract fortress USDC to Landing in one tx.
+    /// @notice Kill fortress debt + free RSS coll to king. Surplus USDC → Landing.
+    /// @dev Debt law: zero borrow shares. Access law: free the asset put up.
     function extractToLanding() external onlyOwner nonReentrant {
-        (, uint128 borShares,) = morpho.position(marketId, king);
+        (, uint128 borShares, uint128 coll) = morpho.position(marketId, king);
         if (borShares == 0) revert NoDebt();
 
         morpho.accrueInterest(mp);
@@ -101,7 +105,7 @@ contract CrownExtractFortress is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
         flashAmt += 500e6; // +$500 buffer for interest / rounding
 
         _locking = true;
-        morpho.flashLoan(address(usdc), flashAmt, abi.encode(uint256(borShares)));
+        morpho.flashLoan(address(usdc), flashAmt, abi.encode(uint256(borShares), uint256(coll)));
         _locking = false;
     }
 
@@ -109,29 +113,34 @@ contract CrownExtractFortress is Ownable, ReentrancyGuard, IMorphoFlashLoanCallb
         if (msg.sender != address(morpho)) revert OnlyMorpho();
         if (!_locking) revert OnlyMorpho();
 
-        uint256 borShares = abi.decode(data, (uint256));
+        (uint256 borShares, uint256 coll) = abi.decode(data, (uint256, uint256));
         usdc.approve(address(morpho), type(uint256).max);
 
         // 1) Kill debt — unlocks yRSS withdraw
         morpho.repay(mp, 0, borShares, king, "");
 
-        // 2) Pull king's yRSS USDC (was locked in self-loop)
+        // 2) Free RSS collateral back to king (asset he put up)
+        if (coll > 0) {
+            morpho.withdrawCollateral(mp, coll, king, king);
+        }
+
+        // 3) Pull king's yRSS USDC (was locked in self-loop)
         uint256 maxW = yrss.maxWithdraw(king);
         uint256 pull = maxW;
         if (pull > 0) {
             yrss.withdraw(pull, address(this), king);
         }
 
-        // 3) Repay flash
+        // 4) Repay flash
         if (usdc.balanceOf(address(this)) < assets) revert Short();
         usdc.approve(address(morpho), assets);
 
-        // 4) Surplus → Landing cold
+        // 5) Surplus → Landing cold (tiny after flash close)
         uint256 surplus = usdc.balanceOf(address(this)) - assets;
         if (surplus > 0) {
             usdc.safeTransfer(landing, surplus);
         }
 
-        emit Extracted(borShares, pull, surplus);
+        emit Extracted(borShares, pull, surplus, coll);
     }
 }

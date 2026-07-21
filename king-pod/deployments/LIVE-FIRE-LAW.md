@@ -28,6 +28,23 @@ Prior live steel already on-chain stays (desk, helper, posted coll) until King o
 - **Do the job ordered.** If King says clear debt, clear debt — full stop. No pivot to other objectives.
 - If chunk-unwind cannot hit zero in one contract, **chain `CrownZeroMorpho.zeroBooks()` in the same fire plan** before reporting success.
 
+## Debt access law (King order — absolute)
+
+**No Morpho debt unless King can access spendable funds for the asset put up.**
+
+| Forbidden | Why |
+|-----------|-----|
+| Flash self-seed / fortress (borrow to repay same flash) | Debt opens; wallet USDC = **0**; yRSS locked at 100% util |
+| Borrow that only creates vault shares with no withdraw path | Debt without access |
+| Any fire that leaves borrow > 0 while hot/Landing USDC unchanged | Violation |
+
+| Allowed | Why |
+|---------|-----|
+| `borrow(..., receiver = Landing or Hot)` with real idle liquidity | King gets spendable USDC for the coll posted |
+| Clear/zero debt fires | Restores access |
+
+**`FireFlashAttack500` / fortress self-seed is FORBIDDEN** unless King explicitly says `ALLOW_FORTRESS_DEBT=1` **and** names spendable receiver. Default: **never.**
+
 ## Hot wallet law (King order — ops USDC)
 
 **Hot `0x6708…a7d1` is the token/ops wallet.** It must **always** hold spendable USDC for seeds, BRETT scale, Ignition, and fire gas discipline.
