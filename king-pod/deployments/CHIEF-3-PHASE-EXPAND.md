@@ -78,12 +78,15 @@ Landing ≥ **$500k** → pay burn → optional `desk.pause()` → open Phase 2 
 
 ### 2C — Fees & yield (turn on the meter)
 
+Full sheet: **`FEES-YIELD-GOV.md`** · fire script: `FireYrssFeeGov.s.sol`
+
 | Lever | Status / move |
 |-------|----------------|
 | yRSS performance fee | **10% LIVE** → King hot |
 | Accrue on real TVL | Needs depositors / seeded books |
 | Optional fee bump | 10% → 12–15% only after Phase 1 cash lands (King GO) |
 | Carry scripts | `CarryEthCbethBrett.s.sol` when capital exists |
+| Gov harden | guardian / timelock optional after Phase 1 |
 
 ### Phase 2 exit
 
