@@ -1,0 +1,27 @@
+{
+  "event": "ProofEmitted",
+  "chainId": 8453,
+  "contract": null,
+  "txHash": null,
+  "status": "awaiting_execute",
+  "borrower": null,
+  "collateralPosted": null,
+  "kusdMinted": null,
+  "usdcReceived": null,
+  "timestamp": null,
+  "schema": {
+    "borrower": "address indexed — msg.sender of execute",
+    "collateralPosted": "uint256 — RSS wei posted to CDP",
+    "kusdMinted": "uint256 — kUSD raw (6 decimals)",
+    "usdcReceived": "uint256 — USDC landed on cold Landing",
+    "timestamp": "uint256 — block.timestamp"
+  },
+  "example": {
+    "borrower": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+    "collateralPosted": "1000000000000000000000000",
+    "kusdMinted": "700000000000",
+    "usdcReceived": "699000000000",
+    "timestamp": "2026-07-21T12:00:00Z"
+  },
+  "notes": "Do not fire large execute until Aero kUSD/USDC depth supports size. KING_GO required."
+}
