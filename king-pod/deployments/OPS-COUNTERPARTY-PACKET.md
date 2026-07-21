@@ -1,6 +1,7 @@
 # Kingdom Ops Raise — Counterparty Packet
 
-**Chief play:** `CHIEF-PLAY.md` — Blue market primary · this desk = parallel placement.
+**Chief plan:** `CHIEF-3-PHASE-EXPAND.md` — **Phase 1 = $500k to Landing.**  
+**Also:** `CHIEF-PLAY.md` · `CAPITAL-POOLS-PACKET.md`
 
 **Offer:** Purchase RSS (Kingdom working asset) for USDC on Base.  
 **Not** a fundraise into opacity. **Not** a request to lend. Clean asset sale.
@@ -26,20 +27,19 @@
 
 ---
 
-## Desk terms (LIVE)
+## Desk terms (LIVE) — Phase 1 fill $500k
 
 | | |
 |--|--|
 | Desk | `0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D` |
-| Size | **$700,000** USDC (full band) |
-| Inventory | **700,000 RSS** |
-| Price | **$1.00** USDC per RSS (oracle peg) |
+| Phase 1 ask | **$500,000** USDC (King target) |
+| Inventory available | **700,000 RSS** @ **$1.00** |
 | Proceeds | Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
 | Settlement | On-chain `CrownRssOpsDesk` — USDC in, RSS out, same tx |
 | live | **true** |
 
-Buyer: approve USDC → desk, then `buyWithUsdc(700000000000)` or `buy(700000 ether)`.  
-Partial fills OK.
+**Phase 1 buyer:** approve USDC → desk, then `buyWithUsdc(500000000000)`.  
+Full book still available: `buyWithUsdc(700000000000)`. Partial fills OK.
 
 ---
 
