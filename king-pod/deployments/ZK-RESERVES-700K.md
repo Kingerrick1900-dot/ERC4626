@@ -1,13 +1,18 @@
 # ZK Reserves ≥ $700K — Circom + Groth16 on Base
 
-**STATUS: BUILT — no broadcast until King FIRE.**
+**STATUS: LIVE.** See [`ZK-RESERVES-LIVE.md`](./ZK-RESERVES-LIVE.md).
 
-| Step | Action | Tool |
-|------|--------|------|
-| **1** | Deploy ZK verifier + gate + credit | `FireZkDeploy.s.sol` |
-| **2** | Generate proof USDC ≥ $700K | `zk/scripts/prove.sh` (Circom/Groth16) |
-| **3** | Submit proof to gate (counterparty-readable) | `FireZkSubmitProof.s.sol` |
-| **4** | Borrow against proven reserves | `CrownZkCredit.borrow` |
+| Step | Action | Status |
+|------|--------|--------|
+| **1** | Deploy verifier + gate + credit | **DONE** |
+| **2** | Generate proof USDC ≥ \$700K | **DONE** |
+| **3** | Submit proof to gate | **DONE** — `isProven(hot)=true` |
+| **4** | Borrow against proven reserves | Rail live — needs USDC in `CrownZkCredit` |
+
+**Gate:** `0xAf9570a3Fe67988AE1c7d4dA0cD5c54CFE147205`  
+**Credit:** `0xeAE626b6e82E51c9805D72B6532A948dcf57D392`  
+**Verifier:** `0xCC1223C0fCA9efe6c4ea4b35A8b9F08b3f8aF681`
+
 
 ---
 
