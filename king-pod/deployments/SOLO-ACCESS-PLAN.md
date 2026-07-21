@@ -30,8 +30,8 @@ That is the whole gap. Not Cursor magic. Not Morpho personal sandbox. **Collater
 | Tool | Status | What it does |
 |--|--|--|
 | Free RSS on hot | ~18M | Collateral ready |
-| Ops Desk | LIVE `0xDbf7C4Ad…065D` | Sell RSS @ $1 → USDC to Landing |
-| Cash-leg script | Armed `FireCashLeg500` | Borrow → Landing when idle ≥ size |
+| Ops Desk | LIVE `0xDbf7…065D` — **700k @ $1** | Sell RSS → USDC to Landing |
+| Cash-leg script | Armed `FireCashLeg500` (default $700k) | Borrow → Landing when idle ≥ size |
 | Debt-free / chunk free | Proven | Can close Morpho debt again anytime |
 | Forbidden | — | Flash→deposit→borrow→Landing “spendable” (breaks repay math) |
 
@@ -42,7 +42,7 @@ That is the whole gap. Not Cursor magic. Not Morpho personal sandbox. **Collater
 ### Track 1 — Clear RSS to USDC (primary for bills)
 
 **Engine:** Ops Desk already live.  
-**Action:** 500k RSS listed @ $1 → **$500k** to Landing if filled.  
+**Action:** **700k RSS** listed @ $1 → **$700k** to Landing if filled.  
 **King role:** push the packet / settle a buyer. Code cannot be the buyer without USDC.  
 **This is not “find outside capital” for a loan.** It is **selling a slice of the asset Morpho already valued** — same as any elite desk clearing inventory.
 

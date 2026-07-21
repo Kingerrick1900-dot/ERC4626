@@ -30,9 +30,10 @@ interface IMorphoC {
     function idToMarketParams(bytes32) external view returns (MarketParams memory);
 }
 
-/// @notice SAFE CASH LEG — borrow $500k USDC straight to Landing against RSS.
+/// @notice SAFE CASH LEG — borrow USDC straight to Landing against RSS (default $700k = desk ceiling).
 /// @dev NO yRSS. NO flash. NO circle. Refuses if market idle < MIN_IDLE.
 ///      Gates: KING_GO=1; FIRE_CASH=1 to broadcast borrow.
+///      Override: BORROW_USDC / MIN_IDLE (6dp USDC).
 contract FireCashLeg500 is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
@@ -43,8 +44,8 @@ contract FireCashLeg500 is Script {
     bytes32 constant MARKET_ID = 0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794;
 
     uint256 constant SOFT_LTV_BPS = 7000;
-    uint256 constant DEFAULT_BORROW = 500_000e6;
-    uint256 constant DEFAULT_MIN_IDLE = 500_000e6;
+    uint256 constant DEFAULT_BORROW = 700_000e6;
+    uint256 constant DEFAULT_MIN_IDLE = 700_000e6;
 
     function run() external {
         uint256 pk = vm.envUint("PRIVATE_KEY");

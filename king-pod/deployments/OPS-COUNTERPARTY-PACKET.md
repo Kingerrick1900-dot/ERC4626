@@ -24,18 +24,20 @@
 
 ---
 
-## Desk terms (default)
+## Desk terms (LIVE)
 
 | | |
 |--|--|
-| Size | **$500,000** USDC |
-| Inventory | **500,000 RSS** |
+| Desk | `0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D` |
+| Size | **$700,000** USDC (full band) |
+| Inventory | **700,000 RSS** |
 | Price | **$1.00** USDC per RSS (oracle peg) |
 | Proceeds | Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
 | Settlement | On-chain `CrownRssOpsDesk` — USDC in, RSS out, same tx |
+| live | **true** |
 
-Buyer: `buyWithUsdc(500000000000)` or `buy(500000 ether)`  
-USDC approve desk first.
+Buyer: approve USDC → desk, then `buyWithUsdc(700000000000)` or `buy(700000 ether)`.  
+Partial fills OK.
 
 ---
 

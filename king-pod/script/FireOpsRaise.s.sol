@@ -9,16 +9,18 @@ interface IERC20O {
     function approve(address, uint256) external returns (bool);
 }
 
-/// @notice STEP B — Arm Kingdom Ops Desk for $500k raise (elite OTC venue).
+/// @notice STEP B — Arm / upsize Kingdom Ops Desk (elite OTC venue).
 /// @dev Gates: KING_GO=1
 ///      FIRE_DESK=0 → deploy only
 ///      FIRE_DESK=1 → stock OPS_RSS + arm live at PRICE (default $1)
-///      Default stock: 500_000e18 RSS → $500k USDC at peg if fully filled
+///      Live desk: DESK=0xDbf7…065D — pass OPS_RSS as *additional* stock to upsize
+///      Default OPS_RSS: 700_000e18 → $700k at peg (King band ceiling)
 contract FireOpsRaise is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
     address constant RSS = 0x7a305D07B537359cf468eAea9bb176E5308bC337;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+    address constant LIVE_DESK = 0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D;
 
     function run() external {
         uint256 pk = vm.envUint("PRIVATE_KEY");
@@ -26,10 +28,10 @@ contract FireOpsRaise is Script {
         require(vm.envOr("KING_GO", uint256(0)) == 1, "NO-GO: KING_GO=1");
 
         bool doArm = vm.envOr("FIRE_DESK", uint256(0)) == 1;
-        address existing = vm.envOr("DESK", address(0));
+        address existing = vm.envOr("DESK", LIVE_DESK);
         address landing = vm.envOr("LANDING", LANDING);
-        // Default $500k ops set at $1 peg
-        uint256 opsRss = vm.envOr("OPS_RSS", uint256(500_000 ether));
+        // Default $700k ops set at $1 peg (full King band)
+        uint256 opsRss = vm.envOr("OPS_RSS", uint256(700_000 ether));
         uint256 price = vm.envOr("PRICE_USDC_PER_RSS", uint256(1e6)); // $1
         bool live = vm.envOr("LIVE", uint256(1)) == 1;
 
@@ -68,7 +70,7 @@ contract FireOpsRaise is Script {
 
         console2.log("rssForSale", desk.rssForSale());
         console2.log("live", desk.live() ? uint256(1) : uint256(0));
-        console2.log("quote500kRss", desk.quoteUsdc(500_000 ether));
+        console2.log("quoteFull", desk.quoteUsdc(desk.rssForSale()));
         console2.log("READY", doArm ? uint256(1) : uint256(0));
     }
 }

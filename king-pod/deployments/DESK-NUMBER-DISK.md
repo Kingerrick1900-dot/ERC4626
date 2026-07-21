@@ -12,9 +12,9 @@
 |-------|------------|
 | Desk | `0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D` |
 | live | **true** |
-| Stock | **500,000 RSS** (balance = `rssForSale`) |
+| Stock | **700,000 RSS** (upsize live — was 500k) |
 | Price | **1e6** USDC / 1e18 RSS = **$1.00** |
-| Quote `quoteUsdc(500k RSS)` | **500000000000** = **$500,000.00** exact |
+| Quote `quoteUsdc(700k RSS)` | **700000000000** = **$700,000.00** exact |
 | Proceeds | Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
 | raised / sold | **0 / 0** (armed, not filled) |
 
@@ -61,6 +61,6 @@ Foreign idle is real. Kingdom cannot PA it without those vaults opening maxIn on
 
 ## 4. One-line verdict
 
-**The disk is the Ops Desk. The numbers already match the King’s $500–700k band. Fill the desk (or wait for real idle) — nothing else is hiding on-chain.**
+**The disk is the Ops Desk. Ask now sits at the full $700k ceiling. Fill the desk (or wait for real idle) — nothing else is hiding on-chain.**
 
-Optional next (only on King GO): stock **+200k RSS** on desk → raise ask to **$700k** (full PA ceiling).
+**Fired for tired King:** +200k RSS stocked · desk ask = **$700k** · see `KING-REST.md`.

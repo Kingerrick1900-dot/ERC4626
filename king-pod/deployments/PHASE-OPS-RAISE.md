@@ -1,21 +1,22 @@
 # PHASE OPS RAISE — Elite standard ($500k kingdom set)
 
-**Status: OPS DESK LIVE ON BASE**
+**Status: OPS DESK LIVE ON BASE — $700k CEILING**
 
-**Find:** `DESK-NUMBER-DISK.md` — desk = the disk; PA caps mirror at $700k; King’s $500–700k band already on-chain.
+**Find:** `DESK-NUMBER-DISK.md` · **Rest:** `KING-REST.md`
 
 | Field | Value |
 |-------|--------|
 | Desk | `0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D` |
 | Deploy tx | `0x922000f9515c6f91c8d516a9739b2ff623cdbc162874a04a6e0205947e40cc75` |
-| Stock | **500,000 RSS** |
+| Upsize +200k tx | `0x0f33f9460fa8ca2fa4f67030ee50346df30dc8ae377a680bb98fdf42a285e2cf` |
+| Stock | **700,000 RSS** |
 | Price | **$1.00** USDC / RSS |
-| Target raise | **$500,000** USDC |
+| Target raise | **$700,000** USDC |
 | Proceeds | Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
 | live | **true** |
-| Hot RSS reserve | **~17,999,600** |
+| Hot RSS reserve | **~17.8M** |
 
-**Buyer:** approve USDC to desk, then `buyWithUsdc(500000000000)` or `buy(500000 ether)`.
+**Buyer:** approve USDC to desk, then `buyWithUsdc(700000000000)` or `buy(700000 ether)`.
 
 ---
 
