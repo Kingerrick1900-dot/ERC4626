@@ -46,10 +46,12 @@ interface IMetaMorphoChunk {
     function maxRedeem(address owner) external view returns (uint256);
 }
 
-/// @notice Chunk-unwind Morpho self-seed → free almost all RSS to king hot.
+/// @notice Chunk-unwind Morpho self-seed → free RSS to king hot.
 /// @dev NO re-lock path. Does not supply, borrow, self-seed, or deposit yRSS.
-///      Leaves a tiny dust debt (~$300) so no USDC prefund is required.
 ///      RSS receiver is always `king` — never a vault/desk/pair.
+///      FORBIDDEN (King order): leaving borrow dust and calling it "debt-free."
+///      After `freeRssToKing()`, always run `CrownZeroMorpho.zeroBooks()` — see `FireZeroMorphoDebt.s.sol`.
+///      `DUST_DEBT` below is legacy; do not use this contract alone for debt clearance.
 contract CrownChunkFreeRss is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     using SafeTransfer for IERC20;
 
