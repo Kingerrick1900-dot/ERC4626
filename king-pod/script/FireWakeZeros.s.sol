@@ -83,7 +83,7 @@ contract FireWakeZeros is Script {
             return;
         }
 
-        require(IERC20W(RSS).balanceOf(HOT) >= postRss, "RSS");
+        require(postRss == 0 || IERC20W(RSS).balanceOf(HOT) >= postRss, "RSS");
 
         vm.startBroadcast(pk);
 
@@ -104,10 +104,12 @@ contract FireWakeZeros is Script {
         allocs[1] = IYrssW.MarketAllocation({marketParams: brettMp, assets: type(uint256).max});
         IYrssW(YRSS).reallocate(allocs);
 
-        // 3) Post RSS collateral (credit line armed — coll off zero)
-        IMorphoW.MarketParams memory mp = IMorphoW(MORPHO).idToMarketParams(RSS77);
-        IERC20W(RSS).approve(MORPHO, postRss);
-        IMorphoW(MORPHO).supplyCollateral(mp, postRss, HOT, "");
+        // 3) Post RSS collateral when POST_RSS > 0 (skip if already armed)
+        if (postRss > 0) {
+            IMorphoW.MarketParams memory mp = IMorphoW(MORPHO).idToMarketParams(RSS77);
+            IERC20W(RSS).approve(MORPHO, postRss);
+            IMorphoW(MORPHO).supplyCollateral(mp, postRss, HOT, "");
+        }
 
         vm.stopBroadcast();
 
