@@ -74,9 +74,10 @@ After Landing peel / bond raise: `DepositYrss.s.sol` · `FireYrssFeeGov.s.sol` �
 
 ---
 
-## Play 5 — BRETT rail (Phase 2)
+## Play 5 — BRETT rail — **LIVE (finished)**
 
-Market seeded ($1). King holds **0 BRETT**. Engine waits until RSS rail has USDC face **and** BRETT inventory acquired.
+Market seeded + **yRSS USDC on BRETT book** + **King BRETT collateral posted** + borrow path proven.  
+See `BRETT-FINISHED.md`. Re-fire `FireFinishBrett.s.sol` to upsize when more ETH/USDC on hot.
 
 ---
 
