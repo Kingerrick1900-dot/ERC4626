@@ -1,6 +1,6 @@
 # ORACLE POWER MOVE — Fixed $1 (burned)
 
-**STATUS: PLAN ONLY.** King reads → OK / GO / FIRE. No broadcast until then.  
+**STATUS: FIRED LIVE (2026-07-21).** Steps 2–4 executed on Base. Credit line armed.  
 `LIVE-FIRE-LAW.md`
 
 ---
