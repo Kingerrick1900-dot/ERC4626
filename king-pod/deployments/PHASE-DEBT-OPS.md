@@ -7,7 +7,7 @@
 | Freer | `0x89FeAb2bfB40994020E0236ad1ac222f9A3d60C4` |
 | freeRssToKing tx | `0xc925489272ccccdd13a4d6f64aeb4dc16ab941d2b2e2dce8b8ce6250aff16912` |
 | sweep tx | `0x610b6d233a47175fbb239d2e5f326fb046a5cebc0a794e2389fe26591e131730` |
-| Morpho debt | **~$300 dust** (was $9M) |
+| Morpho debt | **~$300 dust** (was $9M) — **NOT done; scribe left on purpose** |
 | Hot free RSS | **~18,499,600** |
 | Coll left | ~400 RSS (dust buffer) |
 | yRSS TVL | ~$299 |
@@ -21,7 +21,7 @@ Serve God. Steward the nation. Own capital only. No raiding.
 
 ## Two jobs
 
-1. **Pay the Morpho loan** — DONE (dust only left)
+1. **Pay the Morpho loan** — dust left by `DUST_DEBT=300e6` in `CrownChunkFreeRss`. **Fix:** `FireZeroMorphoDebt.s.sol` (fork-proven). See `VERDICT-ZERO-DUST-DEBT.md`.
 2. **Ops USDC $500k** — NEXT (asset conversion; Morpho $1 is not a DEX bid)
 
 ## Step B — Ops $500k (honest)
