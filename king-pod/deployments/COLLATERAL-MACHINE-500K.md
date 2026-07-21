@@ -53,7 +53,13 @@ forge test --match-contract CrownCollateralMachineForkTest -vv
 - `test_fork_flash_advance_500k_reverts_repay_short` — pool empty  
 - `test_fork_flash_advance_500k_succeeds_when_pool_deep` — seed pool on fork → **Landing +500k** proves machine
 
-## Deploy (no live fire until depth)
+## Deployed (Base) — deploy only, no live fire
+
+| | |
+|--|--|
+| **CrownCollateralMachine** | `0x27bF9A700d24cE75137A8621ebd9b5B1BB96800c` |
+| Landing (immutable) | `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
+| Live pool quote (600k RSS) | ~$0.86 — **below 500k → LIVE_FIRE blocked** |
 
 ```bash
 KING_OK=1 FIRE_COLLATERAL_MACHINE=1 forge script script/FireCollateralMachine.s.sol \
