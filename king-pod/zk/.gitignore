@@ -1,8 +1,7 @@
 node_modules/
 build/*.ptau
-build/pot14_0000.ptau
-build/pot14_0001.ptau
-build/pot14_final.ptau
+build/pot14_*.ptau
 build/reserves_0000.zkey
 proofs/witness.wtns
 proofs/calldata.txt
+proofs/input.json
