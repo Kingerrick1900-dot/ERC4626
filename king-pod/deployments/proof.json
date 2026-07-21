@@ -1,9 +1,10 @@
 {
   "event": "ProofEmitted",
   "chainId": 8453,
-  "contract": null,
+  "contract": "0x187228EB3Cb9b26e3ddC0fE088CD5510DF87b483",
+  "deployTxHash": "0xa4fb49558c5c8e9e11c6043ac0e550425bd43576c58ab28e10114f69006bf374",
   "txHash": null,
-  "status": "awaiting_execute",
+  "status": "deployed_awaiting_execute",
   "borrower": null,
   "collateralPosted": null,
   "kusdMinted": null,

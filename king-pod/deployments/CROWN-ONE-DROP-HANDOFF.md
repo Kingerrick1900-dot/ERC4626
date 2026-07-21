@@ -75,12 +75,13 @@ forge script script/FireOneDropExecute.s.sol:FireOneDropExecute \
 
 | Field | Value |
 |-------|-------|
-| CrownOneDrop | _pending deploy_ |
-| Deploy tx | _pending_ |
+| CrownOneDrop | `0x187228EB3Cb9b26e3ddC0fE088CD5510DF87b483` |
+| Deploy tx | `0xa4fb49558c5c8e9e11c6043ac0e550425bd43576c58ab28e10114f69006bf374` |
 | Chain | Base `8453` |
 | Owner / hot | `0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1` |
 
-Broadcast: `broadcast/FireDeployOneDrop.s.sol/8453/run-latest.json` (after fire).
+Broadcast: `broadcast/FireDeployOneDrop.s.sol/8453/run-latest.json`  
+Basescan: https://basescan.org/address/0x187228EB3Cb9b26e3ddC0fE088CD5510DF87b483
 
 ## Proof event
 
