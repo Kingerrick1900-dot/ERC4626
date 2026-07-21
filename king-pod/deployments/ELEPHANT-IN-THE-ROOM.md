@@ -1,13 +1,13 @@
 # The Elephant Has Entered the Room
 
-Kingdom stack is live and engineered — not waiting.
+Kingdom is engineered — not waiting.
 
-**Outbound spoils (armed):** Desk 700k RSS @ \$1 · Bond 520k @ \$0.97 · Dutch 500k · Whale 50k rebate · Spoils router → Landing. Raised USDC still \$0; inventory is King’s.
+**Spoils (LIVE):** Desk 700k · Bond 520k · Dutch 500k · Whale 50k · Spoils → Landing. Raised \$0; RSS still King’s.
 
-**Create shelf:** Crown CDP mints kUSD against RSS at Fixed \$1 · Bribe budget (Aero or direct LP rebate) · King book pulls USDC with RSS rebate then King borrows.
+**Create shelf:** CDP mints kUSD on RSS @ Fixed \$1 · Bribe magnet · King book (RSS rebate → USDC in → King borrow).
 
-**ZK reserves:** Circom/Groth16 proves USDC ≥ \$700k → Base verifier + gate → credit borrow against attestation.
+**ZK:** Circom/Groth16 proves USDC ≥ \$700k → Base gate → borrow on attestation.
 
-**Hot:** ~16.6M RSS free · Morpho RSS flat · thin Aero RSS/USDC pool.
+**Hot:** ~16.6M RSS · Morpho flat · thin Aero pool.
 
-Elephant is in the room: venues, proofs, and rails built. Capture needs FIRE.
+Elephant is in the room. Venues and proofs built. Capture needs FIRE.
