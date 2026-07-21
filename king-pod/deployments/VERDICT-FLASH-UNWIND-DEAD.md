@@ -6,6 +6,25 @@
 
 ---
 
+## Respect — what that scribe got *right* (not thin air)
+
+Online Morpho research is real. Kingdom already used these tools. Do not mock the primitives:
+
+| Claim in brief | Truth |
+|----------------|------|
+| `morpho.flashLoan` exists; repay in same tx or full revert | **True** — Morpho docs + Blue code |
+| FlashBorrower / callback pattern is how liquidators unwind | **True** — standard Morpho pattern |
+| Flash can repay debt + withdraw collateral atomically | **True** — **Kingdom already did this** (`CrownChunkFreeRss`, debt-free fire) |
+| Bundler3 / GeneralAdapter1 refinance is a real SDK action | **True** — Morpho SDK feature |
+| Refinance needs another market with same loan+collateral and liquidity | **True** — that is exactly why Path 2 is conditional |
+
+So: **not fanfic about Morpho.** Solid protocol literacy.  
+Where it fails is **application to today’s Kingdom state + the missing repay source** — not “AI invented flash loans.”
+
+**Rule for King:** praise the research on *primitives*; kill the *payroll conclusion* when step 4 has no venue.
+
+---
+
 ## Live state (Base — not the brief’s $9M story)
 
 | Item | Brief claims | Chain now |
