@@ -27,3 +27,18 @@ Prior live steel already on-chain stays (desk, helper, posted coll) until King o
 - **Never call a debt job done** while Morpho still shows borrow > 0.
 - **Do the job ordered.** If King says clear debt, clear debt — full stop. No pivot to other objectives.
 - If chunk-unwind cannot hit zero in one contract, **chain `CrownZeroMorpho.zeroBooks()` in the same fire plan** before reporting success.
+
+## Zero doctrine (King order)
+
+Kingdom-controlled rails **must not sit at zero** when inventory exists to arm them:
+
+| Must not be zero | Wake with |
+|------------------|-----------|
+| yRSS TVL | Deposit USDC (hot/Landing peel) + reallocate to markets |
+| Morpho RSS collateral (when armed posture) | `FireArmCreditLine` / `FireWakeZeros` |
+| BRETT/USDC + RSS/USDC market supply | yRSS reallocate / lender deposit |
+| Desk / bond **inventory** | `stock()` from hot RSS |
+
+**Allowed at zero until commerce:** `raisedUsdc` on desk/bond (needs buyer). **Not allowed:** leaving vault TVL, posted coll, and market depth at zero while RSS/USDC inventory exists to seed them.
+
+Script: `FireWakeZeros.s.sol` (`KING_OK=1` `FIRE_WAKE=1`).
