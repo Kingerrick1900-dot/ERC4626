@@ -64,4 +64,6 @@ Borrow fires after USDC hits the book: call `borrow(usdcAmt)` as King (or follow
 | `FIRE_CDP=1` / `FIRE_BRIBE=1` / `FIRE_BOOK=1` | Which device |
 | `--broadcast` | On-chain |
 
-**King: say FIRE 1 / FIRE 2 / FIRE 3 (or FIRE ALL) to broadcast.**
+**King FIRE:** `FIRE 1` / `FIRE 2` / `FIRE 3` / `FIRE ALL` (create) · `FIRE_ZK_DEPLOY` / `FIRE_ZK_PROOF` (reserves).
+
+See also: [`ZK-RESERVES-700K.md`](./ZK-RESERVES-700K.md) · [`SPOILS-OF-WAR.md`](./SPOILS-OF-WAR.md)
