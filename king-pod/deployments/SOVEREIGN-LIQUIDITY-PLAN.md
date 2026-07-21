@@ -12,7 +12,7 @@
 |------|------|--------|------|
 | 1 | Lock 1M RSS → mint 700k kUSD to hot | **DONE** | CDP `0x9F9356dd8B17f58d03f3Db84e81541cdABBD5768` · kUSD `0x0FEA62084A024544891f03035E85401C2C886c1b` |
 | 2 | ZK attest `isProven(hot)` | **DONE** | Gate `0xAf9570a3Fe67988AE1c7d4dA0cD5c54CFE147205` |
-| 3 | Counterparties advance USDC vs \$700k ticket | **ARMED** — await fill | Packet `SECURE-700K-TOTAL.md` · `ZK-PROOF-HOW-TO-USE.md` |
+| 3 | Counterparties advance USDC vs \$700k ticket | **ONE BLOCKER** — no USDC in yet | See `BLOCKERS-700K-SEED.md` · capture `script/capture-zk-700k.sh` |
 | 4 | Settle: wire · Credit V2 `borrowTo(cold)` · desk | **ARMED** | Credit V2 `0x01814e15cF01DEcdC7239b739177C36acaBaBA54` · Desk `0xDbf7C4Ad01418ec1b753fa039d5e5B54aF4C065D` · Cold `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
 | 5 | Route to KingVault (ops + expansion) | **NEXT** | Landing is cold today; Vault V2 tooling in `vault-v2-tooling/` |
 | 6 | Fees on BRETT / RSS / new markets | **PARTIAL** | yRSS 10% fee rail · BRETT market live · harvest → Landing |
