@@ -22,8 +22,8 @@
 ## Proof of quality (on-chain history)
 
 - Morpho Blue market RSS/USDC: `0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794`
-- Kingdom opened a **$9M** borrow against RSS (self-seed fortress), then **paid the loan down to dust** and freed inventory to hot.
-- Debt-free tx: `0xc925489272ccccdd13a4d6f64aeb4dc16ab941d2b2e2dce8b8ce6250aff16912`
+- Kingdom opened a **$9M** borrow against RSS (self-seed fortress), then **cleared Morpho to zero** and freed inventory to hot.
+- Zero debt tx: `0x453b51c6511266d274d257e62c1d00d83f6389d50cdeccb2806aeaf9245de635`
 
 ---
 

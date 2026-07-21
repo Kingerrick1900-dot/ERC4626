@@ -1,19 +1,15 @@
-# CHIEF PLAY → see 3-phase expand
+# CHIEF PLAY → post-zero engineered rails
 
-**Operational plan:** [`CHIEF-3-PHASE-EXPAND.md`](./CHIEF-3-PHASE-EXPAND.md)
+**Play board (post debt-zero):** [`POST-ZERO-PLAYS.md`](./POST-ZERO-PLAYS.md)  
+**Scoreboard:** `script/plays-status.sh`
 
-| Phase | Mission |
-|-------|---------|
-| **1** | **$500k USDC to Landing** (desk + Blue cash-leg) |
-| **2** | Seed **both** RSS + BRETT · fees / yield |
-| **3** | Capital pools · gov · scale |
+| Play | Status | Engine |
+|------|--------|--------|
+| **1 Desk @ $1** | **LIVE** | `CrownRssOpsDesk` + fill helper |
+| **2 Bond @ discount** | SHELF (fork-proven) | `FireRssBond.s.sol` |
+| **3 Credit line re-arm** | SHELF (after USDC inflow) | `FireArmCreditLine.s.sol` |
+| **4 yRSS re-seed** | SHELF | `DepositYrss.s.sol` |
 
-| Tool | Path |
-|------|------|
-| Counterparty (Gun A) | `OPS-COUNTERPARTY-PACKET.md` |
-| Capital pools (Gun B feed) | `CAPITAL-POOLS-PACKET.md` |
-| Scoreboard | `script/phase-expand-status.sh` |
-| Phase 1 fire | `script/FirePhase1FiveHundred.s.sol` |
+3-phase expand: [`CHIEF-3-PHASE-EXPAND.md`](./CHIEF-3-PHASE-EXPAND.md)
 
-RSS Blue buying power ~**$14.2M** LLTV. Desk **700k @ $1** live. Sitting = $0.  
-**Phase 1 brings the King $500k. Both rails expand after.**
+**~17.8M RSS on hot. Desk 700k @ $1. Engineering = outbound rails, not waiting.**
