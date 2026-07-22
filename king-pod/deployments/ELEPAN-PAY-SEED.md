@@ -1,20 +1,10 @@
-# ELEPAN LEVERAGE LOOP — PHASE 3 MODULE
+# ELEPAN LEVERAGE LOOP — PHASE 3 (INTERNAL LENDER + BORROWER)
 
-**Framing:** Collateralized leverage. King’s Elepan does the work. Morpho-permitted. Not “free money,” not circular dust.
+**Framing:** Collateralized leverage. King is **lender and borrower** on purpose — internal books, less confusion. Morpho-permitted. If outsiders never show, the loop still scales the bag.
 
 ## Plan text (~100 words)
 
-Leverage Loop Module — locked into Phase 3: flash-loan → (optional swap) → supply Elepan collateral → borrow USDC → redeploy to whitelist sink and/or repay flash, atomic via `onMorphoFlashLoan`. Scales the Elepan/USDC position in one transaction instead of manual multi-tx cycling. Risk Controller checks post-loop health factor and loop count against Policy Engine caps (soft LTV ≤70%, HF ≥1.55, max loops, spread ≥150bps on earn leg) before it fires — full strength without babysitting each cycle. Every loop logs as one Intent; Accounting updates immediately. Cursor builds this alongside forceDeallocate + flash-loan exit as the two live levers on the existing Elepan stack. Ready to hand off with the rest of the spec whenever King says go.
+Self-funded recursive leverage — locked as the no-external path: flash-loan → buy Elepan (or use bag) → supplyCollateral → borrow USDC → repeat, atomic via `onMorphoFlashLoan`. King is lender and borrower on the same Morpho stack so the kingdom still scales if depositors never arrive. Risk Controller enforces post-loop HF ≥1.55, soft LTV ≤70%, and max loop count before fire. Pair with forceDeallocate + flash exit for anytime self-del. Optional earn leg: park a slice of borrow in whitelist sinks only when borrow APR clears the spread gate; otherwise stay pure recursive on Elepan. Intent-logged. Ready when King says go — no babysitting each cycle.
 
-## Live levers (pair)
-
-| Lever | Job |
-|--|--|
-| **Leverage Loop** | Open / scale coll→borrow→earn (atomic) |
-| **forceDeallocate + flash exit** | Self-del / unwind anytime |
-
-## Caps (Policy Engine)
-
-Soft LTV ≤70% · HF ≥1.55 · max loops King-named · sink whitelist · no fire without `KING_GO=1`.
-
-**Named ask class:** $14M working capital. Depth buffer + foreign earn sink — both anti-dust. No treasury USDC: flash + Elepan bag.
+## Caps
+Soft LTV ≤70% · HF ≥1.55 · loops King-named (≤5) · $14M-class ask · no invented incentive APYs until listed on our market.
