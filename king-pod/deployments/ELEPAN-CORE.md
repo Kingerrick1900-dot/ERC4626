@@ -88,8 +88,8 @@ See `ELEPAN-SELF-SEED-PLAN.md`. M1 magnet (yRSS-style) + M2 copy-cat (deposit→
 ## Curator allocation + loan access — VERDICT
 See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay permissionless; caps/PA/V2 gates = full or partial *liquidity/deposit* access. No config fire in that note.
 
-## PRIMARY PLAN — borrow→redeploy carry ($14M)
-See `ELEPAN-PAY-SEED.md`. Self-seed circular = **weak / demoted**. Real path: post Elepan → borrow **$14M** USDC → redeploy **Steakhouse/Gauntlet** (not back into same moat). Need idle source first. **No fire until GO.**
+## PRIMARY PLAN — borrow token → earn ($14M)
+See `ELEPAN-PAY-SEED.md`. **Same as last time:** borrow USDC against the bag. **This time we earn:** redeploy to Steakhouse/Gauntlet (not circular yVault). Need idle first. **No fire until GO.**
 
 ## $14M fit + access notes
 See `NINE-DUAL-EARN-PROOF.md` / `LOAN-ACCESS-PATHS.md`. ZK rail = side line. Morpho Blue standing borrow still needs Elepan coll (bag already held).
