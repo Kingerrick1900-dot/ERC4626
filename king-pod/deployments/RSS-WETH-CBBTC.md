@@ -9,7 +9,7 @@
 |-------|---------|
 | Oracle RSS/WETH | `0x3BB87B8ef3Df289C82540F89DE3e4f7762Ed4A98` |
 | Oracle RSS/cbBTC | `0x7c60830200D14F7cDd020bd1c0Aa10d6F254bd0b` |
-| CrownFatFlashSeed | `0x4120D1Db772d68D7De2D624448B36D64e1Cf4577` |
+| CrownFatFlashSeed | `0x38bF10f1b62282F08f9fC97E2DB116DD2cBbf2F6` |
 | Market RSS/WETH | `0x6d0c2531ad3078b19f569d3d9b48fb9348682a1b769f726c4196e6091a3c35e9` |
 | Market RSS/cbBTC | `0x88fb488074c9f9f3acaa5f84a2f4181bc371defa66ff4a9e42e1e5f0d563be0e` |
 
@@ -51,3 +51,8 @@ KING_OK=1 FIRE_FAT_SEED=1 FLASH_WETH=100ether FLASH_CBTC=5e8 \
 Or call `CrownFatFlashSeed.flashSeed` on existing markets with larger `FLASH_*`.
 
 TWAP pools (fat): WETH/USDC `0xd0b5…F224` · cbBTC/USDC `0xfBB6…43ef`
+
+
+## HF guard (locked)
+
+`CrownFatFlashSeed` reverts if HF_raw < **1.55**. Emits `HfAlert` if < **1.60**. Monitor: `script/hf_monitor_rss_weth_cbbtc.sh`.

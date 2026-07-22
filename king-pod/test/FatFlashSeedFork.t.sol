@@ -61,7 +61,8 @@ contract FatFlashSeedForkTest is Test {
         CrownFatFlashSeed seeder = new CrownFatFlashSeed(MORPHO, RSS, HOT, LANDING, address(this));
 
         uint256 flashAmt = 10 ether;
-        uint256 rssColl = flashAmt * 1e36 * 1e18 / (ora.price() * LLTV) * 102 / 100;
+        // HF_raw >= 1.55
+        uint256 rssColl = flashAmt * 1.55e18 * 1e36 / (ora.price() * 1e18) * 101 / 100;
 
         vm.startPrank(HOT);
         IERC20T(RSS).approve(address(seeder), rssColl);

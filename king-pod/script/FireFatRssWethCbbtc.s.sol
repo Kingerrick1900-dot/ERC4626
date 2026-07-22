@@ -97,10 +97,10 @@ contract FireFatRssWethCbbtc is Script {
         // Seeder must act onBehalf of king for Morpho supply/borrow/collateral
         IMorphoFire(MORPHO).setAuthorization(address(seeder), true);
 
-        uint256 rssW = _rssFor(flashWeth, oraW.price(), LLTV) * 102 / 100;
-        uint256 rssC = _rssFor(flashCbtc, oraC.price(), LLTV) * 102 / 100;
-        console2.log("RSS for WETH seed", rssW);
-        console2.log("RSS for cbBTC seed", rssC);
+        uint256 rssW = _rssForHf(flashWeth, oraW.price(), 1.55e18) * 101 / 100;
+        uint256 rssC = _rssForHf(flashCbtc, oraC.price(), 1.55e18) * 101 / 100;
+        console2.log("RSS for WETH seed (HF>=1.55)", rssW);
+        console2.log("RSS for cbBTC seed (HF>=1.55)", rssC);
         require(IERC20Fire(RSS).balanceOf(HOT) >= rssW + rssC, "RSS_SHORT");
 
         IERC20Fire(RSS).approve(address(seeder), rssW + rssC);
@@ -121,7 +121,8 @@ contract FireFatRssWethCbbtc is Script {
         vm.stopBroadcast();
     }
 
-    function _rssFor(uint256 flashAmt, uint256 px, uint256 lltv) internal pure returns (uint256) {
-        return flashAmt * 1e36 * 1e18 / (px * lltv);
+    /// @dev rss such that (rss * px / 1e36) / flashAmt >= hfWad/1e18
+    function _rssForHf(uint256 flashAmt, uint256 px, uint256 hfWad) internal pure returns (uint256) {
+        return flashAmt * hfWad * 1e36 / (px * 1e18);
     }
 }

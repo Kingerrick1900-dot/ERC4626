@@ -47,6 +47,9 @@ interface IOracleFat {
 contract CrownFatFlashSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     using SafeTransfer for IERC20;
 
+    uint256 public constant MIN_HF_RAW_WAD = 1.55e18; // collValue/debt >= 1.55
+    uint256 public constant HF_ALERT_WAD = 1.60e18; // alert band below 1.60
+
     IMorphoFat public immutable morpho;
     IERC20 public immutable rss;
     address public immutable king;
@@ -61,13 +64,15 @@ contract CrownFatFlashSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback
     uint256 private _flashAmt;
 
     event FatSeeded(
-        address indexed loan, bytes32 marketId, uint256 flashAmt, uint256 rssColl, uint256 supplyAssets, uint256 borrowAssets
+        address indexed loan, bytes32 marketId, uint256 flashAmt, uint256 rssColl, uint256 supplyAssets, uint256 borrowAssets, uint256 hfRawWad
     );
+    event HfAlert(address indexed loan, uint256 hfRawWad);
 
     error OnlyMorpho();
     error BadAmt();
     error Undercollateral();
     error SeedMiss();
+    error HfBelowMin();
 
     constructor(address morpho_, address rss_, address king_, address landing_, address owner_) Ownable(owner_) {
         morpho = IMorphoFat(morpho_);
@@ -77,6 +82,7 @@ contract CrownFatFlashSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback
     }
 
     /// @notice Atomic flash seed from Morpho inventory into RSS/loan market.
+    /// @dev Requires post-action HF_raw = collValue/debt >= 1.55 (King guard).
     function flashSeed(address loan, address oracle, address irm, uint256 lltv, uint256 flashAmt, uint256 rssColl)
         external
         onlyOwner
@@ -85,7 +91,13 @@ contract CrownFatFlashSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback
         if (flashAmt == 0 || rssColl == 0 || loan == address(0) || oracle == address(0)) revert BadAmt();
 
         uint256 px = IOracleFat(oracle).price();
-        uint256 maxBorrow = (rssColl * px / 1e36) * lltv / 1e18;
+        // HF_raw = (rssColl * px / 1e36) / flashAmt >= 1.55
+        uint256 collLoan = rssColl * px / 1e36;
+        uint256 hfRaw = collLoan * 1e18 / flashAmt;
+        if (hfRaw < MIN_HF_RAW_WAD) revert HfBelowMin();
+
+        // Also must clear Morpho LLTV (max borrow)
+        uint256 maxBorrow = collLoan * lltv / 1e18;
         if (maxBorrow < flashAmt) revert Undercollateral();
 
         rss.safeTransferFrom(king, address(this), rssColl);
@@ -104,7 +116,8 @@ contract CrownFatFlashSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback
         (uint128 supply,, uint128 borrow,,,) = morpho.market(id);
         if (uint256(supply) < flashAmt || uint256(borrow) < flashAmt) revert SeedMiss();
 
-        emit FatSeeded(loan, id, flashAmt, rssColl, supply, borrow);
+        if (hfRaw < HF_ALERT_WAD) emit HfAlert(loan, hfRaw);
+        emit FatSeeded(loan, id, flashAmt, rssColl, supply, borrow, hfRaw);
 
         _loan = address(0);
         _oracle = address(0);
