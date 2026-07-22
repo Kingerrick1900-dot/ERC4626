@@ -80,30 +80,51 @@ Same notional (**$9M**). Same flash skeleton (`CrownSelfSeedNine` → Elepan por
 
 Lender pocket earns supply + fee. Borrower pocket carries debt and owns coll. Same Morpho accounting.
 
-### B) Borrower earn (Apollo/aarnâ customize — only if King GO’s the path)
+### B) **Better access to the loan when it hits** (primary customize)
+
+Classic $9M left util ≈ **100%**. Documented pain: after hit, **idle = 0** → next borrower cannot draw until someone repays (`BRETT-ACTIVATED.md`: “free liquidity = 0 … cannot move”).  
+**Customize so when the $9M hits, the loan stays reachable.**
+
+| Access lever | What it does at hit | Live on yELEPAN-USDC today |
+|--|--|--|
+| **1. Access idle buffer** | Seed deposits **$9M**, borrower leg draws **$9M − BUFFER** (flash sized to close). Residual **BUFFER** stays idle in-market → instant `borrow` when someone hits | Knob on GO (`ACCESS_BUFFER` — King names) |
+| **2. Public Allocator JIT** | If idle thin, `reallocateTo` pulls vault liquidity into the market up to **maxIn**, then borrow — Morpho’s access path | PA allocator **true**, fee **0**, flow **$700k/$700k**, admin **hot** |
+| **3. Raise PA maxIn at arm** | When $9M hits, $700k cap is the JIT ceiling unless King raises (e.g. toward buffer or full ask) | Change only on GO |
+| **4. Hot allocator** | King/allocator `reallocate` without PA — curator access, no public fee | hot `isAllocator` **true** |
+| **5. Bundler hit** | One tx: PA `reallocateTo` + `borrow` (Morpho docs) — access when user hits, atomic | Pattern ready; wire on GO |
+| **6. Supply cap headroom** | Cap **$14M** > $9M → room for more lenders after hit without recap | enabled |
+
+```
+HIT (custom access):
+  flash → deposit $9M to yELEPAN-USDC
+       → borrow ($9M − BUFFER) to close flash   # BUFFER = King-named idle
+  market idle ≈ BUFFER  →  first hit borrows immediately
+  if ask > idle: PA reallocateTo (≤ maxIn) + borrow
+```
+
+**REPAY_SOURCE (flash) stays named:** `Morpho.borrow(Elepan/USDC)` for the flash leg — `FLASH-POLICY.md`.  
+**Access after hit** = buffer idle + PA/hot allocator — not another flash.
+
+Proof this is the right fix: classic seed docs themselves say pre-seed “market idle is ~$1 — cannot borrow $9M spot”; post-seed 100% util recreates the same lock for the *next* taker. Buffer + PA = access when it hits.
+
+### C) Borrower earn (Apollo/aarnâ — only if King GO’s the path)
 
 Borrower earns **only** when something they hold yields **more** than borrow APY:
 
 | Path | How (still $9M class loan) | Proof pattern |
 |--|--|--|
-| **B1 Collateral yield** | Apollo ACRED-style: coll itself yields | Morpho ACRED story — Elepan is soft-$1, **not** private-credit NAV unless King wraps yield coll later |
-| **B2 Redeploy carry** | After (or inside) custom seed: part of liquidity lands in Steakhouse/Gauntlet; debt remains | aarnâ: loop only if carry+ |
-| **B3 External borrow demand** | Outsiders borrow from the $9M book; vault lenders earn their interest; Landing takes 10% | OWN-CURATOR-MOAT.md § how fat vault works |
+| **C1 Collateral yield** | Apollo ACRED-style: coll itself yields | Morpho ACRED story — Elepan soft-$1 unless King wraps yield coll later |
+| **C2 Redeploy carry** | Buffer/ask leaves room; borrow proceeds or later ask → Steakhouse/Gauntlet iff carry+ | aarnâ: loop only if carry+ |
+| **C3 External borrow demand** | Outsiders hit the accessible book; lenders earn; Landing 10% | OWN-CURATOR-MOAT.md |
 
-Without B1/B2/B3, borrower side is **cost of debt**; lender/curator side is where Morpho **documents** earn.
-
-### C) Pay back (documented exit)
+### D) Pay back (documented exit)
 
 | Step | Action | Doc / mechanism |
 |--|--|--|
-| 1 | Borrower `Morpho.repay(USDC)` on Elepan/USDC (or RSS) market | Morpho Blue repay — frees HF / unlocks coll |
-| 2 | Free idle in market (repay creates idle, or PA / deallocate) | MetaMorpho withdraw needs liquidity |
-| 3 | Lender `yVault.redeem` / `withdraw` | ERC4626; fee recipient redeems fee shares per Morpho fee docs |
-| 4 | `supplyCollateral` withdraw when debt cleared | Returns Elepan/RSS to wallet |
-
-Kingdom already documented 100% util exit discipline: `NO-RECYCLE-UNTIL-EXIT.md`, Vault V2 `forceDeallocate` fork pass — **exit before recycle**.
-
-Flash open is already payback-safe for the **flash** (same-tx). The **Morpho debt** payback is step C1 when King chooses to close.
+| 1 | Borrower `Morpho.repay(USDC)` | Morpho Blue — frees HF / unlocks coll |
+| 2 | Idle returns (repay / PA / deallocate) | MetaMorpho withdraw needs liquidity |
+| 3 | Lender `yVault.redeem` / `withdraw` | ERC4626; fee shares per Morpho fee docs |
+| 4 | Withdraw collateral when debt cleared | Elepan back to wallet |
 
 ---
 
@@ -115,6 +136,7 @@ Flash open is already payback-safe for the **flash** (same-tx). The **Morpho deb
 | Free bag | was 18.5M | ≈ **99.9M** free — **fits** |
 | Vault | yRSS | yELEPAN-USDC `0x61bf…145E` (fee 10%→Landing **already**) |
 | Market | RSS/USDC | Elepan/USDC moat `0xa4ec…53fc` |
+| Access at hit | was ~100% util (blocked) | **custom: BUFFER + PA** (knobs on GO) |
 | Seeder pattern | `CrownSelfSeedNine` | Port — **build/fire only on King GO** |
 
 ---
@@ -124,7 +146,12 @@ Flash open is already payback-safe for the **flash** (same-tx). The **Morpho deb
 1. **$9M self-seed is Kingdom-documented and was fired successfully** (`SELF-SEED-NINE-READY.md` + `CrownSelfSeedNine`).  
 2. **Lender earn + curator fee are Morpho-documented** (Blue supply interest + MetaMorpho fee shares → Landing, live 10%).  
 3. **Borrower pay + Morpho.repay payback are Morpho-documented**; flash repay was named and policy-locked.  
-4. **Same $9M customizes** by splitting share receiver vs debt wallet, keeping fee→Landing, and optional carry/external demand so borrower side can earn — **King chooses knobs + GO**.  
-5. Elepan has **more** coll headroom than the RSS $9M, not less.
+4. **Better access at hit** = don’t recreate 100% util lock: **King-named ACCESS_BUFFER** + PA JIT (live $700k, raisable on GO) + hot allocator + optional bundler.  
+5. Elepan has **more** coll headroom than the RSS $9M.
 
-**Awaiting King:** GO or hold · share receiver (hot vs Landing) · borrower-earn path (none / carry sink / external only) · confirm notional stays **$9M**.
+**Awaiting King GO knobs (no defaults invented as orders):**
+- notional confirm **$9M**
+- `ACCESS_BUFFER` (idle left at hit)
+- PA `maxIn` at arm (keep $700k / raise)
+- share receiver (hot vs Landing)
+- borrower-earn path (none / carry / external hits)

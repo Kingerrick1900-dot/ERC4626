@@ -92,7 +92,7 @@ See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay pe
 See `ELEPAN-PAY-SEED.md`. Gold standard: **ACRED-style coll→borrow→spread** + **âtvUSDC-style loop only when carry+** (target band ~8–12% when rates clear). Circular FeeSeed demoted. **No fire until GO.**
 
 ## $9M loan proof + dual-earn customize
-See `NINE-DUAL-EARN-PROOF.md`. Documented Kingdom $9M path + Morpho lender/borrower earn + payback. **No fire until King GO + knobs.**
+See `NINE-DUAL-EARN-PROOF.md`. Documented Kingdom $9M + Morpho earn/payback. **Access-at-hit customize:** leave `ACCESS_BUFFER` idle + PA JIT (live $700k) so the loan is reachable when depth lands — not 100% util lock. **No fire until King GO + knobs.**
 
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.
