@@ -163,11 +163,12 @@ Publish deposit addresses (yELEPAN-USDC, FHE/sleeve, ZK credit). Outsiders runni
 
 ## Paying custom (preferred Phase 1 implementation)
 
-See `ELEPAN-PAY-SEED.md`. Same M1 magnet, but seeder **asserts fee→Landing** and fork-proves fee shares mint. Morpho flash = work-or-revert. Variants: FeeSeed (100% util) / BufferSeed (leave idle for real pay).
+See `ELEPAN-PAY-SEED.md`. **Optimal is NOT circular FeeSeed.**  
+Optimal: **external USDC → yELEPAN-USDC**, then **borrow Elepan/USDC → redeploy Steakhouse/Gauntlet** when spread &gt; 0. Landing earns AUM fee on outsiders; hot earns carry on the loan. Circular magnet ≤$500k smoke only if King wants optic.
 
 ## Decision ask (King)
 
-1. **Phase 1 size:** Smoke $500k · Ops $2M · Fortress $9M · Cap $14M · hold  
-2. **Pay variant:** FeeSeed (A) · BufferSeed (B)  
-3. **Phase 2 after magnet:** enable copy-cat? loops 1/3/5? redeploy sink = own yELEPAN-USDC only vs allow foreign Morpho USDC vault  
-4. **GO** when ready — engineer builds + fork PASS, then fires only what you name
+1. Confirm optimal = **external depth + Carry** (FeeSeed demoted)?  
+2. First idle: publish & wait · King supply-only USDC · smoke ≤$500k optic?  
+3. Sink: pick at fire / name one (Gauntlet Prime / Steakhouse*)?  
+4. **GO** → build Carry + fork spread check — no Fortress circular
