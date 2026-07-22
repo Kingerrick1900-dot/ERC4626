@@ -10,22 +10,23 @@
 | Set 70% LTV on OTC | Morpho RSS market LLTV **77%** immutable; PCV posts book at 77% |
 | Polygon zkEVM OEV | Base **ZK gate** `isProven(hot)=true` gates PCV actions |
 
-## Deployed by FirePcvSeed
+## Deployed + funded (LIVE)
 
-| Piece | Role |
-|-------|------|
-| **CrownPcvController** | PCV purse · floor 100k RSS · ZK gate · seeds LBP + Morpho book |
-| **CrownRssLbp** | 80/20 → 20/80 over 48h · USDC buys → Landing |
-| Vault V2 / yRSS | Already live curator seats · fee → Landing |
-| OTC ETH + MultiStable | Already live RFQ rails |
+| Piece | Address / state |
+|-------|-----------------|
+| **CrownPcvController** | `0x1B61Da8F654569F48AC7E2752BD3d8016ED4fcb9` · PCV **100k RSS** floor |
+| **CrownRssLbp** | `0x70dcAb53a156936A9fBAf7785176BebDfd057012` · **live** · **50k RSS** · 48h 80→20 |
+| Morpho book | **50k RSS** posted (no borrow) |
+| Vault V2 / yRSS | Curator seats live · fee → Landing |
+| OTC ETH + MultiStable | 700k RSS each · RFQ ready |
 
 ## Execution order (fired)
 
-1. Deposit **200k RSS** PCV (floor 100k + working)
-2. Seed LBP **50k RSS** + USDC dust · **48h** weight shift
-3. Post **50k RSS** Morpho book (no borrow)
-4. RFQ Wintermute/FalconX/Kraken — `MULTI-STABLE-ETH-RFQ.md` / `OTC-ETH-RFQ.md`
-5. CCTP / multi-stable rails already armed for ETH·DAI·USDT
+1. Deposit **200k RSS** PCV ✅  
+2. Seed LBP **50k RSS** + \$1 USDC · **48h** ✅  
+3. Post **50k RSS** Morpho book (no borrow) ✅  
+4. RFQ — send `RFQ-EMAIL-ETH.md`  
+5. CCTP / multi-stable rails armed for ETH·DAI·USDT ✅
 
 ## Success metrics (feed)
 
