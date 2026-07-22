@@ -163,12 +163,12 @@ Publish deposit addresses (yELEPAN-USDC, FHE/sleeve, ZK credit). Outsiders runni
 
 ## Paying custom (preferred Phase 1 implementation)
 
-See `ELEPAN-PAY-SEED.md`. **Optimal is NOT circular FeeSeed.**  
-Optimal: **external USDC → yELEPAN-USDC**, then **borrow Elepan/USDC → redeploy Steakhouse/Gauntlet** when spread &gt; 0. Landing earns AUM fee on outsiders; hot earns carry on the loan. Circular magnet ≤$500k smoke only if King wants optic.
+See `ELEPAN-PAY-SEED.md`. Gold copies: **Apollo ACRED** (yield coll → Morpho borrow → capture spread) + **aarnâ âtvUSDC** (route Morpho/Aave/Pendle, **bounded loop only when carry+**, ~8–12% band).  
+Kingdom: external USDC → yELEPAN; Elepan coll → borrow → Steakhouse/Gauntlet (later PT) iff spread ≥150bps.
 
 ## Decision ask (King)
 
-1. Confirm optimal = **external depth + Carry** (FeeSeed demoted)?  
-2. First idle: publish & wait · King supply-only USDC · smoke ≤$500k optic?  
-3. Sink: pick at fire / name one (Gauntlet Prime / Steakhouse*)?  
+1. Lock **Apollo + aarnâ** as the pay standard (FeeSeed demoted)?  
+2. First idle: publish & wait · King supply-only · smoke ≤$500k optic?  
+3. Sink: best APY at fire / name one?  
 4. **GO** → build Carry + fork spread check — no Fortress circular

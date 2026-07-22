@@ -88,8 +88,8 @@ See `ELEPAN-SELF-SEED-PLAN.md`. M1 magnet (yRSS-style) + M2 copy-cat (deposit→
 ## Curator allocation + loan access — VERDICT
 See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay permissionless; caps/PA/V2 gates = full or partial *liquidity/deposit* access. No config fire in that note.
 
-## Paying self-seed — PLAN ONLY (optimal path)
-See `ELEPAN-PAY-SEED.md`. **Optimal = external USDC depth + borrow→Steakhouse/Gauntlet carry.** Circular FeeSeed demoted (optics only, ≤$500k smoke if needed). **No fire until GO.**
+## Paying self-seed — PLAN ONLY (Apollo / aarnâ copy)
+See `ELEPAN-PAY-SEED.md`. Gold standard: **ACRED-style coll→borrow→spread** + **âtvUSDC-style loop only when carry+** (target band ~8–12% when rates clear). Circular FeeSeed demoted. **No fire until GO.**
 
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.

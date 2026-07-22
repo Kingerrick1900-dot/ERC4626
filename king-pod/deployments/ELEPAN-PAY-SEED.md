@@ -1,109 +1,106 @@
-# ELEPAN OPTIMAL PAY LOOP — PLAN ONLY (NO FIRE)
+# ELEPAN OPTIMAL PAY LOOP — APOLLO / AARNÂ COPY (PLAN ONLY)
 
-**Status:** PLAN. Circular FeeSeed = **not optimal.** This doc replaces it as the primary pay design.
-
-**Verdict:** Optimal Morpho pay is **external depth + borrow→redeploy carry**, not self-skim on a matched book.
+**Status:** PLAN. No fire until King GO.  
+**Gold standards:** Apollo ACRED-on-Morpho · aarnâ âtvUSDC bounded carry loop.  
+**Demoted:** circular FeeSeed / 100% util self-skim.
 
 ---
 
-## Why FeeSeed / 100% util self-loop is suboptimal
+## What the majors actually run
 
-| | Circular FeeSeed (A) | Optimal |
+### Apollo (ACRED → Morpho)
+Morpho’s own story: tokenized Apollo private credit (**ACRED**) used as **Morpho collateral** → borrow stablecoins → capital-efficient **loop** that captures:
+
+```
+ACRED yield  −  stablecoin borrow cost  =  spread (the pay)
+```
+
+Gauntlet/Securitize automates: post ACRED → borrow USDC → buy more ACRED → redeposit → repeat under risk caps.  
+Morpho turns a **yield-bearing** position into productive coll + leverage. Not a matched self-lend magnet.
+
+### aarnâ (âtvUSDC)
+USDC vault routes into **Morpho / Aave / Pendle** to stack base lending (+ PT basis when fat).  
+When **carry is clearly positive**, run a **bounded single-collateral Morpho loop** (soft ~70% LTV).  
+Target band **~8–12% APY** on USDC in normal markets. Agent enforces allowlists, depth, LTV — no degen pyramids.
+
+**Shared law both use (we copy this, not FeeSeed):**
+1. Collateral or deployed asset has **real external yield**  
+2. Borrow stables only when **spread &gt; 0** (with buffer)  
+3. **Bounded** leverage (LTV / loop count / HF)  
+4. Curator/vault policy sits **above** the loop
+
+---
+
+## Kingdom map (Elepan stack)
+
+| Major piece | Elepan analog | Status |
 |--|--|--|
-| Who pays interest | Hot pays itself | External borrowers / King carry sink |
-| Landing fee | 10% of **own** supply interest (crumbs) | 10% of **outsider** vault interest (AUM scale) |
-| Hot PnL | Usually **net cost** (borrow ≥ supply) | **Spread** if redeploy APY > borrow APY |
-| What majors run | Bootstrap optic only | Deposit→borrow→redeploy→repeat (MORE / desks / Coinbase-shaped) |
-| Morpho “allows it” | Yes — doesn’t make it optimal | Same |
+| Apollo: yield-bearing coll on Morpho | Elepan/USDC moat (soft $1) — coll is **peg inventory**, not private-credit NAV | Market live; yield is on the **borrow redeploy**, not on Elepan coupon |
+| Apollo: borrow USDC against coll | Hot posts Elepan → borrow USDC | Needs **true idle** in market |
+| Apollo: buy more yield asset / loop | Redeploy USDC → Steakhouse/Gauntlet (or later PT/Pendle) · optional buy-more only if King wants bag leverage | Carry contract — build on GO |
+| aarnâ: vault routes to Morpho+ | yELEPAN-USDC → Elepan/USDC book (+ sleeve→WETH MM/V2 already) | Vault live; extend sinks on GO |
+| aarnâ: loop only if carry+ | `spread = sinkAPY − borrowAPY ≥ 150bps` or abort | Hard gate in Carry |
+| aarnâ: ~8–12% target band | Same **band as goal**, not a promise — only fire when live rates clear | Rate check at fire |
+| Curator AUM fee | yELEPAN 10% → Landing | Wired |
 
-yRSS `$9M` matched magnet was **depth/optics**. Do not dress it as the earn engine.
+**Honest gap vs Apollo:** ACRED **is** the yield. Elepan is soft-$1 collateral. Our “ACRED yield leg” = **whatever we buy/redeploy with the borrowed USDC** (Morpho USDC vault / PT), not an Elepan coupon. Same loop shape; different yield source.
 
 ---
 
-## Optimal machine (copy-cat that pays)
+## Optimal machine (locked)
 
 ```
-EXTERNAL USDC → yELEPAN-USDC → supplies Elepan/USDC market (true idle)
-                                    ↓
-HOT posts Elepan collateral → borrow USDC (loan that must earn)
-                                    ↓
-Redeploy USDC → Morpho USDC vault sink (Steakhouse / Gauntlet-class)
-                                    ↓
-Earn: (sink APY + incentives) − borrow APY − fees > 0
-Landing: 10% of yELEPAN interest from EXTERNAL suppliers (real AUM fee)
+EXTERNAL USDC → yELEPAN-USDC → Elepan/USDC idle     (aarnâ base depth / curator AUM)
+        ↓
+HOT: supplyCollateral(Elepan) → borrow USDC         (Apollo coll→borrow)
+        ↓
+ONLY IF carry+: deposit USDC → SINK (Steakhouse/Gauntlet/…/later Pendle PT)
+        ↓
+Bounded loops (1–3), soft LTV ≤70%, HF ≥1.55      (aarnâ guardrails)
+        ↓
+Pay = sink yield − borrow cost (+ Landing 10% on outsider vault interest)
 ```
-
-Same pattern retail/MORE/institutions use. Kingdom already has the curator seat (moat + yVault + PA). Missing piece = **external idle**, not a fatter self-loop.
 
 ### Pay pockets (ranked)
-
-1. **Curator AUM fee** — outsiders deposit yELEPAN-USDC → Landing gets 10% of their yield (**primary scale**).  
-2. **Carry spread** — King borrow → foreign Morpho USDC vault when sink &gt; borrow (**loan that earns**).  
-3. **Circular fee skim** — last resort optic only; **do not optimize for this**.
+1. **Landing AUM fee** on external yELEPAN deposits  
+2. **Carry spread** on the earning loan (Apollo/aarnâ)  
+3. Circular FeeSeed — **optic only**, ≤$500k smoke if King insists; never the engine
 
 ---
 
 ## Phase plan
 
-### P0 — Rails (DONE)
-Moat, yELEPAN-USDC (fee→Landing, $14M cap, $700k PA), Elepan bag on hot, V2/sleeve/ZK for external inflows.
+| Phase | Action | Mirror |
+|--|--|--|
+| **P0** | Rails live (moat, yVault, PA, fees) | Curator seat |
+| **P1** | External USDC in (publish / desk / King supply-only) — **no** Fortress circular | aarnâ vault fill |
+| **P2** | `CrownElepanCarry`: coll→borrow→sink when spread≥150bps | Apollo loop + aarnâ bound |
+| **P3** | Scale ask + loops 1→3 as idle grows; optional Pendle/PT sink later | aarnâ stack |
 
-### P1 — External depth (OPTIMAL SEED) — no circular $9M
-| Move | Action |
-|--|--|
-| P1a | Publish yELEPAN-USDC + FHE/sleeve/ZK deposit addresses |
-| P1b | Route first real USDC in (depositors / desk / King external) — **supply-only**, no matched borrow |
-| P1c | Optional **smoke optic only** (≤$500k BufferSeed) if King wants UI util — **not** the pay engine |
-
-Kill: Fortress/Cap circular self-seed as “earn.”
-
-### P2 — Earning loan (CrownElepanCarry)
-When market idle ≥ ask:
-
-```
-supplyCollateral(Elepan)
-borrow(USDC, ask)                    // soft LTV ≤70%, HF ≥1.55
-deposit(USDC) → SINK Morpho vault    // whitelist only
-```
-
-**Sink whitelist (Base — from Kingdom sheet; APY checked at GO):**
+### Sink whitelist (Base — APY at fire time)
 | Sink | Address |
 |--|--|
 | Gauntlet USDC Prime | `0xeE8F4eC5672F09119b96Ab6fB59C27E1b7e44b61` |
 | Steakhouse Prime USDC | `0xBEEFE94c8aD530842bfE7d8B397938fFc1cb83b2` |
 | Steakhouse USDC | `0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183` |
 | Steakhouse HY USDC | `0xBEEFA7B88064FeEF0cEe02AAeBBd95D30df3878F` |
+| Later | Pendle PT / âtv-style router — only after King GO |
 
-**Fire rule:** `sinkAPY (+ incentives) ≥ borrowAPY + 150bps` or abort. Morpho flash optional to pack collateral+borrow+deposit atomic (MORE-shaped) — still work-or-revert.
-
-### P3 — Scale
-Idle ↑ from externals → raise ask → loop count 1→3 max while HF≥1.55.  
-PA stays curated ($700k until GO). Landing fee shares grow with **AUM**, not with self-debt.
-
----
-
-## What we build (on GO) — not FeeSeed
-
-| Contract / script | Role |
-|--|--|
-| `CrownElepanCarry` | Coll→borrow→sink deposit; HF + APY gate |
-| `FireElepanCarry.s.sol` | `KING_GO` / `ASK_USDC` / `SINK` / `LOOPS` |
-| Fork harness | Revert if spread negative; unwind path |
-
-**Deprioritize:** `CrownElepanPaySeed` FeeSeed 100% util.  
-**Optional tiny:** BufferSeed smoke ≤$500k optic only if King insists on non-zero util before first depositor.
+### Fire rules (non-negotiable)
+- `sinkAPY (+ incentives) ≥ borrowAPY + 150bps` else revert  
+- Soft LTV ≤70% · HF ≥1.55 · max loops 3  
+- Morpho flash optional for atomicity — work-or-revert  
+- No invented APYs · no RSS recycle · no FeeSeed Fortress
 
 ---
 
-## Curator rules (unchanged discipline)
-
-Soft LTV ≤70% · HF ≥1.55 · PA $700k until GO · fee 10%→Landing · no invented incentive APYs · no RSS recycle.
+## Build on GO
+`CrownElepanCarry` + `FireElepanCarry.s.sol` + fork: negative spread reverts, unwind works, Landing fee path untouched.
 
 ---
 
 ## Decision ask (King)
-
-1. Confirm: **optimal = external depth + Carry to Steakhouse/Gauntlet** (FeeSeed demoted)?  
-2. First idle source: **publish & wait** · **King brings USDC supply-only** · **smoke ≤$500k optic**?  
-3. Preferred sink for first carry (or “pick best APY at fire time”)?  
-4. **GO** → build Carry + fork spread check — **no** Fortress circular seed
+1. Lock gold standard = **Apollo coll→borrow→yield loop** + **aarnâ carry-only-when-positive**?  
+2. First idle: publish & wait · King supply-only · smoke ≤$500k optic?  
+3. First sink: best APY at fire · or name one?  
+4. **GO** → build Carry (not FeeSeed)
