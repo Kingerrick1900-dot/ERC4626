@@ -1,6 +1,7 @@
 # $9M LOAN — DOCUMENTED PROOF + DUAL-EARN CUSTOMIZATION
 
-**Status:** RESEARCH / PROOF ONLY. No fire. No new size invented — notional is the Kingdom’s documented **$9M**.  
+**Status:** RESEARCH / PROOF ONLY. No fire.  
+**Notional:** King named **$14M** (vault-cap max on yELEPAN-USDC self-seed path). Prior proof loan was $9M; Elepan port scales to **$14M** on GO.  
 **GO required** before any Elepan port broadcast.
 
 ---
@@ -128,13 +129,14 @@ Borrower earns **only** when something they hold yields **more** than borrow APY
 
 ---
 
-## 5) Elepan port of the **same $9M** (fit check — not a fire order)
+## 5) Elepan port — **$14M** (King-named; fit check — not a fire order)
 
-| | RSS $9M (done) | Elepan $9M (capable) |
+| | RSS $9M (done) | Elepan **$14M** (King-named) |
 |--|--|--|
-| Coll posted | 18.5M RSS | Need ≥ ~**12.9M** Elepan @ 70% soft (HF1.55 → ~**14.0M**) |
+| Coll posted | 18.5M RSS | Need ≥ ~**20.0M** Elepan @ 70% soft (HF1.55 → ~**21.7M**) |
 | Free bag | was 18.5M | ≈ **99.9M** free — **fits** |
 | Vault | yRSS | yELEPAN-USDC `0x61bf…145E` (fee 10%→Landing **already**) |
+| Vault cap | — | **$14M** = bind (cap remaining $14M) |
 | Market | RSS/USDC | Elepan/USDC moat `0xa4ec…53fc` |
 | Access at hit | was ~100% util (blocked) | **custom: BUFFER + PA** (knobs on GO) |
 | Seeder pattern | `CrownSelfSeedNine` | Port — **build/fire only on King GO** |
@@ -147,11 +149,12 @@ Borrower earns **only** when something they hold yields **more** than borrow APY
 2. **Lender earn + curator fee are Morpho-documented** (Blue supply interest + MetaMorpho fee shares → Landing, live 10%).  
 3. **Borrower pay + Morpho.repay payback are Morpho-documented**; flash repay was named and policy-locked.  
 4. **Better access at hit** = don’t recreate 100% util lock: **King-named ACCESS_BUFFER** + PA JIT (live $700k, raisable on GO) + hot allocator + optional bundler.  
-5. Elepan has **more** coll headroom than the RSS $9M.
+5. Elepan has **more** coll headroom; King sized the port at **$14M** (vault-cap max).
 
-**Awaiting King GO knobs (no defaults invented as orders):**
-- notional confirm **$9M**
-- `ACCESS_BUFFER` (idle left at hit)
-- PA `maxIn` at arm (keep $700k / raise)
-- share receiver (hot vs Landing)
-- borrower-earn path (none / carry / external hits)
+**Awaiting King GO knobs:**
+- notional **$14M** ← named  
+- `ACCESS_BUFFER` (idle left at hit)  
+- PA `maxIn` at arm (keep $700k / raise)  
+- share receiver (hot vs Landing)  
+- borrower-earn path (none / carry / external hits)  
+- explicit **GO** to build/fire
