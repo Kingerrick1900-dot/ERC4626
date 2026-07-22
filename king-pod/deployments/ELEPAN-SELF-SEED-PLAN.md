@@ -161,14 +161,14 @@ Publish deposit addresses (yELEPAN-USDC, FHE/sleeve, ZK credit). Outsiders runni
 
 ---
 
-## Paying custom (preferred Phase 1 implementation)
+## Paying custom — SUPERSEDED AS PRIMARY
 
-See `ELEPAN-PAY-SEED.md`. Gold copies: **Apollo ACRED** (yield coll → Morpho borrow → capture spread) + **aarnâ âtvUSDC** (route Morpho/Aave/Pendle, **bounded loop only when carry+**, ~8–12% band).  
-Kingdom: external USDC → yELEPAN; Elepan coll → borrow → Steakhouse/Gauntlet (later PT) iff spread ≥150bps.
+**Primary plan is now borrow→redeploy carry:** `ELEPAN-PAY-SEED.md` (King **$14M** → Steakhouse/Gauntlet).  
+Self-seed / FeeSeed = demoted optics only.
 
 ## Decision ask (King)
 
-1. Lock **Apollo + aarnâ** as the pay standard (FeeSeed demoted)?  
-2. First idle: publish & wait · King supply-only · smoke ≤$500k optic?  
-3. Sink: best APY at fire / name one?  
-4. **GO** → build Carry + fork spread check — no Fortress circular
+1. Idle source for $14M borrow: external · King supply-only · hold?  
+2. Sink: best APY at fire / name one?  
+3. Receiver: Landing (rec) / hot?  
+4. **GO** → build `CrownElepanCarry` + fork + fire
