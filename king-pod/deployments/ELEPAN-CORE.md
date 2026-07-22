@@ -1,6 +1,6 @@
 # Elepan Core — LIVE on Base
 
-**Fired:** oracles + Morpho markets + flash seeder (matched books) + yELEPAN-WETH vault + Elepan ZK attestation
+**Fired:** oracles + Morpho markets + flash seeder + yELEPAN-WETH + **moat + yELEPAN-USDC** + Elepan ZK attestation
 
 ## Token
 | | |
@@ -15,8 +15,10 @@
 |--|--|
 | Oracle Elepan/cbBTC (**main**) | `0x08DEeEF782B81C8CDD2e11bF5a54982f3A11C94d` |
 | Oracle Elepan/WETH | `0xF927B35E62A0111Da1A5D4Da63FA57E473B525E5` |
+| Oracle Elepan/USDC (**moat**) | `0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19` (fixed 1e34) |
 | Market Elepan/cbBTC | `0x28d57b898122465e0260881973440823f1a380d64f16af56d982b47e5aeffa25` |
 | Market Elepan/WETH | `0xac7c17fa240d82d89268b5307971144970fe9be0ea45ed7d6bcb707e33b7ed44` |
+| Market Elepan/USDC (**moat**) | `0xa4ec527128b425ee3fcb7f60eca37677b63b3d003345ec2a72ef6a2e72da53fc` |
 | LLTV | **77%** |
 | IRM | AdaptiveCurve `0x46415998764C29aB2a25CbeA6254146D50D22687` |
 | CrownElepanFatFlashSeed | `0x24622EB06a9593BCd608656e2dcfecA9075c4688` |
@@ -51,6 +53,16 @@ KING_GO=1 FIRE_VAULT=1 VAULT=0xfdD5a1d4823411809D6ac735991B3A015E5AaAb5 \
   forge script script/FireElepanVaultWeth.s.sol:FireElepanVaultWeth \
   --rpc-url $RPC --broadcast --slow --skip-simulation
 ```
+
+## Moat + yELEPAN-USDC (LIVE) — like yRSS
+
+See `ELEPAN-MOAT.md`. Soft $1 Elepan/USDC book + USDC MetaMorpho (14M cap, 700k PA, 10% → Landing, 2d timelock).
+
+| Piece | Value |
+|--|--|
+| Oracle Elepan/USDC | `0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19` |
+| Market Elepan/USDC | `0xa4ec5271…da53fc` |
+| yELEPAN-USDC | `0x61bfD6F7df1f72427F472144d043c25d742D145E` |
 
 ## ZK attestation — Elepan wallet-bind (LIVE)
 
