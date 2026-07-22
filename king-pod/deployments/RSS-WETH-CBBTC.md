@@ -13,14 +13,17 @@
 | Market RSS/WETH | `0x6d0c2531ad3078b19f569d3d9b48fb9348682a1b769f726c4196e6091a3c35e9` |
 | Market RSS/cbBTC | `0x88fb488074c9f9f3acaa5f84a2f4181bc371defa66ff4a9e42e1e5f0d563be0e` |
 
-## Book state (post-seed)
+## Book state (live)
 
 | Market | Supply | Borrow |
 |--------|--------|--------|
 | RSS/WETH | **10 WETH** | **10 WETH** |
-| RSS/cbBTC | **0.5 cbBTC** | **0.5 cbBTC** |
+| RSS/cbBTC | **5.5 cbBTC** | **5.5 cbBTC** (~\$365k) |
 
-RSS collateral posted (king): ~25.6k RSS (WETH book) + ~44.0k RSS (cbBTC book).
+HF_raw (post 5 cbBTC tranche): WETH **1.56** · cbBTC **1.56** (floor 1.55 OK; alert band &lt;1.60).
+
+cbBTC tranche tx: `0x04ccccdf5f7b799e50f8493e6ca521044503c2a829dbffcaf6bff0bb0f0850ad`  
+Script: `FireCbtcTranche.s.sol` (KING_OK + FIRE_CBTC_TRANCHE).
 
 ## Tx hashes
 
