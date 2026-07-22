@@ -85,6 +85,9 @@ See `SYSTEM-FUNDED-RAIL.md`.
 ## Self-seed + copy-cat loop — PLAN ONLY
 See `ELEPAN-SELF-SEED-PLAN.md`. M1 magnet (yRSS-style) + M2 copy-cat (deposit→borrow→redeploy→repeat, MORE/Coinbase-shaped). **No fire until King GO + phase + size.**
 
+## Curator allocation + loan access — VERDICT
+See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay permissionless; caps/PA/V2 gates = full or partial *liquidity/deposit* access. No config fire in that note.
+
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.
 Zama FHE encrypted balances = **next** (rail live; FHE deferred).
