@@ -25,7 +25,7 @@
 1. Deposit **200k RSS** PCV ✅  
 2. Seed LBP **50k RSS** + \$1 USDC · **48h** ✅  
 3. Post **50k RSS** Morpho book (no borrow) ✅  
-4. RFQ — send `RFQ-EMAIL-ETH.md`  
+4. RFQ — FalconX + Kraken intake ✅ · Wintermute needs King captcha at `/contact/otc`  
 5. CCTP / multi-stable rails armed for ETH·DAI·USDT ✅
 
 ## Success metrics (feed)
