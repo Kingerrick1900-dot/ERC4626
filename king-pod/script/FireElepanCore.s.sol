@@ -161,12 +161,13 @@ contract FireElepanCore is Script {
         console2.log("MarketId Elepan/WETH");
         console2.logBytes32(idW);
 
-        // Main vault: cbBTC MetaMorpho → Elepan/cbBTC (optional — factory may not activate all assets)
+        // Primary vault: WETH MetaMorpho → Elepan/WETH (cbBTC factory path deferred / use FireElepanVaultWeth)
         address vault = vaultExisting;
         if (doVault && vault == address(0)) {
-            bytes32 salt = keccak256(abi.encodePacked("King-Elepan-cbBTC-yVault-v1", HOT));
+            bytes32 salt = keccak256(abi.encodePacked("King-Elepan-WETH-yVault-v1", HOT));
+            uint256 capWeth = vm.envOr("CAP_WETH", uint256(20_000 ether));
             vault = IMetaMorphoFactory(MM_FACTORY).createMetaMorpho(
-                HOT, 0, CBTC, "King Elepan cbBTC Vault", "yELEPAN-cbBTC", salt
+                HOT, 0, WETH, "King Elepan WETH Vault", "yELEPAN-WETH", salt
             );
             IMetaMorphoE mm = IMetaMorphoE(vault);
             mm.setCurator(HOT);
@@ -174,22 +175,22 @@ contract FireElepanCore is Script {
             mm.setFeeRecipient(HOT);
             mm.setFee(0.1e18); // 10%
             IMetaMorphoE.MarketParams memory mmp = IMetaMorphoE.MarketParams({
-                loanToken: CBTC,
+                loanToken: WETH,
                 collateralToken: ELEPAN,
-                oracle: address(oraC),
+                oracle: address(oraW),
                 irm: IRM,
                 lltv: LLTV
             });
-            mm.submitCap(mmp, 100e8);
+            mm.submitCap(mmp, capWeth);
             mm.acceptCap(mmp);
             bytes32[] memory q = new bytes32[](1);
-            q[0] = idC;
+            q[0] = idW;
             mm.setSupplyQueue(q);
-            console2.log("Vault yELEPAN-cbBTC", vault);
+            console2.log("Vault yELEPAN-WETH", vault);
         } else if (vault != address(0)) {
             console2.log("Vault existing", vault);
         } else {
-            console2.log("Vault skipped (set FIRE_VAULT=1 to deploy)");
+            console2.log("Vault skipped (set FIRE_VAULT=1 or use FireElepanVaultWeth)");
         }
 
         CrownElepanFatFlashSeed seeder;

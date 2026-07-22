@@ -44,7 +44,9 @@ interface IOracleElepan {
 }
 
 /// @notice Flash-seed Elepan/loan Morpho markets from Morpho inventory (WETH/cbBTC).
-/// @dev Matched supply+borrow — depth/optics. HF_raw >= 1.55 required.
+/// @dev Implements Morpho `IMorphoFlashLoanCallback`. Inside `onMorphoFlashLoan`:
+///      supply loan → supplyCollateral Elepan → borrow → approve repayment.
+///      Any failure reverts the whole flash (nothing sticks). Matched books; HF_raw ≥ 1.55.
 contract CrownElepanFatFlashSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     using SafeTransfer for IERC20;
 
