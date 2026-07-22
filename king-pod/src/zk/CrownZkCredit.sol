@@ -23,8 +23,10 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
 
     mapping(address => uint256) public supplyOf;
     mapping(address => uint256) public debtOf;
+    mapping(address => bool) public operator; // may borrowTo on behalf of proven king
 
     event LandingSet(address landing);
+    event OperatorSet(address indexed op, bool allowed);
     event Supplied(address indexed user, uint256 amt);
     event Withdrawn(address indexed user, uint256 amt);
     event Borrowed(address indexed user, uint256 amt);
@@ -48,6 +50,11 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
         if (landing_ == address(0)) revert BadAmt();
         landing = landing_;
         emit LandingSet(landing_);
+    }
+
+    function setOperator(address op, bool allowed) external onlyOwner {
+        operator[op] = allowed;
+        emit OperatorSet(op, allowed);
     }
 
     function setLltv(uint256 lltv_) external onlyOwner {
@@ -78,10 +85,17 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
         _borrowTo(msg.sender, msg.sender, amt);
     }
 
-    /// @notice Atomic cold-or-revert: USDC must credit `to` (Landing) or full revert.
+    /// @notice Atomic cold-or-revert: USDC must credit `to` (Landing/ladder) or full revert.
     function borrowTo(address to, uint256 amt) external nonReentrant {
         if (to == address(0)) revert BadAmt();
         _borrowTo(msg.sender, to, amt);
+    }
+
+    /// @notice Operator draws for proven king into `to` (yield ladder).
+    function operatorBorrowTo(address to, uint256 amt) external nonReentrant {
+        if (!operator[msg.sender]) revert BadAmt();
+        if (to == address(0)) revert BadAmt();
+        _borrowTo(king, to, amt);
     }
 
     /// @notice King convenience: draw max available to Landing.
