@@ -11,7 +11,7 @@
 | Code / PR / dry-run sim | Allowed (already done — see below) |
 | Touch desks / kUSD / Landing | **No** without new GO |
 
-Pre-existing Morpho dust (not from Comfort work): **~1M RSS coll + ~$1 debt** still on hot’s Morpho position. That 1M is **not** free in hot yet. Freeing it is a **separate, explained step** — only after King GO.
+Pre-existing Morpho dust: **CLEARED 2026-07-22** — see `FREE-ALL-MORPHO-DUST.md`. Hot now holds **~14.03M RSS**; Morpho coll/debt = **0**.
 
 ---
 
