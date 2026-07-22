@@ -1,3 +1,7 @@
 lib/
 out/
 cache/
+broadcast/
+zk/node_modules/
+zk/build/
+zk/proofs/
