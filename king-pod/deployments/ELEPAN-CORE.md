@@ -88,8 +88,8 @@ See `ELEPAN-SELF-SEED-PLAN.md`. M1 magnet (yRSS-style) + M2 copy-cat (deposit→
 ## Curator allocation + loan access — VERDICT
 See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay permissionless; caps/PA/V2 gates = full or partial *liquidity/deposit* access. No config fire in that note.
 
-## PRIMARY — dual stack (depth + earn), no USDC spend
-See `ELEPAN-PAY-SEED.md`. **Both** positions kept (own-book depth + foreign carry). Bootstrap with Morpho flash + our Elepan — **no treasury USDC**. Anti-dust + self-del anytime. **No fire until GO + ideal PASS.**
+## PRIMARY — Leverage Loop Module (Phase 3)
+See `ELEPAN-PAY-SEED.md`. Collateralized leverage: King’s Elepan, Morpho `onMorphoFlashLoan`, Risk Controller + Policy caps. Pair with forceDeallocate / flash exit. **GO to build/hand off.**
 
 ## $14M fit + access notes
 See `NINE-DUAL-EARN-PROOF.md` / `LOAN-ACCESS-PATHS.md`. ZK rail = side line. Morpho Blue standing borrow still needs Elepan coll (bag already held).
