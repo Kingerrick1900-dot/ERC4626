@@ -1,118 +1,116 @@
-# KINGDOM WIN PLAN — BORROW OUR ASSET, EARN REAL USDC
+# KINGDOM DUAL STACK — DEPTH + EARN (NO USDC OUT OF POCKET)
 
-**King law:** We put up **our** Elepan. We take a Morpho loan. We **earn**.  
-**Not** last time’s circular self-seed. **Not** a plan that unwinds to **zeros**.
+**King law:** Both positions are powerful. Neither yields dust. Millions, not toys.  
+**Not inventing:** Morpho/Coinbase-shaped vault + coll + flash leverage is how the industry boots books.  
+**Solve now:** **no spending money** = no millions of USDC from treasury. Spend **gas + lock our Elepan** only.
 
-**Run posture:** Let it run **months**, **check & tweak daily**, **self-deleverage anytime**.  
-**Deploy only when conditions are ideal.** Savvy upsizing / loops **after** the book proves itself.
-
-**Status:** PRIMARY. **No fire until `KING_GO=1` + ideal-entry checklist PASS.**  
-**Ask (named):** **$14M** USDC working capital → foreign sink.
+**Status:** PRIMARY. **No fire until `KING_GO=1` + ideal gates PASS.**  
+**Named ask:** **$14M** class working capital (split across two positions — King sets split on GO).
 
 ---
 
-## Why last self-seed is banned
+## Honest: what we can / can’t skip
 
-RSS $9M: flash → own yVault → same-market borrow → later unwind → **zeros** on-chain.  
-This plan borrows against **our** token and parks USDC where **others** pay yield (Steakhouse/Gauntlet). Scoreboard = Landing USDC earn + spread — not matched util optics.
-
----
-
-## Ideal entry (must PASS before deploy)
-
-| Gate | Ideal for us | Fail → no fire |
-|--|--|--|
-| **Idle** | Elepan/USDC idle (+ PA maxIn) ≥ ask | Can’t borrow $14M honestly |
-| **Spread** | sinkAPY ≥ borrowAPY + **150bps** | Carry negative = we pay to exist |
-| **HF** | Post-borrow HF ≥ **1.55** (soft LTV ≤70%) | Liquidation risk |
-| **Sink** | Whitelist vault, deep TVL, USDC asset | No random farm |
-| **Exit dry-run** | Fork: redeem→repay→free Elepan works same day | No stranded bag |
-| **Gas / ops** | Hot funded for daily tweaks + emergency deleverage | Can’t “self del” |
-| **Receiver** | Sink shares → **Landing** (kingdom money) | Don’t park earn on dead addr |
-
-Savvy later (months in, only on GO): raise ask, raise PA, 2nd sink, bounded loop — **not** day-one.
-
----
-
-## Machine (deploy shape)
-
-```
-OUR Elepan posted → borrow $14M USDC → SINK.deposit(Landing)
-                      ↑                    ↓
-                 moat idle              earn spread
-                 (external or            pay borrow APY
-                  King supply-only)
-```
-
-**Forbidden:** borrowed USDC back into yELEPAN as the carry sink (circular).  
-yELEPAN = outsider magnet + 10% fee→Landing. Carry sink = Steakhouse/Gauntlet only.
-
-**Sinks (live Base TVL — re-check at fire):**  
-Gauntlet USDC Prime `0xeE8F…b61` · Steakhouse Prime `0xBEEF…b2` · steakUSDC beef vaults.
-
----
-
-## Self-deleverage anytime (hard requirement)
-
-One ops path, practiced on fork before live, callable any day:
-
-```
-1. SINK.redeem(shares, hot|ops) → USDC
-2. Morpho.repay(USDC) on Elepan/USDC (full or partial)
-3. If full: withdrawCollateral(Elepan) → hot
-4. Optional: leave dust / flatten PA
-```
-
-| Mode | When |
+| Want | Morpho reality |
 |--|--|
-| **Partial del** | Spread thin, HF soft, trim ask |
-| **Full del** | Spread dead, oracle stress, King exit |
-| **Daily tweak** | Rebalance sink, repay/borrow small, PA flow |
+| Standing Blue loan with **$0 Elepan posted** | **No** — Blue reverts without coll |
+| Access **USDC millions without spending USDC** | **Yes** — Morpho **flash** + our Elepan (same family as last $9M open, different *close*) |
+| “No large coll up front” as **zero** coll | Impossible for standing debt; we **have** the bag — lock is inventory, not a USDC buy |
+| Both positions survive months + **self-del anytime** | **Yes** — if we forbid 100% util traps and keep redeem paths |
 
-**Law:** If we cannot self-del in **one ops window**, we do not deploy.  
-No “wait for util to free” trap — keep **ACCESS buffer / PA / sink liquidity** so repay+redeem always have a path (don’t sit 100% util with no redeemable sink).
+**No spending money** = treasury does not wire $14M USDC. Coll is Elepan we already hold.
 
 ---
 
-## Daily check & tweak (months)
+## Two positions (both keep; both must pay)
 
-| Check | Action if bad |
+### Position A — DEPTH (own book / magnet)
+- USDC in **yELEPAN-USDC** → Elepan/USDC moat.  
+- Job: live market, outsider magnet, Landing **10% fee** on real depositors.  
+- **Anti-dust:** leave **ACCESS_BUFFER** idle (not classic 100% util lock); PA JIT on; self-del / withdraw path tested.
+
+### Position B — EARN (foreign carry)
+- Borrowed USDC in **Steakhouse / Gauntlet** (Landing holds shares).  
+- Job: **spread** = sink APY − borrow APY (≥150bps or flatten).  
+- **Anti-dust:** sink is deep external TVL; redeem→repay anytime; don’t circular-route B back into A’s only market as the “earn.”
+
+**Last time’s failure:** A and B were the **same** dollars (circular) → unwind → zeros.  
+**This time:** A and B are **split**. Both on kingdom books. Both exit-clean.
+
+---
+
+## No-spend bootstrap (Morpho flash — industry pattern)
+
+King brings: **Elepan approve + gas**. Not USDC.
+
+```
+flash USDC = DEPTH_LEG + EARN_LEG + REPAY_HOLD
+  (typical hard split on GO — e.g. toward $14M total working notionals)
+
+  1) DEPTH_LEG  → yELEPAN-USDC (shares → hot or Landing)
+  2) post Elepan coll (our asset)
+  3) borrow EARN_LEG from moat idle created in (1)
+  4) EARN_LEG   → Steakhouse/Gauntlet (shares → Landing)   ← kingdom earn
+  5) REPAY_HOLD → repay Morpho flash
+
+End: Morpho debt = EARN_LEG · Depth TVL = DEPTH_LEG · Landing sink ≈ EARN_LEG
+     Wallet USDC spent = 0 (flash closed)
+```
+
+Same *tool* as last self-seed (flash + coll + borrow).  
+Different *structure*: earn leg leaves the island; depth keeps access buffer; scoreboard ≠ matched util.
+
+**Coinbase / Morpho-shaped parallel:** curated vault depth + users/institutions posting coll to borrow + capital deployed to yield — flash packs the open so the curator doesn’t prefund the whole book in cash.
+
+---
+
+## Ideal entry (before deploy)
+
+| Gate | Pass |
 |--|--|
-| HF / LTV | Repay from sink (partial del) |
-| borrow APY vs sink APY | Flatten if spread &lt; 150bps |
-| Landing sink assets | Confirm ≠ zero / not stuck |
-| Moat idle / PA | Restore access for del & outsiders |
-| Oracle / Elepan soft $1 | Stress → full del |
-| Gas on hot | Top up from Landing if needed |
-
-Weekly: write one line to ops log (HF, debt, sink assets, spread bps).  
-Monthly: King review — hold / trim / savvy upsize.
+| Spread | sinkAPY ≥ borrowAPY + **150bps** (earn leg) |
+| HF | ≥ **1.55** after borrow |
+| Anti-dust depth | ACCESS_BUFFER > 0 (King-named) — not 100% util coffin |
+| Self-del dry-run | Fork: redeem sink → repay → free Elepan **and** withdraw depth path |
+| Sinks | Live Steakhouse/Gauntlet USDC vaults only |
+| Gas | Hot can run daily tweak + emergency del |
 
 ---
 
-## Phases
+## Self-del anytime (both legs)
 
-| Phase | What | Fire? |
-|--|--|--|
-| **P0** | Ideal-entry checklist + fork self-del PASS | No |
-| **P1** | Idle source live (external or King supply-only) | No borrow yet |
-| **P2** | **GO** → deploy $14M carry | Yes |
-| **P3** | Run months · daily tweak · self-del ready | Live |
-| **P4** | Savvy (size/PA/loops) only after book wins | New GO |
+```
+EARN:  sink.redeem → Morpho.repay (partial/full) → optional withdraw Elepan
+DEPTH: repay/buffer so vault can withdraw; PA/hot reallocate if needed
+```
+
+If either leg can’t exit in one ops window → **do not deploy**.
 
 ---
 
-## Build on GO (after ideal PASS)
+## Daily / months
 
-`CrownElepanCarry` — borrow→sink + **`deleverage(uint256 repayUsdc\|max)`** one-call self-del.  
-`FireElepanCarry.s.sol` — `KING_GO` / `FIRE_CARRY` / `ASK` / `SINK`.  
-Fork: entry gates + full self-del + time-warp spread sanity.
+Check HF, spread, Landing sink assets, depth idle/PA, oracle.  
+Tweak: trim earn, top buffer, switch sink.  
+Months run → then savvy upsize / loops on new GO.
+
+---
+
+## Why both are powerful for the King
+
+| Position | Power |
+|--|--|
+| **Depth** | Own Morpho surface; outsiders pay into **our** fee rail; access when PA/buffer live |
+| **Earn** | Millions working in foreign vaults; spread is **our money** on Landing |
+| **No-spend open** | Flash + Elepan — treasury USDC stays home |
+| **Together** | Not dust if split + exit law held — unlike last single circular book |
 
 ---
 
 ## Decision ask (King)
 
-1. Idle source when ready: external · King supply-only?  
-2. First sink: Gauntlet Prime · Steakhouse Prime · best APY at fire?  
-3. Confirm months-run + daily tweak + **self-del anytime** as law?  
-4. When ideal gates PASS → **GO** deploy
+1. Confirm dual stack (Depth + Earn) — both kept?  
+2. Split of $14M-class notionals: e.g. depth vs earn legs (King names — scribe won’t invent)?  
+3. ACCESS_BUFFER size?  
+4. Sink: Steakhouse Prime / Gauntlet Prime / best at fire?  
+5. When ideal PASS → **GO**
