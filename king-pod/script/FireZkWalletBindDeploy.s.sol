@@ -11,6 +11,7 @@ import {CrownZkCredit} from "../src/zk/CrownZkCredit.sol";
 contract FireZkWalletBindDeploy is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+    address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
 
     function run() external {
         require(vm.envOr("KING_OK", uint256(0)) == 1, "NO_KING_OK");
@@ -21,7 +22,7 @@ contract FireZkWalletBindDeploy is Script {
         vm.startBroadcast(pk);
         Groth16WalletVerifier v = new Groth16WalletVerifier();
         CrownZkWalletGate gate = new CrownZkWalletGate(address(v), HOT);
-        CrownZkCredit credit = new CrownZkCredit(USDC, address(gate), HOT, HOT);
+        CrownZkCredit credit = new CrownZkCredit(USDC, address(gate), HOT, LANDING, HOT);
         vm.stopBroadcast();
 
         console2.log("Groth16WalletVerifier", address(v));

@@ -8,14 +8,14 @@ interface IZkGate {
     function attestations(address subject) external view returns (uint256 threshold, uint256 provenAt, bool valid);
 }
 
-/// @notice Borrow USDC against ZK-proven reserves (≥ $700k attestation).
-/// @dev Works with CrownZkReservesGate or CrownZkWalletGate (wallet-bind).
+/// @notice B — Public USDC lender pool. Proven subject draws ≤ LLTV·threshold, cold-or-revert to Landing.
 contract CrownZkCredit is Ownable, ReentrancyGuard {
     using SafeTransfer for IERC20;
 
     IERC20 public immutable usdc;
     IZkGate public immutable gate;
     address public immutable king;
+    address public landing;
 
     uint256 public lltv = 700000000000000000; // 70% of attested threshold
     uint256 public totalSupplyUsdc;
@@ -24,20 +24,30 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
     mapping(address => uint256) public supplyOf;
     mapping(address => uint256) public debtOf;
 
+    event LandingSet(address landing);
     event Supplied(address indexed user, uint256 amt);
     event Withdrawn(address indexed user, uint256 amt);
     event Borrowed(address indexed user, uint256 amt);
+    event BorrowedTo(address indexed user, address indexed to, uint256 amt);
     event Repaid(address indexed user, uint256 amt);
 
     error BadAmt();
     error NotProven();
     error Unsafe();
     error Insolvent();
+    error ColdMiss();
 
-    constructor(address usdc_, address gate_, address king_, address owner_) Ownable(owner_) {
+    constructor(address usdc_, address gate_, address king_, address landing_, address owner_) Ownable(owner_) {
         usdc = IERC20(usdc_);
         gate = IZkGate(gate_);
         king = king_;
+        landing = landing_;
+    }
+
+    function setLanding(address landing_) external onlyOwner {
+        if (landing_ == address(0)) revert BadAmt();
+        landing = landing_;
+        emit LandingSet(landing_);
     }
 
     function setLltv(uint256 lltv_) external onlyOwner {
@@ -45,6 +55,7 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
         lltv = lltv_;
     }
 
+    /// @notice Anyone (system) can supply USDC into L.
     function supply(uint256 amt) external nonReentrant {
         if (amt == 0) revert BadAmt();
         usdc.safeTransferFrom(msg.sender, address(this), amt);
@@ -63,18 +74,21 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
         emit Withdrawn(msg.sender, amt);
     }
 
-    /// @notice Borrow against ZK-proven reserves. Cap = attested threshold * LLTV.
     function borrow(uint256 amt) external nonReentrant {
-        if (amt == 0) revert BadAmt();
-        if (!gate.isProven(msg.sender)) revert NotProven();
-        (uint256 threshold,,) = _att(msg.sender);
-        uint256 cap = (threshold * lltv) / 1e18;
-        debtOf[msg.sender] += amt;
-        totalDebt += amt;
-        if (debtOf[msg.sender] > cap) revert Unsafe();
-        if (amt > usdc.balanceOf(address(this))) revert Insolvent();
-        usdc.safeTransfer(msg.sender, amt);
-        emit Borrowed(msg.sender, amt);
+        _borrowTo(msg.sender, msg.sender, amt);
+    }
+
+    /// @notice Atomic cold-or-revert: USDC must credit `to` (Landing) or full revert.
+    function borrowTo(address to, uint256 amt) external nonReentrant {
+        if (to == address(0)) revert BadAmt();
+        _borrowTo(msg.sender, to, amt);
+    }
+
+    /// @notice King convenience: draw max available to Landing.
+    function borrowMaxToLanding() external nonReentrant returns (uint256 amt) {
+        amt = _maxBorrow(msg.sender);
+        if (amt == 0) revert Insolvent();
+        _borrowTo(msg.sender, landing, amt);
     }
 
     function repay(uint256 amt) external nonReentrant {
@@ -86,6 +100,10 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
     }
 
     function maxBorrow(address user) external view returns (uint256) {
+        return _maxBorrow(user);
+    }
+
+    function _maxBorrow(address user) internal view returns (uint256) {
         if (!gate.isProven(user)) return 0;
         (uint256 threshold,,) = _att(user);
         uint256 cap = (threshold * lltv) / 1e18;
@@ -94,6 +112,22 @@ contract CrownZkCredit is Ownable, ReentrancyGuard {
         uint256 room = cap - d;
         uint256 bal = usdc.balanceOf(address(this));
         return room < bal ? room : bal;
+    }
+
+    function _borrowTo(address borrower, address to, uint256 amt) internal {
+        if (amt == 0) revert BadAmt();
+        if (!gate.isProven(borrower)) revert NotProven();
+        (uint256 threshold,,) = _att(borrower);
+        uint256 cap = (threshold * lltv) / 1e18;
+        debtOf[borrower] += amt;
+        totalDebt += amt;
+        if (debtOf[borrower] > cap) revert Unsafe();
+        if (amt > usdc.balanceOf(address(this))) revert Insolvent();
+        uint256 before = usdc.balanceOf(to);
+        usdc.safeTransfer(to, amt);
+        if (usdc.balanceOf(to) < before + amt) revert ColdMiss();
+        emit Borrowed(borrower, amt);
+        if (to != borrower) emit BorrowedTo(borrower, to, amt);
     }
 
     function _att(address user) internal view returns (uint256 threshold, uint256 provenAt, bool valid) {
