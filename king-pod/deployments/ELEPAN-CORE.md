@@ -62,6 +62,12 @@ See `ZK-ELEPAN-BIND.md`. Gate `isProven(hot)=true`, threshold **$700k**, proof t
 | CrownZkElepanGate | `0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30` |
 | CrownZkElepanCredit (private vault rail) | `0xc4152c73824d85146B0f85a0b77E911D4769d936` |
 
+## Vault V2 (adapter path) — LIVE
+See `ELEPAN-VAULT-V2.md`. Vault `0x35a00F116536c13A63273513990E4E496a15Ddb2` + adapter `0x384A596C…F585`. Caps use `uint128.max` via submit→exec.
+
+## FHE private vault — LIVE scaffold
+`CrownFhePrivateVault` `0x79A2B9211eAD823203345f8613a07f3681e38dD9` (ZK gate wired; Zama FHE handles next).
+
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.
 Zama FHE encrypted balances = **next** (rail live; FHE deferred).
