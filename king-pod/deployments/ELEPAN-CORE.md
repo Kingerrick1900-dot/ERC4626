@@ -88,6 +88,9 @@ See `ELEPAN-SELF-SEED-PLAN.md`. M1 magnet (yRSS-style) + M2 copy-cat (deposit→
 ## Curator allocation + loan access — VERDICT
 See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay permissionless; caps/PA/V2 gates = full or partial *liquidity/deposit* access. No config fire in that note.
 
+## Paying self-seed — PLAN ONLY
+See `ELEPAN-PAY-SEED.md`. Custom Morpho-atomic seed that **pays Landing via MetaMorpho 10% fee shares** (same rail Morpho curators use). Morpho flash reverts unless deposit→borrow→repay works. **No fire until GO + variant + size.**
+
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.
 Zama FHE encrypted balances = **next** (rail live; FHE deferred).
