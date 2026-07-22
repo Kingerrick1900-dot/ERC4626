@@ -82,6 +82,9 @@ See `SYSTEM-FUNDED-RAIL.md`.
 - FHE v2 `0x761C50d4…Bb0B` + sleeve `0xc5084FAB…FBBC` (USDC→WETH→MM/V2)
 - V2 fees: 10% perf + 1%/yr mgmt → hot; gates `0x0`
 
+## Self-seed loop — PLAN ONLY
+See `ELEPAN-SELF-SEED-PLAN.md`. Mirror of yRSS `$9M` Morpho-from-zero play on yELEPAN-USDC. **No fire until King GO + size.**
+
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.
 Zama FHE encrypted balances = **next** (rail live; FHE deferred).
