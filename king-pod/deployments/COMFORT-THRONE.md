@@ -1,8 +1,23 @@
 # Comfort Throne — sit-able Morpho self-seed
 
-**Status:** Engineered + **Base fork script-sim PASS**. **No live broadcast until King says `KING_GO=1`.**
+## HOLD — King scribe (2026-07-22)
 
-### Sim proof (live Base state, no broadcast)
+**Engineer moved too fast.** King must tweak the plan before any seat.
+
+| Order | Status |
+|--|--|
+| **ALL Kingdom tokens free in hot wallet first** | Required before any comfort/self-seed fire |
+| Comfort Throne live broadcast | **FORBIDDEN** until King re-approves after tweak |
+| Code / PR / dry-run sim | Allowed (already done — see below) |
+| Touch desks / kUSD / Landing | **No** without new GO |
+
+Pre-existing Morpho dust (not from Comfort work): **~1M RSS coll + ~$1 debt** still on hot’s Morpho position. That 1M is **not** free in hot yet. Freeing it is a **separate, explained step** — only after King GO.
+
+---
+
+**Status:** Engineered + **Base fork script-sim PASS**. **No live broadcast.** Comfort contracts **not deployed** on-chain (codesize 0).
+
+### Sim proof (dry-run only — chain unchanged)
 
 | Check | Result |
 |--|--|
@@ -11,7 +26,7 @@
 | Market borrow / yRSS | **~$6.33M** |
 | Soft LTV | **~48.6%** |
 | Market idle (no sleeve) | **~$0** (pay needs sleeve or external inflow) |
-| feeRecipient | CrownKingPay |
+| feeRecipient | CrownKingPay (sim only) |
 
 Morpho allows self-seed. This stack **customizes** it so the King can sit without trapping every token and every stablecoin in a dry 100%-util coffin.
 
@@ -21,9 +36,9 @@ Morpho allows self-seed. This stack **customizes** it so the King can sit withou
 
 1. Self-seed is legal Morpho — use it for **depth / fee magnet / HF buffer**.
 2. The seat **must reap benefits** (fee + idle pay rail), not just TVL theater.
-3. **Keep tokens:** leave free RSS on hot (`RSS_KEEP`).
+3. **King override (2026-07-22):** **ALL tokens free in hot first** — not “keep 1M free while locking the rest.” Plan tweak pending.
 4. **Keep stablecoins:** kUSD and other Kingdom stables stay out of the loop unless King funds an optional USDC **sleeve**.
-5. **Dust goes:** existing ~1M RSS coll / ~$1 debt is **folded into the one seat** (not a separate dust book).
+5. **Dust goes:** existing ~1M RSS coll / ~$1 debt must return to hot **before** any new seat — not folded into a new lock without King tweak/GO.
 
 ---
 
