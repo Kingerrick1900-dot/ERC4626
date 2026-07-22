@@ -1,43 +1,43 @@
-# ELEPAN SELF-SEED LOOP — PLAN ONLY (NO FIRE)
+# ELEPAN SELF-SEED + COPY-CAT LOOP — PLAN ONLY (NO FIRE)
 
-**Status:** PLAN. No deploy / no broadcast until King says `KING_GO=1` + size.
+**Status:** PLAN. No deploy / no broadcast until King says `KING_GO=1` + size + which phase.
 
 **Doctrine:** Self-seed = depth/optics, not free capital. Pay from fee/idle/external only.  
 Matched books ≠ payroll. Scoreboard = vault TVL · market util · fee shares to Landing · HF ≥ 1.55.
 
 ---
 
-## Why this play (Morpho-from-zero only)
+## The copy-cat pattern (what the market actually runs)
 
-King filter: **only plays used by protocols that bootstrapped Morpho markets/vaults from empty books.**
+Same Morpho Blue machine used by retail, funds, and Coinbase-backed flow:
 
-| Play (Morpho-native) | Who used the pattern | What it does |
-|--|--|--|
-| **A. Own oracle + isolated market** | Every Morpho Blue curator (Steakhouse, Gauntlet, Moonwell, Kingdom RSS) | Niche book; no Chainlink herd |
-| **B. Own MetaMorpho + supply queue → that market** | Same curators | Depositors fund *your* book |
-| **C. Atomic flash self-seed** | Kingdom `$9M` yRSS (`CrownSelfSeedNine`); same Morpho flash + vault deposit + borrow repay path Morpho docs enable | From-zero TVL + 100% util rate magnet without outside USDC |
-| **D. Public Allocator flow caps** | Morpho PA standard (curator `maxIn`/`maxOut`) | JIT liquidity; borrowers pull idle into ask market |
-| **E. Matched fat-flash book** | Elepan WETH/cbBTC already (`CrownElepanFatFlashSeed`) | Market optics before vault magnet |
-| **F. Timelock + caps harden** | MetaMorpho risk model | Raise risk slow; bootstrap TL then lock |
+```
+Deposit collateral → Borrow loan → Buy more / redeploy → Redeposit → Repeat
+```
 
-**Rejected (not Morpho-from-zero / not earning):** dust carry toys, foreign-curator begging as the primary bootstrap, self-loop sold as “free USDC,” recycle stranded RSS without exit GO.
+Usually packed into **one tx** via `Morpho.flashLoan` → `onMorphoFlashLoan` (MORE Optimizer, Morpho docs “leverage in one flash,” Kingdom fat seeder callback shape).
+
+| Who | How they use it |
+|--|--|
+| **Retail / yield farmers** | Loop 3–5× into Morpho markets chasing supply APY + borrow incentives; Gauntlet/Steakhouse USDC vaults are the depth they borrow against |
+| **Institutions / desks** | Collateralize (often tokenized credit / own paper) → borrow stables → redeploy; scale is vault TVL + risk curator, not a new primitive |
+| **Coinbase “DeFi mullet”** | Crypto-backed loans on Morpho; deposit side through Morpho Vaults curated like Steakhouse (caps, queues, PA flow) — **same curator model Kingdom already shipped** |
+| **MORE Optimizer** | Automated leverage manager; flash callback + dynamic loop count vs util target |
+
+**Kingdom position:** rails match that stack (own market + MetaMorpho + PA + flash callback). What is missing is the **seeded magnet** and then the **copy-cat earn loop** against it. Window for incentive-chasing loops compresses as TVL fills — measured in months; machine must be ready when external capital shows.
 
 ---
 
-## What “loan that really earns” means here
+## Two machines (do not conflate)
 
-Two layers — do not confuse them:
+| Machine | Pattern | What it is | Earn |
+|--|--|--|--|
+| **M1 — Curator magnet** | Flash USDC → `yELEPAN-USDC.deposit` → borrow same USDC → repay | Bootstrap from **zero** TVL/util (Kingdom `$9M` yRSS play) | Optics + **10% fee → Landing** when outsiders arrive |
+| **M2 — Copy-cat leverage loop** | Deposit Elepan → borrow USDC → **buy more Elepan or redeploy to yield** → redeposit → repeat (N loops, flash-atomic) | Same play retail/MORE/institutions run | Carry = (yield or incentives on redeploy) − borrow APY − fees; loops amplify |
 
-1. **Rate-magnet loan (Play C — primary)**  
-   Hot posts Elepan → flash USDC → `yELEPAN-USDC.deposit` → vault supplies Elepan/USDC market → `Morpho.borrow` same size → repay flash.  
-   - End: Morpho debt + yELEPAN-USDC shares on hot + Elepan coll locked.  
-   - Net carry on the circular leg ≈ **vault fee skim (10% → Landing)** when interest accrues; borrower and vault supplier are the same economic family until outsiders arrive.  
-   - **Earns when:** external depositors chase the high util rate, and/or external borrowers pay against Elepan coll. Fee rail is the real earn.
-
-2. **External carry (optional later — only if idle ≠ self)**  
-   Borrow USDC that is **not** immediately re-supplied as the sole depth of the same book, and deploy into a Morpho-listed earn path whose supply APY > borrow APY after fees.  
-   - Requires true idle or external depositors first.  
-   - Do **not** call circular self-seed “carry.”
+`CrownElepanFatFlashSeed` already implements the **callback skeleton** (flash → Morpho ops → repay).  
+It currently runs a **matched book** (supply loan = borrow loan), which is **M1 optics for WETH/cbBTC**, not full M2 “buy more collateral.”  
+M2 needs an explicit **swap or redeploy leg** inside the callback.
 
 ---
 
@@ -49,104 +49,120 @@ Two layers — do not confuse them:
 | Oracle Elepan/USDC soft $1 | `0xe290…cf19` · price `1e34` |
 | Market Elepan/USDC | `0xa4ec…53fc` · **empty** (0/0) |
 | yELEPAN-USDC | `0x61bf…145E` · TVL **0** · cap **$14M** · fee **10%→Landing** · PA **$700k** · TL **2d** |
-| Morpho USDC flash inventory | ≈ **$184M** on Morpho (headroom ≫ plan sizes) |
-| Matched books (already) | 10 WETH + 0.5 cbBTC via fat seeder |
-| Hot USDC | dust (~$0.06) — flash required |
+| Morpho USDC flash inventory | ≈ **$184M** on Morpho |
+| Fat seeder (callback live) | `0x24622EB0…4688` — WETH/cbBTC matched books done |
+| Hot USDC | dust — flash required for both machines |
 
-Soft $1 × 77% LLTV on free Elepan ≈ **~$77M** theoretical max. Vault hard cap = **$14M**. Soft LTV target ≤ **70%** (same as `$9M` RSS play).
+Soft $1 × 77% LLTV on free Elepan ≈ **~$77M** theoretical. Vault hard cap **$14M**. Soft LTV target ≤ **70%**.
 
 ---
 
-## Proposed loop (atomic — mirror `CrownSelfSeedNine`)
+## Phase plan (still NO FIRE)
+
+### Phase 0 — Curator parity (DONE)
+Own oracle, Elepan/USDC moat, yELEPAN-USDC, PA caps, 10%→Landing, 2d TL. Same Steakhouse-shaped surface Coinbase depositors already trust on Morpho.
+
+### Phase 1 — M1 magnet bootstrap (first GO)
+Mirror `CrownSelfSeedNine`:
 
 ```
-1. Pull Elepan from hot → Morpho.supplyCollateral(Elepan/USDC, onBehalf=hot)
-2. Morpho.flashLoan(USDC, SIZE)
-   onMorphoFlashLoan:
-     a. approve + yELEPAN-USDC.deposit(SIZE, hot)   // vault → supplyQueue → moat market
-     b. Morpho.borrow(SIZE, onBehalf=hot, receiver=seeder)
-     c. approve Morpho repay flash
-3. End state:
-   - market supply ≈ market borrow ≈ SIZE  (≈100% util magnet)
-   - yELEPAN-USDC TVL ≈ SIZE (shares on hot)
-   - Morpho debt ≈ SIZE on hot
-   - Elepan coll posted (SIZE / 0.70 soft LTV)
-   - wallet USDC ≈ 0 (flash closed)
+supplyCollateral(Elepan)
+flashLoan(USDC, SIZE)
+  deposit yELEPAN-USDC → supplies moat
+  borrow SIZE onBehalf hot
+  repay flash
+→ ~100% util magnet + vault TVL ≈ SIZE
 ```
 
-**REPAY_SOURCE:** `Morpho.borrow` against freshly posted Elepan + vault-created idle in the same market (identical to yRSS self-seed).
+| Tranche | SIZE | Coll @ 70% | Note |
+|--|--|--|--|
+| Smoke | $500k | ~714k Elepan | Prove path |
+| Ops | $2M | ~2.86M | Real magnet |
+| Fortress | $9M | ~12.9M | Match old yRSS notional |
+| Cap | $14M | ~20M | Vault cap |
 
-### Size ladder (King picks one; no fire until GO)
+**Recommend:** Smoke → Ops after fork PASS. M1 alone is not “25–30% APY”; it **creates the book** others loop into.
 
-| Tranche | SIZE USDC | Elepan coll @ 70% soft | LTV vs free bag | Notes |
-|--|--|--|--|--|
-| Smoke | **$500k** | ~714k | ~0.5% | Prove seeder + PA optics |
-| Ops | **$2M** | ~2.86M | ~2% | Real magnet; still tiny LTV |
-| Fortress | **$9M** | ~12.9M | ~9% | Same notional as RSS `$9M` play |
-| Cap | **$14M** | ~20.0M | ~14% | Hits vault supply cap |
+### Phase 2 — M2 copy-cat loop (after magnet or with external idle)
 
-Default recommendation for first GO: **Smoke $500k → Ops $2M** after fork PASS. Scale only with HF ≥ 1.55 and exit path tested.
+Atomic (MORE-shaped), `onMorphoFlashLoan`:
 
----
+```
+flash USDC (or flash Elepan)
+  buy Elepan (DEX) OR skip buy if King already holds bag
+  supplyCollateral(Elepan)
+  borrow USDC up to soft LTV
+  redeploy USDC → earning sink (see below)
+  OR repeat coll/borrow N times (3–5) then settle
+repay flash
+```
 
-## Curator rules (Kingdom owns — Morpho-shaped)
+**Redeploy sinks (pick on GO — Morpho-native only):**
 
-Set / keep these as law for the loop (already mostly on-chain for yELEPAN-USDC):
-
-| Rule | Value | Why |
+| Sink | Role | When |
 |--|--|--|
-| Soft LTV | ≤ **70%** (LLTV 77% − buffer) | Liquidation air |
-| Min HF raw | ≥ **1.55** (alert 1.60) | Same as fat seeder |
-| Fee | **10%** → Landing | Earn rail |
-| Supply cap | **$14M** | Match yRSS-era magnet |
-| PA flow | **$700k** maxIn/maxOut | Morpho PA discipline; raise only on GO |
-| Queue | Elepan/USDC **only** | Own moat, no foreign markets |
-| Timelock | **2 days** | Already hardened |
-| Min tranche | ≥ **$500k** | No dust seeds |
-| Dead deposit | Optional dust to `0xdead` on first live | MetaMorpho inflation guard (WETH vault pattern) |
+| **yELEPAN-USDC** | Own vault; fee → Landing | Always available post-Phase 1 |
+| **Foreign Morpho USDC vault** (Steakhouse/Gauntlet-class) | Earn their supply APY vs our borrow | Only if borrow APY + buffer &lt; vault APY (+ incentives) |
+| **Incentive farm** | Borrow/supply MERKL or partner rewards | Only if Elepan market / vault is **actually listed** — do not invent APY |
 
-**PA after seed:** keep fee=0; flow caps stay $700k until King raises. Magnet does not need PA for the atomic self-seed (vault supplies directly). PA is for later external borrow UX.
+**King-bag shortcut:** with ~100M Elepan already on hot, “buy more” is optional. First institutional copy is: **post bag → borrow → redeploy to yield vault → optional second loop**, not forced DEX buy.
 
----
+**Loop count:** 1 (smoke) → 3 → 5 max (retail range). Each loop raises LTV toward soft 70%; HF floor **1.55** hard-stop.
 
-## Build checklist (still PLAN — no broadcast)
-
-1. Port `CrownSelfSeedNine` → `CrownElepanSelfSeed` (Elepan 8dp math, yELEPAN-USDC, moat market params).  
-2. Script `FireElepanSelfSeed.s.sol` with `KING_GO` + `FIRE_SEED` + `SIZE_USDC` knobs.  
-3. **Base fork sim** for Smoke + Ops: assert TVL, util≈100%, LTV, HF, flash closes, Landing fee recipient.  
-4. Exit dry-run: repay borrow → withdraw vault / `forceDeallocate` path (do not strand).  
-5. Only then: King GO → fire Smoke → observe → scale.
-
-Reuse patterns: `CrownSelfSeedNine` (vault magnet), `CrownElepanFatFlashSeed` (callback + HF guards). Do **not** reuse RSS seeder address for Elepan.
+### Phase 3 — External capital trigger (revenue)
+Publish deposit addresses (yELEPAN-USDC, FHE/sleeve, ZK credit). Outsiders running M2 against **our** market pay borrow interest → vault suppliers earn → **10% fee → Landing**. That is the revenue loop the clock is about.
 
 ---
 
-## Earn path after magnet is live
+## Curator rules (Kingdom = Steakhouse seat)
 
-| Phase | Action | Earn source |
-|--|--|--|
-| T0 | Self-seed (circular) | Optics only; fee accrual on own interest is small |
-| T1 | External USDC into yELEPAN-USDC | Supply APY at high util; **10% fee → Landing** |
-| T2 | External Elepan borrowers | Real borrow demand; vault suppliers earn; fee skim |
-| T3 | Optional carry | Only with **non-circular** idle; Morpho-listed earn > borrow |
+| Rule | Value |
+|--|--|
+| Soft LTV | ≤ **70%** (LLTV 77% − buffer) |
+| Min HF raw | ≥ **1.55** (alert 1.60) |
+| Max loops / tx | **5** |
+| Fee | **10%** → Landing |
+| Supply cap | **$14M** (raise only on GO) |
+| PA flow | **$700k** (raise only on GO) |
+| Queue | Elepan/USDC only |
+| Timelock | **2 days** |
+| Min M1 tranche | ≥ **$500k** |
+| Incentive claim | Only if on-chain reward distributor exists for this market/vault |
 
-Sleeve / FHE / ZK credit remain **external-deposit** rails — they do not replace this magnet.
+---
+
+## Build checklist (PLAN — no broadcast)
+
+1. `CrownElepanSelfSeed` — Phase 1 M1 (port of `CrownSelfSeedNine`, Elepan 8dp).  
+2. `CrownElepanCopyCatLoop` — Phase 2 M2 (fat-seeder callback + N loops + redeploy sink whitelist).  
+3. Fork sims: M1 Smoke/Ops; M2 loops=1/3 with HF asserts + unwind.  
+4. Exit path: repay → unwrap vault / deallocate (no strand).  
+5. King GO → fire Phase 1 Smoke only → observe → scale / unlock Phase 2.
+
+---
+
+## Honest earn math (so nobody lies to the throne)
+
+- **No Morpho incentives listed on Elepan yet** → cannot quote “9.7% borrow reward” on this book until a real program attaches.  
+- Circular M1 earn ≈ fee skim on own interest (small) until **external** flow.  
+- M2 earn only if **redeploy APY (+ incentives) > borrow APY + buffer**.  
+- Fat-flash matched books are **depth**, not a money glitch.
 
 ---
 
 ## Kill rules
 
-1. No live fire without `KING_GO=1` and explicit SIZE.  
-2. No calling self-seed “free capital” or payroll.  
-3. No tranche &lt; $500k.  
-4. No raise PA flow / vault cap without GO.  
-5. No recycle of old RSS inventory into this loop.  
-6. If fork exit fails → freeze scale (see `NO-RECYCLE-UNTIL-EXIT.md` spirit).
+1. No live fire without `KING_GO=1` + phase + size (+ loops for M2).  
+2. No selling M1 as free USDC or payroll.  
+3. No M2 without listed sink APY math or King-held collateral path.  
+4. No invented incentive APYs.  
+5. No RSS recycle into this loop.  
+6. Fork exit fail → freeze scale.
 
 ---
 
 ## Decision ask (King)
 
-Pick: **Smoke $500k** · **Ops $2M** · **Fortress $9M** · **Cap $14M** · or hold.
-
-On GO: engineer builds seeder + fork PASS, then fires chosen tranche only.
+1. **Phase 1 size:** Smoke $500k · Ops $2M · Fortress $9M · Cap $14M · hold  
+2. **Phase 2 after magnet:** enable copy-cat? loops 1/3/5? redeploy sink = own yELEPAN-USDC only vs allow foreign Morpho USDC vault  
+3. **GO** when ready — engineer builds + fork PASS, then fires only what you name
