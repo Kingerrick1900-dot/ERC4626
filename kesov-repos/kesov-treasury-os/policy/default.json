@@ -1,0 +1,27 @@
+{
+  "min_hf_raw": 1.55,
+  "alert_hf_raw": 1.60,
+  "max_utilization": 0.95,
+  "min_liquidity_buffer_usd": 0,
+  "oracle_staleness_sec": 3600,
+  "rss_price_source": "self-set",
+  "rss_twap_require_ready": true,
+  "rss_uni_twap_pool": "0x9022a130B0798AE6aEf6398404E4B7453873EEC9",
+  "rss_uni_twap_seconds": 1800,
+  "rss_uni_twap_min_liquidity": "1",
+  "rss_uni_twap_min_cardinality": 2,
+  "max_circular_exposure": 0.0,
+  "force_deallocate_penalty_min_wad": "10000000000000000",
+  "prefer_loan": "cbBTC",
+  "auto_defend": true,
+  "auto_offense": false,
+  "pause_new_intents_default": false,
+  "king_hot": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "king_landing": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+  "internal_synthetic_assets": ["RSS", "kUSD"],
+  "max_allocation_by_protocol": {
+    "morpho_cbbtc": "1000000000000000000000",
+    "morpho_weth": "1000000000000000000000",
+    "morpho_usdc": "0"
+  }
+}
