@@ -91,6 +91,9 @@ See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay pe
 ## Paying self-seed — PLAN ONLY (Apollo / aarnâ copy)
 See `ELEPAN-PAY-SEED.md`. Gold standard: **ACRED-style coll→borrow→spread** + **âtvUSDC-style loop only when carry+** (target band ~8–12% when rates clear). Circular FeeSeed demoted. **No fire until GO.**
 
+## $9M loan proof + dual-earn customize
+See `NINE-DUAL-EARN-PROOF.md`. Documented Kingdom $9M path + Morpho lender/borrower earn + payback. **No fire until King GO + knobs.**
+
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.
 Zama FHE encrypted balances = **next** (rail live; FHE deferred).
