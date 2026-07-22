@@ -65,8 +65,10 @@ See `ZK-ELEPAN-BIND.md`. Gate `isProven(hot)=true`, threshold **$700k**, proof t
 ## Vault V2 (adapter path) — LIVE
 See `ELEPAN-VAULT-V2.md`. Vault `0x35a00F116536c13A63273513990E4E496a15Ddb2` + adapter `0x384A596C…F585`. Caps use `uint128.max` via submit→exec.
 
-## FHE private vault — LIVE scaffold
-`CrownFhePrivateVault` `0x79A2B9211eAD823203345f8613a07f3681e38dD9` (ZK gate wired; Zama FHE handles next).
+## System-funded rail — LIVE
+See `SYSTEM-FUNDED-RAIL.md`.
+- FHE v2 `0x761C50d4…Bb0B` + sleeve `0xc5084FAB…FBBC` (USDC→WETH→MM/V2)
+- V2 fees: 10% perf + 1%/yr mgmt → hot; gates `0x0`
 
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.
