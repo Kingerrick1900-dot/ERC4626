@@ -72,7 +72,10 @@ test/phase2.test.js          Unit tests (no RPC)
 ## Doctrine locks
 
 - Policy Engine ≠ Risk Controller
-- RSS / kUSD = `internal-synthetic` @ $1.00 — never blend into `externalNetUsd`
+- RSS / kUSD = `internal-synthetic` @ $1.00 — never blend into `externalNetUsd` **while primary = self-set**
+- Oracle Manager supports **switchable RSS primary**: `self-set` → `uniswap-twap` (Uni V3 RSS/cbBTC `0x9022…EEC9`)
+- TWAP switch requires readiness (liquidity + cardinality); until ready, holds self-set
+- Morpho on-chain oracle flip is a **separate King order** — control plane is baked in now
 - `max_circular_exposure` default `0` (no kUSD→RSS solvency inflation)
 - Sentinel pauses **new** Intents only; unwinds need `kingSigned`
-- No live `forceDeallocate` test tx without King green light
+- No live `forceDeallocate` / pool drains without explicit King order

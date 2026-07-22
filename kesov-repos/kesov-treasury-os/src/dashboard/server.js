@@ -30,7 +30,7 @@ function htmlPage(snap) {
   const feeds = (snap.oracle?.feeds || [])
     .map(
       (f) =>
-        `<tr><td>${f.id}</td><td>${f.tag}</td><td>${f.stale ? 'STALE' : 'ok'}</td><td class="mono">${f.address}</td><td>${f.note || ''}</td></tr>`,
+        `<tr><td>${f.id}</td><td>${f.role || '—'}</td><td>${f.tag}</td><td>${f.stale ? 'STALE' : f.ready === false ? 'not ready' : 'ok'}</td><td class="mono">${f.address}</td><td>${f.note || ''}</td></tr>`,
     )
     .join('');
   const assets = (snap.assets || [])
@@ -137,9 +137,12 @@ function htmlPage(snap) {
     </div>
 
     <section>
-      <h2>Oracle Manager</h2>
+      <h2>Oracle Manager — RSS primary switch</h2>
+      <p class="mono">configured=${snap.oracle?.rssPriceSource?.configured} · active=${snap.oracle?.rssPriceSource?.active} · rssTag=${snap.oracle?.rssPriceSource?.rssTag} · twapReady=${snap.oracle?.rssPriceSource?.twapReady}</p>
+      <p class="sub">${snap.oracle?.rssPriceSource?.note || ''}</p>
+      <p class="sub">TWAP blockers: ${(snap.oracle?.rssPriceSource?.twapBlockers || []).join(', ') || 'none'} · pool ${snap.oracle?.rssPriceSource?.pool || '—'}</p>
       <table>
-        <thead><tr><th>Feed</th><th>Tag</th><th>Status</th><th>Address</th><th>Note</th></tr></thead>
+        <thead><tr><th>Feed</th><th>Role</th><th>Tag</th><th>Status</th><th>Address</th><th>Note</th></tr></thead>
         <tbody>${feeds}</tbody>
       </table>
     </section>

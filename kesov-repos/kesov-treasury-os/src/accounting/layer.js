@@ -55,11 +55,16 @@ function line(id, venue, asset, amount, decimals, tag, usdMark, note) {
   };
 }
 
-async function walletBalances(label, wallet) {
+async function walletBalances(label, wallet, rssTag = 'internal-synthetic') {
+  const rssNote =
+    rssTag === 'external-priced'
+      ? 'RSS @ Uniswap TWAP primary — external-priced'
+      : 'RSS @ $1.00 fixed oracle — synthetic';
+  const rssUsd = rssTag === 'internal-synthetic' ? 1.0 : null;
   const tokens = [
-    ['RSS', ADDR.RSS, 'internal-synthetic', 1.0, 'RSS @ $1.00 fixed oracle — synthetic'],
+    ['RSS', ADDR.RSS, rssTag, rssUsd, rssNote],
     ['USDC', ADDR.USDC, 'external-priced', 1.0, null],
-    ['kUSD', ADDR.KUSD, 'internal-synthetic', 1.0, 'kUSD minted vs synthetic RSS — synthetic'],
+    ['kUSD', ADDR.KUSD, 'internal-synthetic', 1.0, 'kUSD — synthetic until King opens external mint revenue path'],
     ['WETH', ADDR.WETH, 'external-priced', null, 'mark TBD'],
     ['cbBTC', ADDR.CBTC, 'external-priced', null, 'mark TBD'],
   ];
@@ -96,7 +101,7 @@ function sharesToAssets(shares, totalShares, totalAssets) {
   return (shares * totalAssets) / totalShares;
 }
 
-async function morphoBook(label, marketId, loanAsset, loanDec) {
+async function morphoBook(label, marketId, loanAsset, loanDec, rssTag = 'internal-synthetic') {
   const [pos, mkt] = await Promise.all([
     morphoPosition(marketId, ADDR.HOT),
     morphoMarket(marketId),
@@ -109,6 +114,11 @@ async function morphoBook(label, marketId, loanAsset, loanDec) {
 
   const assets = [];
   const debts = [];
+  const rssUsd = rssTag === 'internal-synthetic' ? 1.0 : null;
+  const rssNote =
+    rssTag === 'external-priced'
+      ? 'Morpho collateral RSS — external TWAP primary'
+      : 'Morpho collateral RSS @ $1 synthetic';
 
   if (pos.collateral > 0n) {
     assets.push(
@@ -118,9 +128,9 @@ async function morphoBook(label, marketId, loanAsset, loanDec) {
         'RSS',
         pos.collateral,
         collDec,
-        'internal-synthetic',
-        1.0,
-        'Morpho collateral RSS @ $1 synthetic',
+        rssTag,
+        rssUsd,
+        rssNote,
       ),
     );
   }
@@ -175,6 +185,8 @@ async function morphoBook(label, marketId, loanAsset, loanDec) {
 export async function buildSnapshot() {
   const policy = loadPolicy();
   const oracle = await collectOracles();
+  const rssTag = oracle.rssPriceSource?.rssTag || 'internal-synthetic';
+  const rssUsd = rssTag === 'internal-synthetic' ? 1.0 : null;
 
   const wallets = [
     ['hot', ADDR.HOT],
@@ -192,7 +204,7 @@ export async function buildSnapshot() {
   const debts = [];
 
   for (const [label, addr] of wallets) {
-    assets.push(...(await walletBalances(label, addr)));
+    assets.push(...(await walletBalances(label, addr, rssTag)));
   }
 
   // Vaults
@@ -206,23 +218,23 @@ export async function buildSnapshot() {
         'RSS',
         yRssAssets,
         18,
-        'internal-synthetic',
-        1.0,
+        rssTag,
+        rssUsd,
         'yRSS MetaMorpho V1 TVL — not Vault V2',
       ),
     );
   }
-  if (v2Assets != null && isMeaningful(v2Assets, 18)) {
+  if (v2Assets != null && isMeaningful(v2Assets, 6)) {
     assets.push(
       line(
         'vault-v2-tvl',
         'high-treasury-vault-v2',
-        'RSS',
+        'USDC',
         v2Assets,
-        18,
-        'internal-synthetic',
+        6,
+        'external-priced',
         1.0,
-        'Private Meta Vault V2 totalAssets',
+        'Private Meta Vault V2 totalAssets (USDC)',
       ),
     );
   }
@@ -259,7 +271,7 @@ export async function buildSnapshot() {
     ['rss-weth', MARKETS.RSS_WETH, 'WETH', wethDec],
     ['rss-cbbtc', MARKETS.RSS_CBTC, 'cbBTC', cbtcDec],
   ]) {
-    books.push(await morphoBook(...row));
+    books.push(await morphoBook(...row, rssTag));
   }
 
   for (const b of books) {
