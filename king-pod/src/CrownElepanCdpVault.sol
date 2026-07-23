@@ -24,6 +24,8 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     IERC20 public immutable elepan; // 8 decimals
     CrownElepanUsd public immutable eusd;
     IElepanPrice public immutable oracle;
+    /// @notice Receives minted stability-fee eUSD on accrue (King self-sufficient close path).
+    address public immutable feeRecipient;
 
     /// @notice Min collateralization ratio (e.g. 1.5e18 = 150%). Fixed at launch.
     uint256 public immutable liquidationRatio;
@@ -56,16 +58,19 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
         address eusd_,
         address oracle_,
         address king_,
+        address feeRecipient_,
         uint256 liquidationRatio_,
         uint256 safetyFloor_,
         uint256 stabilityFeeBpsYear_
     ) Ownable(king_) {
         require(elepan_ != address(0) && eusd_ != address(0) && oracle_ != address(0), "ZERO");
+        require(feeRecipient_ != address(0), "FEE_TO");
         require(liquidationRatio_ >= WAD, "LR");
         require(safetyFloor_ >= liquidationRatio_, "FLOOR");
         elepan = IERC20(elepan_);
         eusd = CrownElepanUsd(eusd_);
         oracle = IElepanPrice(oracle_);
+        feeRecipient = feeRecipient_;
         liquidationRatio = liquidationRatio_;
         safetyFloor = safetyFloor_;
         // per-second ≈ (bps/10000) * RAY / YEAR  (linear approx; fine for CDP fee)
@@ -106,9 +111,11 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     function maxWithdrawable() external view returns (uint256) {
         uint256 d = accruedDebt();
         if (d == 0) return coll;
-        // min coll for safetyFloor: collValue / d >= floor → coll >= d * floor / priceScaled
         uint256 minColl = _minCollForDebt(d, safetyFloor);
-        return coll > minColl ? coll - minColl : 0;
+        uint256 maxW = coll > minColl ? coll - minColl : 0;
+        // Tighten for rounding so withdraw(maxW) never reverts UnsafeHf
+        while (maxW > 0 && _hf(coll - maxW, d) < safetyFloor) maxW--;
+        return maxW;
     }
 
     // -------------------------------------------------------------------------
@@ -123,10 +130,15 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
             return;
         }
         // rateAccumulator *= (1 + feePerSecond)^dt ≈ 1 + feePerSecond*dt for small fees
+        uint256 before = _rmul(debt, rateAccumulator);
         uint256 growth = stabilityFeePerSecond * dt;
         rateAccumulator = _rmul(rateAccumulator, RAY + growth);
         lastAccrual = block.timestamp;
-        emit Accrued(rateAccumulator, 0);
+        uint256 after_ = _rmul(debt, rateAccumulator);
+        uint256 fee = after_ - before;
+        // Mint fee eUSD so debt and token supply stay matched (King can repay+close).
+        if (fee > 0) eusd.mint(feeRecipient, fee);
+        emit Accrued(rateAccumulator, fee);
     }
 
     function deposit(uint256 elepanAmt) external onlyOwner nonReentrant {

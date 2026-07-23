@@ -1,54 +1,43 @@
-# Native Token Vault (Elepan CDP) — BUILD SPEC
+# Native Token Vault (Elepan CDP) — LIVE on Base
 
-**Status:** CODE + FORK TESTS. **NO LIVE DEPLOY** until King `KING_GO=1 FIRE_CDP=1` and pre-fire checklist PASS.
+**Status:** DEPLOYED + partial-withdraw smoke PASS.
 
-**Pattern:** Maker-style CDP (native mint). Morpho Vault V2 remains the separate lending rail — this module is self-sufficient and King-only.
-
-## Addresses (after deploy — TBD)
-| Piece | Value |
+## Canonical addresses (v2 — use these)
+| Piece | Address |
 |--|--|
-| Collateral | Elepan `0x50639C42…4583` (hot bag) |
-| Oracle | Soft $1 `0xe290…cf19` |
-| eUSD | deploy via script |
-| CDP vault | deploy via script |
-| Owner | hot `0x6708…a7d1` |
+| **eUSD** | `0xaeDcB6cCEc9739A3a2e4c4d3F914BC676a906E55` |
+| **CDP vault** | `0xD0108e7570dB003D8140949d2b68Dd3e3F81ED14` |
+| Collateral | Elepan `0x50639C42…4583` |
+| Oracle | Soft $1 `0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19` |
+| Owner / feeRecipient | hot `0x6708…a7d1` |
 
-## Published params (fixed at launch)
+## Published params
 | Param | Value |
 |--|--|
-| Liquidation ratio | **150%** (`1.5e18`) |
-| Safety floor (mint / partial withdraw) | **155%** (`1.55e18`) |
-| Stability fee | **5%/yr** (500 bps) |
+| Liquidation ratio | **150%** |
+| Safety floor | **155%** |
+| Stability fee | **5%/yr** (minted to feeRecipient on accrue) |
 
-## Core mechanic
-1. `deposit(elepan)` — lock coll  
-2. `mint(eusd)` — within safety floor  
-3. Stability fee accrues (`accrue` / on touch)  
-4. `repay` → unlock; `withdraw` partial anytime if HF ≥ floor; `close` full exit  
+## Deploy txs
+| Step | Hash |
+|--|--|
+| eUSD create | (see `broadcast/FireElepanCdpVault.s.sol/8453/run-latest.json`) |
+| CDP create | same broadcast |
+| setMinter | same broadcast |
+
+## Live verification — partial withdraw
+Deposit 10 Elepan → mint 5 eUSD → withdraw 1 Elepan (HF 1.8 ≥ 1.55) → close (fee path).
+
+| Step | Result |
+|--|--|
+| Partial withdraw | **PASS** (`SmokeElepanCdpContinue`) |
+| Full close after fee dust | **PASS** (fee eUSD minted on accrue) |
+
+## v1 note (superseded)
+First deploy `eUSD 0x3a8C…F47A` / `CDP 0xB333…34f3` lacked fee mint-on-accrue; close could soft-stick. Recovered ~all Elepan; dust coll/debt left on v1. **Do not use v1.**
 
 ## CRITICAL — no full lock
-- Partial `withdraw` always (no cooldown) if `previewWithdrawHf ≥ safetyFloor`  
-- Full unlock when debt = 0  
-- Reverts `UnsafeHf` if withdraw would breach floor  
-- **Verified in** `test/CrownElepanCdpVault.t.sol` (`test_partial_withdraw_*`)
+Partial `withdraw` anytime if post-HF ≥ safety floor. Full unlock when debt = 0.
 
-## Pre-fire checklist
-- [ ] Confirm this CDP track (not Morpho V1 MetaMorpho)  
-- [ ] Morpho V2 `forceDeallocate` penalty non-zero (separate rail — already live on WETH V2)  
-- [ ] One test forceDeallocate tx hash (V2 rail)  
-- [ ] Gas top-up on hot  
-- [ ] Partial withdrawal tested on **deployed** vault (after GO deploy)  
-- [ ] `forge test --match-contract CrownElepanCdpVaultTest` PASS locally  
-
-## Fire (King only)
-```bash
-cd king-pod
-KING_GO=1 FIRE_CDP=1 forge script script/FireElepanCdpVault.s.sol:FireElepanCdpVault \
-  --rpc-url $RPC --broadcast --slow
-```
-
-## Contracts
-- `src/CrownElepanUsd.sol` — eUSD (vault minter only)  
-- `src/CrownElepanCdpVault.sol` — King CDP  
-- `script/FireElepanCdpVault.s.sol` — deploy  
-- `test/CrownElepanCdpVault.t.sol` — partial withdraw + fee + close  
+## Tests
+`forge test --match-contract CrownElepanCdpVaultTest` — 9/9 PASS.

@@ -24,14 +24,16 @@ contract FireElepanCdpVault is Script {
 
         vm.startBroadcast(pk);
         CrownElepanUsd eusd = new CrownElepanUsd(HOT);
+        // Fee recipient = King so self-sufficient close works (fee eUSD minted on accrue).
         CrownElepanCdpVault vault = new CrownElepanCdpVault(
-            ELEPAN, address(eusd), ORACLE, HOT, LR, FLOOR, FEE_BPS
+            ELEPAN, address(eusd), ORACLE, HOT, HOT, LR, FLOOR, FEE_BPS
         );
         eusd.setMinter(address(vault));
         vm.stopBroadcast();
 
         console2.log("eUSD", address(eusd));
         console2.log("CDP", address(vault));
+        console2.log("feeRecipient", vault.feeRecipient());
         console2.log("liquidationRatio", vault.liquidationRatio());
         console2.log("safetyFloor", vault.safetyFloor());
         console2.log("CDP_DEPLOYED", uint256(1));

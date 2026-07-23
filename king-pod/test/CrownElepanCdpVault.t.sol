@@ -23,7 +23,7 @@ contract CrownElepanCdpVaultTest is Test {
         oracle = new MockElepanOracle();
         eusd = new CrownElepanUsd(king);
         vault = new CrownElepanCdpVault(
-            address(elepan), address(eusd), address(oracle), king, LR, FLOOR, FEE_BPS
+            address(elepan), address(eusd), address(oracle), king, king, LR, FLOOR, FEE_BPS
         );
         vm.prank(king);
         eusd.setMinter(address(vault));
@@ -103,11 +103,28 @@ contract CrownElepanCdpVaultTest is Test {
         vault.mint(10_000_000e18);
         vm.stopPrank();
         uint256 d0 = vault.accruedDebt();
+        uint256 bal0 = eusd.balanceOf(king);
         vm.warp(block.timestamp + 365 days);
+        vault.accrue();
         uint256 d1 = vault.accruedDebt();
         // ~5% on 10M ≈ 500k (linear approx)
         assertGt(d1, d0);
         assertApproxEqRel(d1 - d0, 500_000e18, 0.02e18); // within 2%
+        // Fee eUSD minted to feeRecipient (king) so close/repay stays solvent
+        assertEq(eusd.balanceOf(king) - bal0, d1 - d0);
+    }
+
+    function test_close_after_fee_accrual() public {
+        vm.startPrank(king);
+        vault.deposit(25_000_000e8);
+        vault.mint(8_000_000e18);
+        vm.warp(block.timestamp + 30 days);
+        vault.close(); // accrue mints fee to king, then burns all debt
+        vm.stopPrank();
+        assertEq(vault.coll(), 0);
+        assertEq(vault.accruedDebt(), 0);
+        assertEq(elepan.balanceOf(king), 100_000_000e8);
+        assertEq(eusd.balanceOf(king), 0);
     }
 
     function test_maxWithdrawable_matches_partial_path() public {

@@ -88,8 +88,9 @@ See `ELEPAN-SELF-SEED-PLAN.md`. M1 magnet (yRSS-style) + M2 copy-cat (deposit→
 ## Curator allocation + loan access — VERDICT
 See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay permissionless; caps/PA/V2 gates = full or partial *liquidity/deposit* access. No config fire in that note.
 
-## Native Token Vault (Elepan CDP) — BUILD (no live deploy)
-See `ELEPAN-NATIVE-CDP.md`. Maker-style King-only CDP: lock Elepan → mint eUSD → stability fee. **Partial withdraw anytime** if HF ≥ 155%. Tests PASS. Fire only `KING_GO=1 FIRE_CDP=1`.
+## Native Token Vault (Elepan CDP) — LIVE
+See `ELEPAN-NATIVE-CDP.md`. **eUSD** `0xaeDc…6E55` · **CDP** `0xD010…ED14`. LR 150% / floor 155% / fee 5%. Partial withdraw live-verified.
+
 
 ## $14M fit + access notes
 See `NINE-DUAL-EARN-PROOF.md` / `LOAN-ACCESS-PATHS.md`. ZK rail = side line. Morpho Blue standing borrow still needs Elepan coll (bag already held).
