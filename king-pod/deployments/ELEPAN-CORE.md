@@ -88,8 +88,8 @@ See `ELEPAN-SELF-SEED-PLAN.md`. M1 magnet (yRSS-style) + M2 copy-cat (deposit→
 ## Curator allocation + loan access — VERDICT
 See `ELEPAN-CURATOR-ACCESS.md`. **Yes:** allocate at TVL=0. Blue borrows stay permissionless; caps/PA/V2 gates = full or partial *liquidity/deposit* access. No config fire in that note.
 
-## Native Token Vault (Elepan CDP) — LIVE
-See `ELEPAN-NATIVE-CDP.md`. **eUSD** `0xaeDc…6E55` · **CDP** `0xD010…ED14`. LR 150% / floor 155% / fee 5%. Partial withdraw live-verified.
+## Native Token Vault (Elepan CDP) — LIVE + ZK
+See `ELEPAN-NATIVE-CDP.md`. **eUSD** `0x2b87…7B99` · **CDP** `0x3b07…85eB` · ZK gate `0xca2a…3f30`. LR 150% / floor 155% / fee 5%. King-only + `isProven`. Partial withdraw live-verified.
 
 
 ## $14M fit + access notes
