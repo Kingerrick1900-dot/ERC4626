@@ -56,6 +56,8 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
     error BadAmt();
     error UnsafeHf();
     error NotZkProven();
+    /// @notice Mint proceeds must credit immutable cold treasury (Landing) or full tx reverts.
+    error ColdMiss();
 
     modifier onlyZkProven() {
         // Prefer live wallet-bind; if expired/compromised and fallback armed → direct coll lock path.
@@ -190,15 +192,16 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
         collateral.safeTransfer(msg.sender, collAmt);
     }
 
-    /// @notice ACCESS CLAUSE: mint eUSD straight to `treasury` — no escrow, vault never holds proceeds.
+    /// @notice ACCESS CLAUSE: mint eUSD straight to cold `treasury` — no escrow.
+    /// @dev If cold wallet does not receive the full mint, entire tx reverts (debt does not open).
     function mint(uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
-        _mintTo(treasury, eusdAmt);
+        _mintToCold(eusdAmt);
     }
 
-    /// @notice ACCESS CLAUSE: mint eUSD to an explicit Kingdom address (e.g. Landing).
+    /// @notice Same as `mint` — `to` MUST be cold treasury or reverts `ColdMiss`.
     function mintTo(address to, uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
-        if (to == address(0)) revert BadAmt();
-        _mintTo(to, eusdAmt);
+        if (to != treasury) revert ColdMiss();
+        _mintToCold(eusdAmt);
     }
 
     function repay(uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
@@ -223,15 +226,19 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
         _repayWithdrawCollateral();
     }
 
-    function _mintTo(address to, uint256 eusdAmt) internal {
+    function _mintToCold(uint256 eusdAmt) internal {
         if (eusdAmt == 0) revert BadAmt();
+        address cold = treasury;
+        if (cold == address(0) || cold == address(this)) revert ColdMiss();
         accrue();
         uint256 newDebt = accruedDebt() + eusdAmt;
         uint256 hf = _hf(coll, newDebt);
         if (hf < safetyFloor) revert UnsafeHf();
+        uint256 before = eusd.balanceOf(cold);
         debt = _rdiv(newDebt, rateAccumulator);
-        // Proceeds leave the vault in the same call — never escrowed here.
-        eusd.mint(to, eusdAmt);
+        eusd.mint(cold, eusdAmt);
+        if (eusd.balanceOf(cold) < before + eusdAmt) revert ColdMiss();
+        if (eusd.balanceOf(address(this)) != 0) revert ColdMiss();
         emit Minted(eusdAmt, newDebt, hf);
     }
 

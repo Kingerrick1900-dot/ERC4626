@@ -64,6 +64,8 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     error DebtOutstanding();
     error InsufficientColl();
     error NotZkProven();
+    /// @notice Mint proceeds must credit immutable cold treasury (Landing) or full tx reverts.
+    error ColdMiss();
 
     modifier onlyZkProven() {
         if (zkGate.isProven(msg.sender)) {
@@ -214,14 +216,16 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
         elepan.safeTransfer(msg.sender, elepanAmt);
     }
 
-    /// @notice ACCESS CLAUSE: eUSD lands in `treasury` immediately — vault never escrows proceeds.
+    /// @notice ACCESS CLAUSE: eUSD lands in cold `treasury` only — vault never escrows proceeds.
+    /// @dev If cold wallet does not receive the full mint, entire tx reverts (debt does not open).
     function mint(uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
-        _mintTo(treasury, eusdAmt);
+        _mintToCold(eusdAmt);
     }
 
+    /// @notice Same as `mint` — `to` MUST be cold treasury or reverts `ColdMiss`.
     function mintTo(address to, uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
-        if (to == address(0)) revert BadAmt();
-        _mintTo(to, eusdAmt);
+        if (to != treasury) revert ColdMiss();
+        _mintToCold(eusdAmt);
     }
 
     /// @notice Repay eUSD (burns from treasury). Full repay → debt=0 → 100% Elepan withdrawable.
@@ -246,14 +250,20 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
         _repayWithdrawCollateral();
     }
 
-    function _mintTo(address to, uint256 eusdAmt) internal {
+    function _mintToCold(uint256 eusdAmt) internal {
         if (eusdAmt == 0) revert BadAmt();
+        address cold = treasury;
+        if (cold == address(0) || cold == address(this)) revert ColdMiss();
         accrue();
         uint256 newDebt = accruedDebt() + eusdAmt;
         uint256 hf = _hf(coll, newDebt);
         if (hf < safetyFloor) revert UnsafeHf();
+        uint256 before = eusd.balanceOf(cold);
         debt = _rdiv(newDebt, rateAccumulator);
-        eusd.mint(to, eusdAmt);
+        eusd.mint(cold, eusdAmt);
+        // Atomic Access Clause: wrong recipient / failed credit ⇒ full revert, no open debt.
+        if (eusd.balanceOf(cold) < before + eusdAmt) revert ColdMiss();
+        if (eusd.balanceOf(address(this)) != 0) revert ColdMiss();
         emit Minted(eusdAmt, newDebt, hf);
     }
 

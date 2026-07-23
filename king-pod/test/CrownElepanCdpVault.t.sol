@@ -171,4 +171,34 @@ contract CrownElepanCdpVaultTest is Test {
         vault.deposit(1e8);
         vm.stopPrank();
     }
+
+    /// @notice Wrong mint recipient must revert — debt must not open off cold treasury.
+    function test_mintTo_non_treasury_reverts_cold_miss() public {
+        address notCold = makeAddr("notCold");
+        vm.startPrank(king);
+        vault.deposit(30_000_000e8);
+        vm.expectRevert(CrownElepanCdpVault.ColdMiss.selector);
+        vault.mintTo(notCold, 1_000_000e18);
+        vm.stopPrank();
+        assertEq(vault.debt(), 0);
+        assertEq(eusd.balanceOf(notCold), 0);
+        assertEq(eusd.balanceOf(address(vault)), 0);
+    }
+
+    function test_mint_credits_treasury_vault_holds_zero() public {
+        address cold = makeAddr("cold");
+        CrownElepanCdpVault v = new CrownElepanCdpVault(
+            address(elepan), address(eusd), address(oracle), address(zkGate), king, king, cold, LR, FLOOR, FEE_BPS
+        );
+        vm.prank(king);
+        eusd.setMinter(address(v), true);
+        vm.startPrank(king);
+        elepan.approve(address(v), type(uint256).max);
+        v.deposit(30_000_000e8);
+        v.mint(10_000_000e18);
+        vm.stopPrank();
+        assertEq(eusd.balanceOf(cold), 10_000_000e18);
+        assertEq(eusd.balanceOf(address(v)), 0);
+        assertEq(eusd.balanceOf(king), 0);
+    }
 }
