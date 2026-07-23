@@ -11,6 +11,8 @@ interface IMorphoPrice {
 
 interface IZkGate {
     function isProven(address subject) external view returns (bool);
+    function requireProven(address subject) external view;
+    function attestations(address subject) external view returns (uint256 threshold, uint256 provenAt, bool valid);
 }
 
 /// @notice King-only Maker-style CDP base: lock ERC20 coll, mint eUSD, fee, partial withdraw.
@@ -39,20 +41,52 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
     uint256 public debt;
     uint256 public rateAccumulator = RAY;
     uint256 public lastAccrual;
+    /// @notice Emergency path: King may mutate CDP via direct on-chain collateral locks if ZK fails.
+    /// @dev Does NOT weaken collateral/HF checks — only bypasses wallet-bind attestation.
+    bool public zkFallbackEnabled;
 
     event Deposited(uint256 collAmt, uint256 collTotal);
     event Withdrawn(uint256 collAmt, uint256 collRemaining, uint256 hfWad);
     event Minted(uint256 eusdAmt, uint256 debtTotal, uint256 hfWad);
     event Repaid(uint256 eusdAmt, uint256 debtRemaining);
     event Accrued(uint256 rateAccumulator, uint256 feeMinted);
+    event ZkFallbackSet(bool enabled);
+    event ZkFallbackUsed(address indexed who, bytes4 indexed selector);
 
     error BadAmt();
     error UnsafeHf();
     error NotZkProven();
 
     modifier onlyZkProven() {
-        if (!zkGate.isProven(msg.sender)) revert NotZkProven();
+        // Prefer live wallet-bind; if expired/compromised and fallback armed → direct coll lock path.
+        if (zkGate.isProven(msg.sender)) {
+            _;
+            return;
+        }
+        if (!zkFallbackEnabled) {
+            // Surface gate's Expired when available (TTL-aware), else NotZkProven.
+            zkGate.requireProven(msg.sender);
+            revert NotZkProven();
+        }
+        emit ZkFallbackUsed(msg.sender, msg.sig);
         _;
+    }
+
+    /// @notice True iff `who` holds a non-expired ZK wallet-bind attestation.
+    function zkMintAllowed(address who) external view returns (bool) {
+        return zkGate.isProven(who);
+    }
+
+    /// @notice Arm/disarm direct-collateral fallback when ZK attestation path is unavailable.
+    function setZkFallback(bool enabled) external onlyOwner {
+        zkFallbackEnabled = enabled;
+        emit ZkFallbackSet(enabled);
+    }
+
+    /// @notice True if ZK proven OR (fallback armed and caller is King) — view for monitors.
+    function mutationAllowed(address who) external view returns (bool) {
+        if (zkGate.isProven(who)) return true;
+        return zkFallbackEnabled && who == owner;
     }
 
     constructor(

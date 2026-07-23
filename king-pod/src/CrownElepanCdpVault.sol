@@ -11,6 +11,8 @@ interface IElepanPrice {
 
 interface IZkElepanGate {
     function isProven(address subject) external view returns (bool);
+    function requireProven(address subject) external view;
+    function attestations(address subject) external view returns (uint256 threshold, uint256 provenAt, bool valid);
 }
 
 /// @notice King-only Maker-style CDP: lock Elepan, mint eUSD, stability fee, partial withdraw.
@@ -46,12 +48,16 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     uint256 public debt; // eUSD principal (18dp), excludes accrued fee
     uint256 public rateAccumulator = RAY; // grows with stability fee
     uint256 public lastAccrual;
+    /// @notice Emergency path: King may mutate CDP via direct on-chain collateral locks if ZK fails.
+    bool public zkFallbackEnabled;
 
     event Deposited(uint256 elepanAmt, uint256 collTotal);
     event Withdrawn(uint256 elepanAmt, uint256 collRemaining, uint256 hfWad);
     event Minted(uint256 eusdAmt, uint256 debtTotal, uint256 hfWad);
     event Repaid(uint256 eusdAmt, uint256 debtRemaining);
     event Accrued(uint256 rateAccumulator, uint256 feeMinted);
+    event ZkFallbackSet(bool enabled);
+    event ZkFallbackUsed(address indexed who, bytes4 indexed selector);
 
     error BadAmt();
     error UnsafeHf();
@@ -60,8 +66,30 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     error NotZkProven();
 
     modifier onlyZkProven() {
-        if (!zkGate.isProven(msg.sender)) revert NotZkProven();
+        if (zkGate.isProven(msg.sender)) {
+            _;
+            return;
+        }
+        if (!zkFallbackEnabled) {
+            zkGate.requireProven(msg.sender);
+            revert NotZkProven();
+        }
+        emit ZkFallbackUsed(msg.sender, msg.sig);
         _;
+    }
+
+    function zkMintAllowed(address who) external view returns (bool) {
+        return zkGate.isProven(who);
+    }
+
+    function setZkFallback(bool enabled) external onlyOwner {
+        zkFallbackEnabled = enabled;
+        emit ZkFallbackSet(enabled);
+    }
+
+    function mutationAllowed(address who) external view returns (bool) {
+        if (zkGate.isProven(who)) return true;
+        return zkFallbackEnabled && who == owner;
     }
 
     /// @param liquidationRatio_ WAD (min 1e18). Example 1.5e18 = 150%.

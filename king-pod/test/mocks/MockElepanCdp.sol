@@ -46,12 +46,35 @@ contract MockElepanOracle {
 /// @dev Test double for Elepan ZK wallet-bind gate.
 contract MockZkElepanGate {
     mapping(address => bool) public proven;
+    mapping(address => uint256) public thresholdOf;
+    mapping(address => uint256) public provenAtOf;
+    uint256 public proofTtl = 7 days;
+
+    error Expired();
+
+    function setProofTtl(uint256 ttl) external {
+        proofTtl = ttl;
+    }
 
     function setProven(address subject, bool v) external {
         proven[subject] = v;
+        if (v) {
+            thresholdOf[subject] = 700_000e6;
+            provenAtOf[subject] = block.timestamp;
+        }
     }
 
-    function isProven(address subject) external view returns (bool) {
-        return proven[subject];
+    function isProven(address subject) public view returns (bool) {
+        if (!proven[subject]) return false;
+        if (proofTtl > 0 && block.timestamp > provenAtOf[subject] + proofTtl) return false;
+        return true;
+    }
+
+    function requireProven(address subject) external view {
+        if (!isProven(subject)) revert Expired();
+    }
+
+    function attestations(address subject) external view returns (uint256 threshold, uint256 provenAt, bool valid) {
+        return (thresholdOf[subject], provenAtOf[subject], proven[subject]);
     }
 }

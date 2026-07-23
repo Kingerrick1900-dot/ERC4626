@@ -87,6 +87,7 @@ contract CrownWethCdpVaultTest is Test {
         weth = new MockErc20Dec(18);
         oracle = new MockMorphoUsdOracle(PX);
         zkGate = new MockZkElepanGate();
+        zkGate.setProofTtl(0);
         zkGate.setProven(king, true);
         eusd = new CrownElepanUsd(king);
         vault = new HarnessAssetCdp(address(weth), address(eusd), address(oracle), address(zkGate), king, LR, FLOOR, FEE_BPS);
@@ -187,7 +188,7 @@ contract CrownWethCdpVaultTest is Test {
     function test_requires_zk() public {
         zkGate.setProven(king, false);
         vm.prank(king);
-        vm.expectRevert(CrownAssetCdpVault.NotZkProven.selector);
+        vm.expectRevert(MockZkElepanGate.Expired.selector);
         vault.deposit(1 ether);
     }
 
@@ -218,6 +219,7 @@ contract CrownCbbtcCdpVaultTest is Test {
         cbbtc = new MockErc20Dec(8);
         oracle = new MockMorphoUsdOracle(PX);
         zkGate = new MockZkElepanGate();
+        zkGate.setProofTtl(0);
         zkGate.setProven(king, true);
         eusd = new CrownElepanUsd(king);
         vault = new HarnessAssetCdp(address(cbbtc), address(eusd), address(oracle), address(zkGate), king, LR, FLOOR, FEE_BPS);
@@ -288,7 +290,7 @@ contract CrownCbbtcCdpVaultTest is Test {
     function test_requires_zk() public {
         zkGate.setProven(king, false);
         vm.prank(king);
-        vm.expectRevert(CrownAssetCdpVault.NotZkProven.selector);
+        vm.expectRevert(MockZkElepanGate.Expired.selector);
         vault.deposit(1);
     }
 }

@@ -23,6 +23,7 @@ contract CrownElepanCdpVaultTest is Test {
         elepan = new MockElepan8();
         oracle = new MockElepanOracle();
         zkGate = new MockZkElepanGate();
+        zkGate.setProofTtl(0); // unit tests warp time for fee; production gate uses 7d TTL
         zkGate.setProven(king, true);
         eusd = new CrownElepanUsd(king);
         vault = new CrownElepanCdpVault(
@@ -166,7 +167,7 @@ contract CrownElepanCdpVaultTest is Test {
     function test_requires_zk_proven() public {
         zkGate.setProven(king, false);
         vm.startPrank(king);
-        vm.expectRevert(CrownElepanCdpVault.NotZkProven.selector);
+        vm.expectRevert(MockZkElepanGate.Expired.selector);
         vault.deposit(1e8);
         vm.stopPrank();
     }
