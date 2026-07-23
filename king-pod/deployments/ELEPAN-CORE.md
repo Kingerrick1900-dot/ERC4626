@@ -98,3 +98,6 @@ See `NINE-DUAL-EARN-PROOF.md` / `LOAN-ACCESS-PATHS.md`. ZK rail = side line. Mor
 ## Law
 Self-seed = depth (matched books ≠ free capital). Pay from fee/idle/external only.
 Zama FHE encrypted balances = **next** (rail live; FHE deferred).
+
+## Multi-Collateral CDP — LIVE
+See `MULTI-COLLATERAL-CDP.md`. WETH `0x6003…9BCF` + cbBTC `0xb7Be…28d5` → multi-minter eUSD `0xE8aA…af8a`. LR 130%/floor 135%/fee 5%. TWAP oracles. Smokes PASS.
