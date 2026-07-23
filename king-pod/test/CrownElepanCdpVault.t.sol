@@ -4,12 +4,13 @@ pragma solidity ^0.8.20;
 import {Test, console2} from "forge-std/Test.sol";
 import {CrownElepanUsd} from "../src/CrownElepanUsd.sol";
 import {CrownElepanCdpVault} from "../src/CrownElepanCdpVault.sol";
-import {MockElepan8, MockElepanOracle} from "./mocks/MockElepanCdp.sol";
+import {MockElepan8, MockElepanOracle, MockZkElepanGate} from "./mocks/MockElepanCdp.sol";
 
 contract CrownElepanCdpVaultTest is Test {
     address internal king = makeAddr("king");
     MockElepan8 internal elepan;
     MockElepanOracle internal oracle;
+    MockZkElepanGate internal zkGate;
     CrownElepanUsd internal eusd;
     CrownElepanCdpVault internal vault;
 
@@ -21,9 +22,19 @@ contract CrownElepanCdpVaultTest is Test {
         vm.deal(king, 1 ether);
         elepan = new MockElepan8();
         oracle = new MockElepanOracle();
+        zkGate = new MockZkElepanGate();
+        zkGate.setProven(king, true);
         eusd = new CrownElepanUsd(king);
         vault = new CrownElepanCdpVault(
-            address(elepan), address(eusd), address(oracle), king, king, LR, FLOOR, FEE_BPS
+            address(elepan),
+            address(eusd),
+            address(oracle),
+            address(zkGate),
+            king,
+            king,
+            LR,
+            FLOOR,
+            FEE_BPS
         );
         vm.prank(king);
         eusd.setMinter(address(vault));
@@ -145,8 +156,17 @@ contract CrownElepanCdpVaultTest is Test {
 
     function test_only_king() public {
         address rando = address(0xBEEF);
+        zkGate.setProven(rando, true);
         vm.expectRevert();
         vm.prank(rando);
         vault.deposit(1e8);
+    }
+
+    function test_requires_zk_proven() public {
+        zkGate.setProven(king, false);
+        vm.startPrank(king);
+        vm.expectRevert(CrownElepanCdpVault.NotZkProven.selector);
+        vault.deposit(1e8);
+        vm.stopPrank();
     }
 }

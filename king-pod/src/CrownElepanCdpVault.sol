@@ -9,9 +9,14 @@ interface IElepanPrice {
     function price() external view returns (uint256);
 }
 
+interface IZkElepanGate {
+    function isProven(address subject) external view returns (bool);
+}
+
 /// @notice King-only Maker-style CDP: lock Elepan, mint eUSD, stability fee, partial withdraw.
 /// @dev CRITICAL: No full lock. Partial Elepan withdrawal always allowed if post-HF ≥ safety floor.
 ///      Full Elepan unlock when debt+fee repaid to zero. Self-sufficient with zero outside users.
+///      ZK layer: all mutations require live Elepan wallet-bind `gate.isProven(msg.sender)`.
 ///      Morpho V2 rails remain separate; this module is the native-token vault CDP track.
 contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     using SafeTransfer for IERC20;
@@ -24,6 +29,7 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     IERC20 public immutable elepan; // 8 decimals
     CrownElepanUsd public immutable eusd;
     IElepanPrice public immutable oracle;
+    IZkElepanGate public immutable zkGate;
     /// @notice Receives minted stability-fee eUSD on accrue (King self-sufficient close path).
     address public immutable feeRecipient;
 
@@ -49,6 +55,12 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     error UnsafeHf();
     error DebtOutstanding();
     error InsufficientColl();
+    error NotZkProven();
+
+    modifier onlyZkProven() {
+        if (!zkGate.isProven(msg.sender)) revert NotZkProven();
+        _;
+    }
 
     /// @param liquidationRatio_ WAD (min 1e18). Example 1.5e18 = 150%.
     /// @param safetyFloor_ WAD ≥ liquidationRatio_ (partial withdraw / mint gate). Example 1.55e18.
@@ -57,6 +69,7 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
         address elepan_,
         address eusd_,
         address oracle_,
+        address zkGate_,
         address king_,
         address feeRecipient_,
         uint256 liquidationRatio_,
@@ -64,12 +77,14 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
         uint256 stabilityFeeBpsYear_
     ) Ownable(king_) {
         require(elepan_ != address(0) && eusd_ != address(0) && oracle_ != address(0), "ZERO");
+        require(zkGate_ != address(0), "ZK");
         require(feeRecipient_ != address(0), "FEE_TO");
         require(liquidationRatio_ >= WAD, "LR");
         require(safetyFloor_ >= liquidationRatio_, "FLOOR");
         elepan = IERC20(elepan_);
         eusd = CrownElepanUsd(eusd_);
         oracle = IElepanPrice(oracle_);
+        zkGate = IZkElepanGate(zkGate_);
         feeRecipient = feeRecipient_;
         liquidationRatio = liquidationRatio_;
         safetyFloor = safetyFloor_;
@@ -141,7 +156,7 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
         emit Accrued(rateAccumulator, fee);
     }
 
-    function deposit(uint256 elepanAmt) external onlyOwner nonReentrant {
+    function deposit(uint256 elepanAmt) external onlyOwner onlyZkProven nonReentrant {
         if (elepanAmt == 0) revert BadAmt();
         accrue();
         elepan.safeTransferFrom(msg.sender, address(this), elepanAmt);
@@ -150,7 +165,7 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     }
 
     /// @notice CRITICAL: partial withdraw anytime if remaining HF ≥ safetyFloor. No cooldown.
-    function withdraw(uint256 elepanAmt) external onlyOwner nonReentrant {
+    function withdraw(uint256 elepanAmt) external onlyOwner onlyZkProven nonReentrant {
         if (elepanAmt == 0 || elepanAmt > coll) revert BadAmt();
         accrue();
         uint256 newColl = coll - elepanAmt;
@@ -166,7 +181,7 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
         elepan.safeTransfer(msg.sender, elepanAmt);
     }
 
-    function mint(uint256 eusdAmt) external onlyOwner nonReentrant {
+    function mint(uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
         if (eusdAmt == 0) revert BadAmt();
         accrue();
         uint256 newDebt = accruedDebt() + eusdAmt;
@@ -179,7 +194,7 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     }
 
     /// @notice Repay eUSD (burns). Full repay → debt=0 → 100% Elepan withdrawable immediately.
-    function repay(uint256 eusdAmt) external onlyOwner nonReentrant {
+    function repay(uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
         if (eusdAmt == 0) revert BadAmt();
         accrue();
         uint256 d = accruedDebt();
@@ -191,7 +206,7 @@ contract CrownElepanCdpVault is Ownable, ReentrancyGuard {
     }
 
     /// @notice Convenience: repay all debt+fee then withdraw all collateral.
-    function close() external onlyOwner nonReentrant {
+    function close() external onlyOwner onlyZkProven nonReentrant {
         accrue();
         uint256 d = accruedDebt();
         if (d > 0) {

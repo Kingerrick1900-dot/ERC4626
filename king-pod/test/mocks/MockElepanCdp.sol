@@ -42,3 +42,16 @@ contract MockElepanOracle {
         price = p;
     }
 }
+
+/// @dev Test double for Elepan ZK wallet-bind gate.
+contract MockZkElepanGate {
+    mapping(address => bool) public proven;
+
+    function setProven(address subject, bool v) external {
+        proven[subject] = v;
+    }
+
+    function isProven(address subject) external view returns (bool) {
+        return proven[subject];
+    }
+}
