@@ -52,12 +52,14 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
     event Accrued(uint256 rateAccumulator, uint256 feeMinted);
     event ZkFallbackSet(bool enabled);
     event ZkFallbackUsed(address indexed who, bytes4 indexed selector);
+    event SelfLiquidated(uint256 debtRepaid, uint256 collReturned, uint256 hfWad);
 
     error BadAmt();
     error UnsafeHf();
     error NotZkProven();
     /// @notice Mint proceeds must credit immutable cold treasury (Landing) or full tx reverts.
     error ColdMiss();
+    error NotLiquidatable();
 
     modifier onlyZkProven() {
         // Prefer live wallet-bind; if expired/compromised and fallback armed → direct coll lock path.
@@ -224,6 +226,32 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
     /// @notice Alias for Maker/Morpho-style atomic exit (Access Clause full exit).
     function repayWithdrawCollateral() external onlyOwner onlyZkProven nonReentrant {
         _repayWithdrawCollateral();
+    }
+
+    /// @notice True when HF &lt; liquidation ratio — King may `selfLiquidate`.
+    function liquidatable() public view returns (bool) {
+        uint256 d = accruedDebt();
+        if (d == 0) return false;
+        return _hf(coll, d) < liquidationRatio;
+    }
+
+    /// @notice King self-liquidation when underwater vs LR: burn debt from cold treasury, free all coll.
+    function selfLiquidate() external onlyOwner onlyZkProven nonReentrant {
+        accrue();
+        uint256 d = accruedDebt();
+        if (d == 0) revert BadAmt();
+        uint256 hf = _hf(coll, d);
+        if (hf >= liquidationRatio) revert NotLiquidatable();
+        eusd.burn(treasury, d);
+        debt = 0;
+        emit Repaid(d, 0);
+        uint256 c = coll;
+        coll = 0;
+        if (c > 0) {
+            collateral.safeTransfer(msg.sender, c);
+            emit Withdrawn(c, 0, type(uint256).max);
+        }
+        emit SelfLiquidated(d, c, hf);
     }
 
     function _mintToCold(uint256 eusdAmt) internal {

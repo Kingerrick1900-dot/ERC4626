@@ -201,4 +201,40 @@ contract CrownElepanCdpVaultTest is Test {
         assertEq(eusd.balanceOf(address(v)), 0);
         assertEq(eusd.balanceOf(king), 0);
     }
+
+    function test_selfLiquidate_reverts_when_healthy() public {
+        vm.startPrank(king);
+        vault.deposit(30_000_000e8);
+        vault.mint(10_000_000e18); // HF 3.0
+        assertFalse(vault.liquidatable());
+        vm.expectRevert(CrownElepanCdpVault.NotLiquidatable.selector);
+        vault.selfLiquidate();
+        vm.stopPrank();
+    }
+
+    function test_selfLiquidate_clears_underwater_position() public {
+        address cold = makeAddr("cold");
+        CrownElepanCdpVault v = new CrownElepanCdpVault(
+            address(elepan), address(eusd), address(oracle), address(zkGate), king, king, cold, LR, FLOOR, FEE_BPS
+        );
+        vm.prank(king);
+        eusd.setMinter(address(v), true);
+        vm.startPrank(king);
+        elepan.approve(address(v), type(uint256).max);
+        v.deposit(20_000_000e8);
+        v.mint(12_000_000e18); // HF ≈ 1.666 at $1 — above floor 1.55, above LR 1.50
+        vm.stopPrank();
+        // Crash oracle soft price → HF < 150%
+        oracle.setPrice(0.8e34); // $0.80
+        assertTrue(v.liquidatable());
+        uint256 coldBefore = eusd.balanceOf(cold);
+        uint256 eleBefore = elepan.balanceOf(king);
+        vm.prank(king);
+        v.selfLiquidate();
+        assertEq(v.debt(), 0);
+        assertEq(v.coll(), 0);
+        assertEq(eusd.balanceOf(cold), coldBefore - 12_000_000e18);
+        assertEq(elepan.balanceOf(king), eleBefore + 20_000_000e8);
+        assertFalse(v.liquidatable());
+    }
 }
