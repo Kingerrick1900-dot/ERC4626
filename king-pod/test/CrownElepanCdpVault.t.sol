@@ -37,7 +37,7 @@ contract CrownElepanCdpVaultTest is Test {
             FEE_BPS
         );
         vm.prank(king);
-        eusd.setMinter(address(vault));
+        eusd.setMinter(address(vault), true);
 
         // 100M Elepan (8dp)
         elepan.mint(king, 100_000_000e8);

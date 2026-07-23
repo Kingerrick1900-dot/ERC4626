@@ -34,7 +34,7 @@ contract FireElepanCdpVault is Script {
         CrownElepanCdpVault vault = new CrownElepanCdpVault(
             ELEPAN, address(eusd), ORACLE, ZK_GATE, HOT, HOT, LR, FLOOR, FEE_BPS
         );
-        eusd.setMinter(address(vault));
+        eusd.setMinter(address(vault), true);
         vm.stopBroadcast();
 
         console2.log("eUSD", address(eusd));

@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Ownable} from "./lib/Core.sol";
 
-/// @notice Kingdom native stablecoin minted only by the Elepan CDP vault.
+/// @notice Kingdom native stablecoin — multi-minter for isolated CDP vaults.
 /// @dev Soft $1 unit of account. 18 decimals. No public mint.
 contract CrownElepanUsd is Ownable {
     string public constant name = "Kingdom Elepan USD";
@@ -13,26 +13,25 @@ contract CrownElepanUsd is Ownable {
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
-
-    address public minter; // CDP vault
+    mapping(address => bool) public isMinter;
 
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
-    event MinterSet(address indexed minter);
+    event MinterSet(address indexed minter, bool allowed);
 
     error OnlyMinter();
     error BadAmt();
 
     constructor(address owner_) Ownable(owner_) {}
 
-    function setMinter(address m) external onlyOwner {
+    function setMinter(address m, bool allowed) external onlyOwner {
         require(m != address(0), "ZERO");
-        minter = m;
-        emit MinterSet(m);
+        isMinter[m] = allowed;
+        emit MinterSet(m, allowed);
     }
 
     function mint(address to, uint256 amt) external {
-        if (msg.sender != minter) revert OnlyMinter();
+        if (!isMinter[msg.sender]) revert OnlyMinter();
         if (amt == 0) revert BadAmt();
         totalSupply += amt;
         balanceOf[to] += amt;
@@ -40,7 +39,7 @@ contract CrownElepanUsd is Ownable {
     }
 
     function burn(address from, uint256 amt) external {
-        if (msg.sender != minter) revert OnlyMinter();
+        if (!isMinter[msg.sender]) revert OnlyMinter();
         if (amt == 0 || balanceOf[from] < amt) revert BadAmt();
         balanceOf[from] -= amt;
         totalSupply -= amt;
