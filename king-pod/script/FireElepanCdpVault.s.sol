@@ -11,8 +11,10 @@ interface IZkGateView {
 
 /// @notice Deploy King-only Elepan CDP + eUSD wired to live ZK wallet-bind gate.
 /// @dev Fixed at launch: LR 150%, safety floor 155%, stability fee 5%/yr.
+///      ACCESS CLAUSE: treasury + feeRecipient = Landing (proceeds land immediately).
 contract FireElepanCdpVault is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
+    address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
     address constant ELEPAN = 0x50639C42E2FFDEC4F68FB468968a55b3Af944583;
     address constant ORACLE = 0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19; // soft $1
     address constant ZK_GATE = 0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30; // CrownZkElepanGate
@@ -30,9 +32,8 @@ contract FireElepanCdpVault is Script {
 
         vm.startBroadcast(pk);
         CrownElepanUsd eusd = new CrownElepanUsd(HOT);
-        // Fee recipient = King so self-sufficient close works (fee eUSD minted on accrue).
         CrownElepanCdpVault vault = new CrownElepanCdpVault(
-            ELEPAN, address(eusd), ORACLE, ZK_GATE, HOT, HOT, LR, FLOOR, FEE_BPS
+            ELEPAN, address(eusd), ORACLE, ZK_GATE, HOT, LANDING, LANDING, LR, FLOOR, FEE_BPS
         );
         eusd.setMinter(address(vault), true);
         vm.stopBroadcast();
@@ -40,6 +41,7 @@ contract FireElepanCdpVault is Script {
         console2.log("eUSD", address(eusd));
         console2.log("CDP", address(vault));
         console2.log("zkGate", address(vault.zkGate()));
+        console2.log("treasury", vault.treasury());
         console2.log("feeRecipient", vault.feeRecipient());
         console2.log("liquidationRatio", vault.liquidationRatio());
         console2.log("safetyFloor", vault.safetyFloor());

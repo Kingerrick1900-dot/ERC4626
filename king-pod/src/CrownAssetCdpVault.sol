@@ -26,7 +26,10 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
     CrownElepanUsd public immutable eusd;
     IMorphoPrice public immutable oracle;
     IZkGate public immutable zkGate;
+    /// @notice Stability-fee eUSD recipient (Kingdom Landing / treasury).
     address public immutable feeRecipient;
+    /// @notice Receives minted loan proceeds immediately (Access Clause — no escrow).
+    address public immutable treasury;
 
     uint256 public immutable liquidationRatio;
     uint256 public immutable safetyFloor;
@@ -59,6 +62,7 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
         address zkGate_,
         address king_,
         address feeRecipient_,
+        address treasury_,
         uint256 liquidationRatio_,
         uint256 safetyFloor_,
         uint256 stabilityFeeBpsYear_
@@ -66,6 +70,7 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
         require(collateral_ != address(0) && eusd_ != address(0) && oracle_ != address(0), "ZERO");
         require(zkGate_ != address(0), "ZK");
         require(feeRecipient_ != address(0), "FEE_TO");
+        require(treasury_ != address(0), "TREASURY");
         require(liquidationRatio_ >= WAD, "LR");
         require(safetyFloor_ >= liquidationRatio_, "FLOOR");
         collateral = IERC20(collateral_);
@@ -73,6 +78,7 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
         oracle = IMorphoPrice(oracle_);
         zkGate = IZkGate(zkGate_);
         feeRecipient = feeRecipient_;
+        treasury = treasury_;
         liquidationRatio = liquidationRatio_;
         safetyFloor = safetyFloor_;
         stabilityFeePerSecond = (stabilityFeeBpsYear_ * RAY) / (10_000 * YEAR);
@@ -150,15 +156,15 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
         collateral.safeTransfer(msg.sender, collAmt);
     }
 
+    /// @notice ACCESS CLAUSE: mint eUSD straight to `treasury` — no escrow, vault never holds proceeds.
     function mint(uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
-        if (eusdAmt == 0) revert BadAmt();
-        accrue();
-        uint256 newDebt = accruedDebt() + eusdAmt;
-        uint256 hf = _hf(coll, newDebt);
-        if (hf < safetyFloor) revert UnsafeHf();
-        debt = _rdiv(newDebt, rateAccumulator);
-        eusd.mint(msg.sender, eusdAmt);
-        emit Minted(eusdAmt, newDebt, hf);
+        _mintTo(treasury, eusdAmt);
+    }
+
+    /// @notice ACCESS CLAUSE: mint eUSD to an explicit Kingdom address (e.g. Landing).
+    function mintTo(address to, uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
+        if (to == address(0)) revert BadAmt();
+        _mintTo(to, eusdAmt);
     }
 
     function repay(uint256 eusdAmt) external onlyOwner onlyZkProven nonReentrant {
@@ -166,17 +172,40 @@ abstract contract CrownAssetCdpVault is Ownable, ReentrancyGuard {
         accrue();
         uint256 d = accruedDebt();
         if (eusdAmt > d) eusdAmt = d;
-        eusd.burn(msg.sender, eusdAmt);
+        // Burn from treasury (holds principal + any fee mint routed there).
+        eusd.burn(treasury, eusdAmt);
         uint256 remaining = d - eusdAmt;
         debt = remaining == 0 ? 0 : _rdiv(remaining, rateAccumulator);
         emit Repaid(eusdAmt, remaining);
     }
 
+    /// @notice Atomic full exit: repay all debt+fee from treasury, unlock all collateral to King.
     function close() external onlyOwner onlyZkProven nonReentrant {
+        _repayWithdrawCollateral();
+    }
+
+    /// @notice Alias for Maker/Morpho-style atomic exit (Access Clause full exit).
+    function repayWithdrawCollateral() external onlyOwner onlyZkProven nonReentrant {
+        _repayWithdrawCollateral();
+    }
+
+    function _mintTo(address to, uint256 eusdAmt) internal {
+        if (eusdAmt == 0) revert BadAmt();
+        accrue();
+        uint256 newDebt = accruedDebt() + eusdAmt;
+        uint256 hf = _hf(coll, newDebt);
+        if (hf < safetyFloor) revert UnsafeHf();
+        debt = _rdiv(newDebt, rateAccumulator);
+        // Proceeds leave the vault in the same call — never escrowed here.
+        eusd.mint(to, eusdAmt);
+        emit Minted(eusdAmt, newDebt, hf);
+    }
+
+    function _repayWithdrawCollateral() internal {
         accrue();
         uint256 d = accruedDebt();
         if (d > 0) {
-            eusd.burn(msg.sender, d);
+            eusd.burn(treasury, d);
             debt = 0;
             emit Repaid(d, 0);
         }

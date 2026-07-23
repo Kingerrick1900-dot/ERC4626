@@ -13,12 +13,22 @@ contract CrownWethCdpVault is CrownAssetCdpVault {
         address zkGate_,
         address king_,
         address feeRecipient_,
+        address treasury_,
         uint256 liquidationRatio_,
         uint256 safetyFloor_,
         uint256 stabilityFeeBpsYear_
     )
         CrownAssetCdpVault(
-            WETH, eusd_, oracle_, zkGate_, king_, feeRecipient_, liquidationRatio_, safetyFloor_, stabilityFeeBpsYear_
+            WETH,
+            eusd_,
+            oracle_,
+            zkGate_,
+            king_,
+            feeRecipient_,
+            treasury_,
+            liquidationRatio_,
+            safetyFloor_,
+            stabilityFeeBpsYear_
         )
     {}
 }

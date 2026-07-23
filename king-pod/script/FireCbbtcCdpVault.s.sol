@@ -11,9 +11,10 @@ interface IZkGateC {
 }
 
 /// @notice Deploy cbBTC CDP + MorphoUniV3Oracle on live cbBTC/USDC TWAP pool.
-/// @dev Requires EUSD= multi-minter eUSD from WETH deploy. KING_GO=1 FIRE_CBBTC_CDP=1.
+/// @dev Requires EUSD=. ACCESS CLAUSE: treasury=Landing. KING_GO=1 FIRE_CBBTC_CDP=1.
 contract FireCbbtcCdpVault is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
+    address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
     address constant ZK_GATE = 0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30;
     address constant CBTC = 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
@@ -37,14 +38,14 @@ contract FireCbbtcCdpVault is Script {
         vm.startBroadcast(pk);
         MorphoUniV3Oracle ora = new MorphoUniV3Oracle(CBTC_USDC_POOL, CBTC, USDC, TWAP, 8, 6);
         CrownCbbtcCdpVault vault = new CrownCbbtcCdpVault(
-            eusdAddr, address(ora), ZK_GATE, HOT, HOT, LR, FLOOR, FEE_BPS
+            eusdAddr, address(ora), ZK_GATE, HOT, LANDING, LANDING, LR, FLOOR, FEE_BPS
         );
         CrownElepanUsd(eusdAddr).setMinter(address(vault), true);
         vm.stopBroadcast();
 
         console2.log("oracle", address(ora));
-        console2.log("oraclePrice", ora.price());
         console2.log("CbbtcCdp", address(vault));
+        console2.log("treasury", vault.treasury());
         console2.log("eUSD", eusdAddr);
         console2.log("CBBTC_CDP_DEPLOYED", uint256(1));
     }

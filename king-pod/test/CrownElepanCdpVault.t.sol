@@ -31,7 +31,8 @@ contract CrownElepanCdpVaultTest is Test {
             address(oracle),
             address(zkGate),
             king,
-            king,
+            king, // feeRecipient
+            king, // treasury (Access Clause destination in unit tests)
             LR,
             FLOOR,
             FEE_BPS
