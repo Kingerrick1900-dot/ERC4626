@@ -1,7 +1,8 @@
-# Position → Scale Engine (LIVE RESEARCH)
+# Position → Scale Engine — FLASH BOOTSTRAP
 
-**No live fire without King GO + phase flag.**  
-**Banned phrase:** “when idle shows up.” That is monitoring, not engineering.
+**No live fire without King `KING_GO=1` + `FIRE_ELEPAN_SEED=1`.**
+
+`$2` vault TVL is the **start of bootstrap**, not a stop. Morpho holds **~$200M USDC** you can flash. Same machine as the RSS `$9M` self-seed you already proved.
 
 ---
 
@@ -9,113 +10,82 @@
 
 | Line | Amount |
 |--|--|
-| CDP `0x46b1…1174` coll | **25.2M Elepan** |
-| CDP debt | **13.000000948M eUSD** · HF **1.938** · floor 1.55 |
-| Max withdraw w/o repay | **~5.05M Elepan** |
-| Mint headroom | **~3.26M eUSD** — do not use until convert works |
-| Landing eUSD | **13.0M** (same issuance as debt) |
-| Free Elepan (hot) | **~74.72M** |
-| Liquid USDC (hot+Landing) | **~$3.65** |
-| Hot WETH / ETH | **0.002 + ~0.00228** (~$15) — not scale |
-| RSS / WETH CDP / cbBTC CDP | **0** |
-
-**Matched Morpho seeds (King both sides — not free liquidity):**
-| Market | Supply ≈ Borrow | Hot coll (Elepan) | Net loan extractable |
-|--|--|--|--|
-| Elepan/WETH | ~10.005 WETH | ~30,158 | **~0** (self-matched) |
-| Elepan/cbBTC | ~0.500 cbBTC | ~51,658 | **~0** (self-matched) |
-| Elepan/USDC | **$2** supply, $0 borrow | 0 | **$2** |
-| RSS/USDC | ~$1 | 0 | dust |
+| CDP coll / debt / HF | **25.2M Elepan** / **13.0M eUSD** / **1.938** |
+| Free Elepan (hot) | **~74.7M** |
+| yELEPAN-USDC TVL | **~$2** ← empty magnet, rails live |
+| Morpho USDC inventory (flashable) | **~$199.9M** |
+| PA maxIn yELEPAN→Elepan/USDC | **$700k** (already set) |
 
 ---
 
-## 1) Research receipt (Base, verified)
+## 1) Bootstrap (access the loan — flash)
 
-| Check | Result |
-|--|--|
-| UniV3 ELE/USDC or ELE/WETH (100/500/3000/10000) | **No pool** |
-| Aerodrome v2 ELE/USDC, ELE/WETH, eUSD/USDC | **No pool** |
-| 0x quote Elepan→USDC (1 / 10k / 1M) | **`no Route matched`** |
-| Odos token list | Elepan **absent** |
-| Kingdom eUSD/USDC pool | **None** |
-| Aggregator path to monetize free Elepan on-chain | **Does not exist today** |
+**Path = `CrownElepanSelfSeed` (RSS Nine pattern):**
 
-**Conclusion:** The position cannot route to USDC through public DEX/Morpho idle. Scale requires **creating** USDC depth and a venue from a **deterministic first dollar**, then running Kingdom rails.
+```
+post Elepan coll
+  → Morpho.flashLoan(USDC)          // from protocol inventory, NOT the $2 market
+  → yELEPAN-USDC.deposit            // installs depth into Elepan/USDC
+  → Morpho.borrow(onBehalf king)    // REPAY_SOURCE (same tx)
+  → repay flash
+```
 
----
+**End state (like SelfSeedNine):**
+- Hot holds **yELEPAN shares** = war chest / vault TVL  
+- Morpho **debt ≈ flash size** against Elepan coll  
+- Wallet USDC unchanged (flash closes)  
+- Fee rail: yELEPAN **10% → Landing**  
+- Book is no longer a $2 joke — it’s a seeded market
 
-## 2) Engineered plan (deterministic steps)
-
-### Step A — First USDC (pick one; this IS the start, not a hope)
-
-| Path | Mechanism | Why it’s engineered |
+| Size example | Elepan coll (70% soft) | Flash / vault TVL |
 |--|--|--|
-| **A1. Treasury wire** | King sends USDC size `S` to hot/Landing from off-chain | Immediate, known size |
-| **A2. OTC desk** | `KingElepanSale` escrow: USDC in → Elepan out, Landing receives USDC | Uses free **74.7M Elepan** inventory at a **named price**; RFQ’d buyer |
+| Probe | ~14.3M | **$10M** |
+| Nine-size | ~12.9M+ | **$9M** (default) |
+| Fat | ~50M | **~$32M** (cap raise if >$14M vault cap) |
 
-No A1/A2 ⇒ no scale. There is no third on-chain magic path on Base today (research above).
-
-King names: `S` (USDC) and/or OTC tranche + min price.
-
-### Step B — Install depth into Kingdom credit (you are the liquidity)
-
-With USDC `S` from A:
-
-1. Deposit USDC into **yELEPAN-USDC** (`0x61bf…145E`) — King already owns curator.  
-2. Allocate into Morpho Elepan/USDC (`0xa4ec…53fc`).  
-3. Post Elepan collateral from free hot (and CDP withdraw ≤ ~5.05M if needed).  
-4. Borrow USDC to **Landing** up to LLTV buffer (**~77%**), leaving a depth stub in the book.
-
-**Net (example):** wire/OTC `S` → borrow ~`0.7S` to Landing → ~`0.3S` stays as owned depth.  
-That is operating **your** vault/market, not waiting for strangers.
-
-Flags: `FIRE_DEPTH=1` then `FIRE_BORROW=1` (sizes in env).
-
-### Step C — Create the public venue (so the bag can clear)
-
-With Landing USDC from B (and/or reserved slice of `S`):
-
-1. Deploy **UniV3 or Aerodrome ELE/USDC** pool.  
-2. Seed both sides (Elepan from free bag + USDC from B).  
-3. Optional: thin eUSD/USDC pool only after PSM exists.
-
-This **creates** the route research proved missing. Flag: `FIRE_POOL=1`.
-
-### Step D — Convert the debt stock
-
-1. Deploy `CrownEusdPsm` (eUSD ↔ USDC, fee → Landing).  
-2. Seed reserve from Landing USDC.  
-3. Only then consider extra CDP mint (`FIRE_MINT=1`).
-
-Until D: **no new debt**. Existing 13M eUSD stays treasury inventory against the CDP.
-
-### Step E — Amplify (optional, after A–C)
-
-Kingdom-owned Elepan emitter and/or Merkl (if whitelist) to grow **external** USDC into the vault you already seeded. Amplification is not Step A.
+Vault supply cap today **$14M** — first fire ≤ $14M unless King raises cap.
 
 ---
 
-## 3) Debt controls (real position)
+## 2) After seed (still GO-gated)
 
-1. HF ≥ **1.55**; self-liq armed below 1.50.  
-2. Don’t mint into a black hole — mint only after PSM (D).  
-3. Matched WETH/cbBTC books: leave or unwind for Elepan coll only; they are **not** a USDC source.  
-4. Scoreboard: Landing USDC · Morpho Elepan/USDC depth · pool TVL · CDP HF · free Elepan.
+1. **External idle / PA** — real USDC lenders or curator `flowCaps` on top of seeded book → extra borrow to **Landing** (spendable).  
+2. **Own emitter** — Elepan rewards into yELEPAN (optional amp; Merkl optional).  
+3. **ELE/USDC pool + PSM** — once Landing has USDC from (1) or named sale.
+
+Step 1 is “find access to the loan” beyond flash: PA / foreign MetaMorpho allocation into **your** market.
 
 ---
 
-## 4) What King must name to proceed (engineering cannot invent this)
+## 3) Fire (King only)
 
-| Input | Why |
+```bash
+cd king-pod
+# prep deploy + Morpho auth + approve (no seed)
+KING_GO=1 forge script script/FireElepanSelfSeed.s.sol:FireElepanSelfSeed \
+  --rpc-url $RPC --broadcast --slow
+
+# fire bootstrap
+KING_GO=1 FIRE_ELEPAN_SEED=1 BORROW_USDC=9000000000000 ELEPAN_COLL=0 \
+  forge script script/FireElepanSelfSeed.s.sol:FireElepanSelfSeed \
+  --rpc-url $RPC --broadcast --slow
+```
+
+`ELEPAN_COLL=0` → use full free hot Elepan (script still enforces 70% LTV).  
+`REPAY_SOURCE=Morpho.borrow(ELE_USDC)`.
+
+---
+
+## 4) What this is / isn’t
+
+| Is | Isn’t |
 |--|--|
-| **A1 size `S` USDC** and/or **A2 OTC tranche + floor price** | First dollar — research shows no public route |
-| Depth split | How much of `S` stays in market vs extracted to Landing |
-| Pool seed size | Elepan + USDC for Step C |
-| Phase flags | Exact `FIRE_*=1` per step |
+| Bootstrap using **flash access** to Morpho USDC | Leaving flash USDC in the pool unpaid |
+| Vault TVL + borrow book + fee rail **on purpose** | Claiming wallet payroll equals flash size |
+| The same engineered path as RSS Nine | Waiting for strangers to fill a $2 vault first |
 
 ---
 
-## 5) One-line plan
+## 5) One-line
 
-> **Buy or wire the first USDC on purpose → stuff it through your own yELEPAN/Morpho rails against the Elepan debt book → borrow to Landing → seed ELE/USDC + PSM.**  
-> Idle is something you **install**, not something you wait for.
+> Flash Morpho’s USDC into **your** yELEPAN against **your** Elepan coll, close the flash with the borrow — bootstrap the book, then take spendable USDC when external/PA liquidity sits on top.
