@@ -4,6 +4,8 @@
 
 **This is a Morpho loan.** ZK is **packing** (attest / gate), not the credit engine.
 
+**Pre-loan scale customize:** see `MORPHO-SCALE-CUSTOMIZE.md` (yRSS curator allocation report + cbBTC/WETH target).
+
 ---
 
 ## Loan = Morpho Blue
@@ -31,11 +33,8 @@ Wrappers: `borrowPortion` / `borrowPortionZk` → still Morpho `borrow()`.
 |--|--|
 | Gate `0xca2a…f30` | Pack: `isProven` + attest ≥ threshold ($1M / $700k) |
 | KeepDraw / PreSelfLiq | Require pack before Morpho actions |
-| `CrownMorphoZkPack` | Hub: Morpho meters + pack check + optional ZK **credit rail** |
+| `CrownMorphoZkPack` | Hub: Morpho meters + pack check + optional ZK credit rail |
 | Credit `0xc415…d936` | Separate counterparty USDC rail (still not Morpho idle) |
-
-ZK packing shows King strength to desks **without** dumping the full fortress.  
-It does **not** create Morpho idle and does **not** hide Morpho collateral from Morpho.
 
 Live pack: proven **true** · attest **$1M** · Morpho idle ≈ **0**.
 
@@ -50,18 +49,20 @@ Live pack: proven **true** · attest **$1M** · Morpho idle ≈ **0**.
 | P3 | Blue supply APY when external borrowers use ELE market |
 | P4 | PreSelfLiq skim |
 | P5 | ZK credit match (pack rail; pool $0 until supplier) |
-| P6 | Optional thin Uni LP fees |
+| P6 | Optional thin Uni eUSD/USDC LP fees |
 
 KEEP on Landing stays liquid — never recycle.
 
 ---
 
-## Contracts
+## User-independent scale (before loan)
 
-- `CrownElepanKeepDraw` — Morpho loan + pack gate  
-- `CrownElepanPreSelfLiq` — Morpho self-liq + pack gate  
-- `CrownMorphoZkPack` — Morpho book hub + pack  
-- `lib/ZkKingGate.sol` — shared pack checks  
+| Lever | Kingdom use |
+|--|--|
+| Curator allocate | yRSS → prefer cbBTC/WETH over BRETT when TVL real |
+| Flash / Blue seed | Bootstrap ELE idle; KEEP still needs leftover idle or owned seed |
+| Fees | Already → Landing on yRSS; yELE at GO |
+| Merkl | Optional TVL bootstrap — not required for `borrow` |
 
 ---
 
@@ -69,6 +70,7 @@ KEEP on Landing stays liquid — never recycle.
 
 ```bash
 cd king-pod
+forge script script/FireYrssCuratorPrep.s.sol:FireYrssCuratorPrep --rpc-url $BASE_RPC
 forge script script/FireElepanLoanPrep.s.sol:FireElepanLoanPrep --rpc-url $BASE_RPC
 forge test --match-contract ElepanLoanPrepFork -vv
 ```
