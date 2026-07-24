@@ -1,19 +1,12 @@
-# STOP — Recycle Loop Abuse
+# STOP — Own-vault recycle only
 
-**Same mistake, repeated:** borrow USDC against Kingdom collateral → deposit own vault → same dollars re-supply Morpho → debt stays, ops cash ~$0.
+**Morpho borrow is allowed.** King follows Morpho: collateral → borrow → keep cash on Landing.
 
-That loop is **forbidden**.
+**Forbidden:** borrow USDC → deposit Kingdom’s own vault (yELE/yRSS) → re-supply same market → debt with no bills money.
 
-## Hard rule
+| Do | Don’t |
+|--|--|
+| `FireMorphoOpsDraw` / `FireDirectBorrow` → Landing KEEP | Self-seed / comfort-throne recycle |
+| Open idle via Blue supply or whale markets | Call Morpho seeding “abuse” |
 
-Borrow receiver = **Landing**. USDC **stays**.  
-Never: Morpho borrow → yELE / yRSS / any Kingdom vault deposit in the same plan.
-
-## Frozen
-
-- `FireSelfSeedNine` — reverts `FROZEN: NO-RECYCLE-UNTIL-EXIT`
-- Any “self-seed / scale / comfort throne” that recycles borrow into own supply
-
-## Only allowed Morpho draw
-
-`FireMorphoOpsDraw` — collateral → borrow → Landing KEEP → prove Landing USDC rose.
+`CrownSelfSeedNine.selfSeed` stays frozen. Ops Morpho draws stay armed.
