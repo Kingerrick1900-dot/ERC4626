@@ -28,8 +28,8 @@ interface IMorphoB {
         returns (uint256, uint256);
 }
 
-/// @notice Tranche borrow: Elepan coll → USDC to Landing. Gated by idle floor.
-/// @dev NO broadcast without KING_GO=1 FIRE_BORROW=1. Will not hope-borrow against dust.
+/// @notice Tranche borrow: Elepan coll → USDC to Landing.
+/// @dev KING_GO=1 FIRE_BORROW=1. Requires live idle ≥ IDLE_FLOOR at send (no deferred lane).
 contract FireElepanBorrowUsdc is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
