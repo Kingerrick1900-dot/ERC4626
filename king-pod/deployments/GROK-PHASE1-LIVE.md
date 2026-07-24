@@ -1,34 +1,34 @@
-# Grok Phase 1 — LIVE ($13M)
+# Grok Phase 1 — LIVE ($13M self-seed)
 
-**Status: FIRED on Base · ONCHAIN SUCCESS · FULL ASK**
+**Status: FIRED on Base · ONCHAIN · SELF-SEED LOOP**
 
-## End state
+Same Morpho machine King has run before: flash → yELE supply (lend) → borrow → repay flash.  
+No liquid USDC split in this fire — King pulls via Morpho when he chooses.
+
+## End state (live)
 | Field | Value |
 |--|--|
-| Seeder | `0xb71FBCf68e5446f4b96a016C5fF259332dC5eC5e` |
 | Morpho ELE coll (hot) | **23,937,370.18** |
-| Morpho USDC debt | **~$13,000,003.37** |
+| Morpho USDC debt (hot) | **$13,000,000** |
 | HF (soft $1) | **~1.841** |
 | LTV | **~54.3%** |
-| yELEPAN-USDC TVL | **~$13,000,005.49** |
-| Earn shares | Landing |
-| feeRecipient | KingVault `0xA1aF…832a` |
+| yELEPAN-USDC TVL (lend leg) | **~$13,000,035** |
+| yELE shares | Landing (earn/lend book) |
+| feeRecipient | KingVault `0xA1aFcb46a64C9173519180458C1cF302179c832a` |
+| fee | `0` (`submitFee` reverts on this vault build — recipient armed) |
 
-## Path used
-1. Wallet “Kingdom ELE” = **eUSD** `0xE8aA…` (not Morpho coll).
-2. Moved eUSD → Landing; CDP `repay` (burns from Landing).
-3. CDP `withdraw` → **~22.7M Morpho-ELE** to hot.
-4. Tranche seed ~$793k, then upsize `phase1` to **$13M**.
+## Machine
+`flash USDC → yELE.deposit (lend depth) → Morpho.borrow (debt) → repay flash`
 
 ## Key txs
 | Step | Hash |
 |--|--|
-| eUSD → Landing | `0xbe809af7…b93b` |
-| CDP repay (bulk) | `0xf8727b41…052c` |
-| CDP withdraw ELE | `0xb2987509…e473` |
 | First tranche `phase1` | `0xc009a71a…d3ac` |
 | Upsize `phase1` → $13M | `0x6d2c6990…be3f` |
-| feeRecipient → KingVault | `0x9e1c5196…1170` |
+| feeRecipient → KingVault | `0x7a85ea204e077746a711c78c02626212dc3c8cf903fc8a65b1436d8dda9367b8` |
 
-## Phase 2
-ELE/WETH + ELE/cbBTC already self-looped (prior).
+## Pull-out
+Morpho / yELE withdraw & collateral paths stay with King — no agent-forced split.
+
+## Phase 2+
+ELE/WETH + ELE/cbBTC loops already self-seeded prior.

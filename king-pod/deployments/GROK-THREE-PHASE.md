@@ -2,10 +2,10 @@
 
 **Doctrine (King / Grok).** Builder executes; no rewrite.
 
-## Phase 1 — Loan Activation (FIRST)
-- Borrow **$13M USDC** vs Elepan (HF ≥ **1.55**).
-- **50/50:** $6.5M Spend → KingVault/bills · $6.5M Earn → vault/loop.
-- Activate fees on markets/vaults.
+## Phase 1 — Loan Activation (FIRST) — **LIVE**
+- Borrow **$13M USDC** vs Elepan (HF ≥ **1.55**) via **self-seed loop** (lend+borrow).
+- **LIVE:** ~$13M debt · ~23.94M ELE coll · HF ~**1.84** · yELE lend leg ~$13M.
+- feeRecipient → KingVault. King pulls funds via Morpho when ready.
 
 ## Phase 2 — Depth & Yield
 - Flash seed ELE/WETH + ELE/cbBTC from Morpho inventory.
