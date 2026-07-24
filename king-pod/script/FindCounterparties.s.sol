@@ -51,7 +51,8 @@ contract FindCounterparties is Script {
         console2.log("creditUsdc", IERC20F(USDC).balanceOf(CREDIT));
         console2.log("maxBorrow", IZkF(CREDIT).maxBorrow(HOT));
         console2.log("landing", LANDING);
-        console2.log("supplyCalldata_500k", uint256(0x35403023000000000000000000000000000000000000000000000000000000746a528800));
+        console2.log("supplyCalldata_500k_prefix", uint256(0x35403023));
+        console2.log("askUsdcRaw", uint256(500000000000));
 
         console2.log("=== RAIL B: MORPHO PA CURATORS (ELE market) ===");
         _cap("GauntletPrime", GAUNTLET);
