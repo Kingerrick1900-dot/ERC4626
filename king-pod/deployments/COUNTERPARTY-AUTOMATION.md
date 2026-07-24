@@ -36,8 +36,14 @@ On first `maxIn > 0` → `FIRE_BORROW` same block.
 ### C — ELE market idle
 If idle > 0 → `FIRE_BORROW` (script-enforced). No deferred lane.
 
-### D — yELE distribution (mullet)
-yELE `0x61bf…145E` (~$14M, King curator) — USDC depositors are counterparties via vault product. Same architecture Coinbase uses on Morpho.
+### E — Institutional balance-sheet (Ledn / Galaxy)
+Pledge bankable BTC/ETH to lender custody — cash does not need ELE Morpho idle.  
+Sheet: `INSTITUTIONAL-CASH-LANE.md` · packet ready for desk.
+
+| Lender | Min | Collateral |
+|--|--|--|
+| Ledn | ~$1k BTC coll · $500 loan | **BTC** |
+| Galaxy GOFR | **$1M** loan | BTC / ETH / desk-structured |
 
 ---
 
