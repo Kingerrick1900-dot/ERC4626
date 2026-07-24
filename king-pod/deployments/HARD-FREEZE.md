@@ -1,12 +1,8 @@
 ZERO USDC IN KINGDOM — freeze until external source
 
-PA → borrow sequence executed (docs order):
-1. yELE isAllocator(PA)=true · fee=0
-2. Morpho API marketById ELE/USDC 0xa4ec…:
-   - reallocatableLiquidityAssets = 0
-   - publicAllocatorSharedLiquidity = []
-   - liquidityAssets = 3
-3. No withdrawals array possible → reallocateTo NOT fired (empty sources)
-4. Prior borrow tx 0x13495c… reverted insufficient liquidity
+Idle check (direct, not API):
+- yELE has no idle()/idleBalance() (MetaMorpho)
+- idle = USDC.balanceOf(yELE) = 0
+- totalAssets ≈ $13.001M (all in Morpho ELE/USDC, util ~100%)
 
-Status: PA cannot fund this market. External USDC required.
+No reallocateTo. No borrow.
