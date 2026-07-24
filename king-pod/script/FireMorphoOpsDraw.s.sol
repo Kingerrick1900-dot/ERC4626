@@ -113,7 +113,7 @@ contract FireMorphoOpsDraw is Script {
             IERC20O(ELEPAN).approve(MORPHO, postColl);
             IMorphoO(MORPHO).supplyCollateral(mp, postColl, HOT, "");
         }
-        // LINK: proven collateral → USDC to Landing → KEEP (no vault)
+        // LINK: proven collateral → USDC to Landing → KEEP (no vault recycle)
         IMorphoO(MORPHO).borrow(mp, borrowUsdc, 0, HOT, LANDING);
         vm.stopBroadcast();
 
@@ -121,5 +121,6 @@ contract FireMorphoOpsDraw is Script {
         require(landAfter >= landBefore + borrowUsdc, "LANDING_MISS: cash did not land");
         console2.log("landingDelta", landAfter - landBefore);
         console2.log("MORPHO_OPS_OK", uint256(1));
+        console2.log("NO_VAULT_RECYCLE", uint256(1));
     }
 }
