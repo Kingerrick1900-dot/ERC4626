@@ -1,4 +1,7 @@
-# Morpho Cold-Start — Emit Your Token (Not “Wait For External Money”)
+# Morpho Cold-Start — Emit Your Token (GROWTH LOOP — not a USDC access key)
+
+**Class:** Growth loop / lender magnet. Same honesty rule as flash-seed: **does not unlock the credit lines King already posted.**  
+For live credit vs access, see `INVENTORY-LIVE.md`.
 
 **Doctrine correction:** Every Morpho market / vault starts with no external idle.  
 That is the **default**, not a Kingdom special failure. Morpho’s own docs name the bootstrap lever:
