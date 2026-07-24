@@ -91,6 +91,21 @@ This is the Morpho-native “no idle on *this* market yet” path — it still n
 
 ---
 
+## Step table — token mismatches (do not run as written)
+
+| Step | Claimed | Breaks because |
+|--|--|--|
+| 1 | Flash USDC repays **eUSD** debt | USDC ≠ eUSD. Needs a clear (PSM/pool/OTC). Thin Uni eUSD/USDC ≈ **$2**. |
+| 2 | Flash **WETH** supplies Morpho coll | ELE/USDC market takes **Elepan**, not WETH. WETH goes to a different Morpho market. |
+| 3 | Morpho borrow USDC settles flash #1 | True **only if** ELE/USDC (or chosen dest) has idle/PA USDC. Live idle ≈ **0**. |
+| 4 | Freed **Elepan** settles flash #2 (WETH) | Elepan ≠ WETH. Cannot repay a WETH flash with ELE. |
+
+LI.FI’s working recipe pairs **same-asset** legs: USDC flash ↔ USDC Morpho borrow; WETH flash ↔ WETH Aave withdraw. Swap the assets and the atomic settle fails.
+
+**Also false:** “Supply Elepan into an existing market that already has USDC idle.” Elepan is only listed on **this** ELE/USDC market. You cannot post ELE as coll on WETH/USDC or cbBTC/USDC.
+
+---
+
 ## Bottom line (docs → this book)
 
 | Claim | Docs truth |
