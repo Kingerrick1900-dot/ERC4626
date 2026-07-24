@@ -1,4 +1,6 @@
-# ZK Private Advance — **$500k TEST** (LIVE ATTEST)
+# ZK Private Advance — **$490k / $500k TEST** (LIVE ATTEST)
+
+See also: [`REAL-PATHS-UPDATE.md`](./REAL-PATHS-UPDATE.md) — self-advance killed; external `supply` required.
 
 ## Armed now
 | Field | Value |
