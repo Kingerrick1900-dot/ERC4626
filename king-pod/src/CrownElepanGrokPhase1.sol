@@ -62,7 +62,7 @@ contract CrownElepanGrokPhase1 is Ownable, ReentrancyGuard, IMorphoFlashLoanCall
 
     uint256 public constant ASK_USDC = 13_000_000e6;
     uint256 public constant MAX_LTV_BPS = 6450; // HF ≥ 1.55 soft-$1
-    uint256 public constant MIN_USDC = 1_000_000e6;
+    uint256 public constant MIN_USDC = 100_000e6; // allow tranche fire under $1M when coll-capped
 
     IMorphoGrok public immutable morpho;
     IERC20 public immutable usdc;

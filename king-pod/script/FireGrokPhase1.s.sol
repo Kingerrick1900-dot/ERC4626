@@ -54,6 +54,7 @@ contract FireGrokPhase1 is Script {
         require(vm.addr(pk) == HOT, "HOT");
 
         bool doFire = vm.envOr("FIRE_GROK_P1", uint256(0)) == 1;
+        bool autoSize = vm.envOr("AUTO_SIZE", uint256(1)) == 1;
         uint256 borrowUsdc = vm.envOr("BORROW_USDC", ASK);
         address spend = vm.envOr("SPEND_TO", KING_VAULT);
         address earnTo = vm.envOr("EARN_SHARES_TO", LANDING);
@@ -65,7 +66,14 @@ contract FireGrokPhase1 is Script {
         uint256 morphoInv = IERC20P1(USDC).balanceOf(MORPHO);
         uint256 yeleAssets = IMetaP1(YELE).totalAssets();
 
-        // HF vs LLTV 77%: collValue/debt ; soft $1
+        if (autoSize && borrowUsdc > maxBorrow) {
+            console2.log("ASK_CLIPPED_TO_MAX", borrowUsdc);
+            borrowUsdc = maxBorrow;
+            // leave $1 dust buffer under hard max
+            if (borrowUsdc > 1e6) borrowUsdc -= 1e6;
+        }
+
+        // HF vs soft $1 coll / debt
         uint256 hfWad = borrowUsdc == 0 ? type(uint256).max : (totalColl * 1e18 * 1e6) / (borrowUsdc * 1e8);
 
         console2.log("=== GROK PHASE 1 PREFLIGHT ===");
@@ -74,19 +82,20 @@ contract FireGrokPhase1 is Script {
         console2.log("totalColl", totalColl);
         console2.log("maxBorrow6450", maxBorrow);
         console2.log("borrowAsk", borrowUsdc);
-        console2.log("hfRawWad_ifAsk", hfWad);
+        console2.log("hfRawWad", hfWad);
         console2.log("morphoUsdcInv", morphoInv);
         console2.log("yeleAssets", yeleAssets);
         console2.log("queue0");
         console2.logBytes32(IMetaP1(YELE).supplyQueue(0));
 
-        bool goReady = eleFree > 0 && maxBorrow >= borrowUsdc && morphoInv >= borrowUsdc
+        bool goReady = eleFree > 0 && borrowUsdc >= 100_000e6 && maxBorrow >= borrowUsdc && morphoInv >= borrowUsdc
             && IMetaP1(YELE).supplyQueue(0) == ELE_USDC && hfWad >= 1.55e18;
 
         console2.log("GO_READY", goReady ? uint256(1) : uint256(0));
+        console2.log("FULL_13M_READY", maxBorrow >= ASK ? uint256(1) : uint256(0));
         if (!goReady) {
             console2.log("GO_BLOCK", maxBorrow < borrowUsdc ? "COLL_LTV" : "OTHER");
-            console2.log("NEED_ELE_MIN", (borrowUsdc * 1e8 * 10_000) / (MAX_LTV_BPS * 1e6));
+            console2.log("NEED_ELE_MIN", (ASK * 1e8 * 10_000) / (MAX_LTV_BPS * 1e6));
         }
 
         if (!doFire) {
@@ -97,15 +106,9 @@ contract FireGrokPhase1 is Script {
 
         vm.startBroadcast(pk);
 
-        // Activate fees: recipient KingVault; submit 10% (timelock accept later)
-        if (IMetaP1(YELE).owner() == HOT) {
-            if (IMetaP1(YELE).feeRecipient() != spend) {
-                IMetaP1(YELE).setFeeRecipient(spend);
-            }
-            if (IMetaP1(YELE).fee() == 0) {
-                IMetaP1(YELE).submitFee(0.1e18);
-            }
-        }
+        // Fees armed in separate pass (submitFee timelock can revert; don't block loan)
+        console2.log("feeRecipient", IMetaP1(YELE).feeRecipient());
+        console2.log("feeBps", uint256(IMetaP1(YELE).fee()));
 
         CrownElepanGrokPhase1 seeder = new CrownElepanGrokPhase1(
             MORPHO, USDC, ELEPAN, YELE, HOT, spend, earnTo, ELE_USDC, ORACLE, IRM, LLTV, HOT
