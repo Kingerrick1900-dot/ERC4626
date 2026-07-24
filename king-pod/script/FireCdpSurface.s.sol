@@ -37,19 +37,21 @@ contract FireCdpSurface is Script {
         bool doWithdraw = _eq(mode, "withdraw") || _eq(mode, "both");
         bool doMint = _eq(mode, "mint") || _eq(mode, "both");
 
-        uint256 maxW = ICdpC(CDP).maxWithdrawable();
+        // Mint before withdraw so MODE=both keeps HF room (max withdraw pins HF≈1.55).
         uint256 maxM = ICdpC(CDP).maxMintable();
-        uint256 pull = vm.envOr("WITHDRAW_ELEPAN", maxW);
-        uint256 mintAmt = vm.envOr("MINT_EUSD", maxM);
-        if (doWithdraw) require(pull > 0 && pull <= maxW, "WITHDRAW_SIZE");
+        uint256 mintAmt = vm.envOr("MINT_EUSD", doMint && doWithdraw ? maxM / 2 : maxM);
         if (doMint) require(mintAmt > 0 && mintAmt <= maxM, "MINT_SIZE");
 
         uint256 eleBefore = IERC20C(ELEPAN).balanceOf(HOT);
         uint256 eusdBefore = IERC20C(EUSD).balanceOf(LANDING);
 
         vm.startBroadcast(pk);
-        if (doWithdraw) ICdpC(CDP).withdraw(pull);
         if (doMint) ICdpC(CDP).mintTo(LANDING, mintAmt);
+
+        uint256 maxW = ICdpC(CDP).maxWithdrawable();
+        uint256 pull = vm.envOr("WITHDRAW_ELEPAN", doMint && doWithdraw ? maxW / 2 : maxW);
+        if (doWithdraw) require(pull > 0 && pull <= maxW, "WITHDRAW_SIZE");
+        if (doWithdraw) ICdpC(CDP).withdraw(pull);
         vm.stopBroadcast();
 
         console2.log("hf", ICdpC(CDP).healthFactor());
