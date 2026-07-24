@@ -1,28 +1,16 @@
-# $500k Extract — Armed
+# $500k — Prove → Match → Draw
 
-Two engineered pulls. No deferred essays.
+**Primary (elite):** ZK-proven **$1M** liquidity matches **$500k** into credit → Landing.  
+See `PROVE-LIQUIDITY-MATCH.md` + `zk-liquidity-match.json`.
 
-## Path 1 — Morpho borrow $500k → Landing
-Headroom live **~$1.40M**. On idle ≥ $500k:
+```text
+verify isProven($1M) → supply(500k) into 0xc415…d936 → poke AutoDraw 0xB648…8a23 → Landing
+```
 
 ```bash
-KING_GO=1 FIRE_BORROW=1 BORROW_USDC=500000000000 IDLE_FLOOR=500000000000 \
-  forge script script/FireElepanBorrowUsdc.s.sol:FireElepanBorrowUsdc \
+KING_GO=1 FIRE_ZK_CREDIT=1 ASK_USDC=500000000000 \
+  forge script script/FireZkCreditDraw.s.sol:FireZkCreditDraw \
   --rpc-url $BASE_RPC --broadcast --slow
 ```
 
-## Path 2 — Sell / transfer yELE shares ($500k face) → USDC to Landing
-Landing holds **100%** of yELE (~$14.0M). Shares for $500k face ≈ sized in script.
-
-```bash
-KING_GO=1 FIRE_YELE_SHARES=1 MODE=transfer TO=<buyer> USDC_FACE=500000000000 \
-  forge script script/FireYeleShareExtract.s.sol:FireYeleShareExtract \
-  --rpc-url $BASE_RPC --broadcast --slow
-# MODE=escrow → park shares in CrownYeleShareEscrow until buyer pays USDC to Landing
-```
-
-## Path 3 — ZK auto-draw
-Credit supply ≥ ask → `CrownZkAutoDraw.poke()` at `0xB6481E2ca95c14BC47B29b60fec6eF7e4A398a23`
-
-## Path 4 — Institutional
-`INSTITUTIONAL-CASH-LANE.md` — Ledn BTC / Galaxy ≥$1M desk packet
+Auto-draw: `0xB6481E2ca95c14BC47B29b60fec6eF7e4A398a23`

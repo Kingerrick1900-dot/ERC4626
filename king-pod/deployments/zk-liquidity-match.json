@@ -1,0 +1,23 @@
+{
+  "proven": true,
+  "attestUsd": 1000000.0,
+  "minThresholdUsd": 700000.0,
+  "creditLltv": 0.7,
+  "maxMatchUsd": 700000.0,
+  "askUsd": 500000,
+  "hot": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "landing": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+  "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "gate": "0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30",
+  "credit": "0xc4152c73824d85146B0f85a0b77E911D4769d936",
+  "autoDraw": "0xB6481E2ca95c14BC47B29b60fec6eF7e4A398a23",
+  "autoDrawOperator": true,
+  "hotElepanM": 55982020.74870818,
+  "morphoCollM": 19998584.946588,
+  "morphoBorrowM": 13999346.617125,
+  "yeleTvlM": 13999537.286336,
+  "cdpCollM": 23937577.85229629,
+  "cdpDebtEusdM": 14628870.853252713,
+  "cdpHf": 1.6362868124549395,
+  "supplyCalldata500k": "0x35403023000000000000000000000000000000000000000000000000000000746a528800"
+}
