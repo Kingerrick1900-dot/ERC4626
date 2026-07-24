@@ -19,10 +19,13 @@ interface IMorphoF {
 interface IYeleF {
     function balanceOf(address) external view returns (uint256);
     function approve(address, uint256) external returns (bool);
+    function feeRecipient() external view returns (address);
+    function setFeeRecipient(address) external;
+    function setFee(uint256) external;
+    function fee() external view returns (uint256);
 }
 
-/// @dev KING_GO=1 FIRE_ELE_BILLS=1
-///      Requires yELE shares on HOT. Prefund bills with ~$100 USDC.
+/// @dev KING_GO=1 FIRE_ELE_BILLS=1 BILLS=0x01D1...
 contract FireElepanBills is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
@@ -41,19 +44,20 @@ contract FireElepanBills is Script {
         uint256 pk = vm.envUint("PRIVATE_KEY");
         require(vm.addr(pk) == HOT, "HOT");
 
+        address billsAddr = vm.envOr("BILLS", address(0x01D1De8796B1dDbdB5C900277A54b6944C125906));
         uint256 yeleHot = IYeleF(YELE).balanceOf(HOT);
         console2.log("yeleOnHot", yeleHot);
         require(yeleHot > 0, "MOVE_YELE_LANDING_TO_HOT");
 
-        address existing = vm.envOr("BILLS", address(0));
+        CrownElepanBills bills = CrownElepanBills(billsAddr);
 
         vm.startBroadcast(pk);
-        CrownElepanBills bills;
-        if (existing == address(0)) {
-            bills = new CrownElepanBills(MORPHO, USDC, ELE, YELE, HOT, LANDING, MID, ORACLE, IRM, LLTV, HOT);
-            console2.log("BILLS", address(bills));
-        } else {
-            bills = CrownElepanBills(existing);
+        // Keep fee shares on hot during unwind (not Landing)
+        if (IYeleF(YELE).feeRecipient() != HOT) {
+            IYeleF(YELE).setFeeRecipient(HOT);
+        }
+        if (IYeleF(YELE).fee() != 0) {
+            IYeleF(YELE).setFee(0);
         }
 
         if (!IMorphoF(MORPHO).isAuthorized(HOT, address(bills))) {
@@ -61,11 +65,9 @@ contract FireElepanBills is Script {
         }
         IYeleF(YELE).approve(address(bills), type(uint256).max);
 
-        // Prefund rounding buffer from hot USDC if any
         uint256 buf = IERC20F(USDC).balanceOf(HOT);
-        if (buf > 1e6) {
-            uint256 send = buf > 100e6 ? 100e6 : buf;
-            IERC20F(USDC).transfer(address(bills), send);
+        if (buf > 0) {
+            IERC20F(USDC).transfer(address(bills), buf);
         }
 
         uint256 landBefore = IERC20F(USDC).balanceOf(LANDING);
