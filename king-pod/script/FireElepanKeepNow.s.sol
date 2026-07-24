@@ -61,6 +61,7 @@ contract FireElepanKeepNow is Script {
     address constant CDP = 0x46b1D159b3a2694e7b70F550b7d5dEf6df451174;
     address constant ORACLE = 0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19;
     address constant IRM = 0x46415998764C29aB2a25CbeA6254146D50D22687;
+    address constant GATE = 0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30;
     address constant SWAP_ROUTER = 0x2626664c2603336E57B271c5C0b26F421741e481;
     uint256 constant LLTV = 770000000000000000;
     bytes32 constant ELE_USDC = 0xa4ec527128b425ee3fcb7f60eca37677b63b3d003345ec2a72ef6a2e72da53fc;
@@ -96,7 +97,7 @@ contract FireElepanKeepNow is Script {
         CrownElepanKeepDraw drawer;
         if (existing == address(0)) {
             drawer = new CrownElepanKeepDraw(
-                MORPHO, USDC, ELEPAN, HOT, LANDING, ELE_USDC, ORACLE, IRM, LLTV, HOT
+                GATE, MORPHO, USDC, ELEPAN, HOT, LANDING, ELE_USDC, ORACLE, IRM, LLTV, HOT
             );
             console2.log("keepDraw", address(drawer));
         } else {
