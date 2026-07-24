@@ -28,3 +28,14 @@ KING_GO=1 FIRE_OPS_FIVE=1 CLEANSE_REDEEM=1 forge script script/FireOpsFive.s.sol
 ```
 
 Fork: `forge test --match-contract EleCleanseRedeemForkTest -vv`
+
+## Live (2026-07-24) — SUCCESS
+
+| Field | Value |
+|--|--|
+| Ops | `0x42450B41F31ae82494D5088F3e49202659F6ec02` |
+| ELE/USDC debt | **0** |
+| ELE/USDC coll | **0** |
+| Hot ELE | ~**100.00M** (freed Morpho coll + prior free) |
+| Landing USDC | **0** (circular cash cancelled; no new ops USDC) |
+| Note | Broadcast needs `--slow` on EIP-7702 hot (gapped-nonce otherwise) |
