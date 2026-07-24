@@ -128,7 +128,8 @@ contract EleUnwindSkimForkTest is Test {
 
         IMetaMorpho.MarketParams memory ymp = IMetaMorpho.MarketParams(USDC, ELE, ORACLE, IRM, LLTV);
         IMetaMorpho.MarketAllocation[] memory allocs = new IMetaMorpho.MarketAllocation[](1);
-        // Leave 1 wei in market to avoid InconsistentReallocation 1-wei rounding trap
+        // Single-market pull fails InconsistentReallocation until WETH/USDC cap accepted.
+        // Leave 1 wei; still reverts today — documents blocker. Use CrownOpsFive 2-market after acceptCap.
         allocs[0] = IMetaMorpho.MarketAllocation({marketParams: ymp, assets: 1});
         IMetaMorpho(YELE).reallocate(allocs);
 

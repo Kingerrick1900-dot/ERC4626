@@ -198,9 +198,12 @@ contract CrownOpsFive {
             IMorpho(MORPHO).repay(mp, 0, borShares, king, "");
             if (coll > 0) IMorpho(MORPHO).withdrawCollateral(mp, coll, king, address(this));
 
+            // Two-market reallocate: pull ELE/USDC → sink into WETH/USDC (cap must be live).
             IMetaMorpho.MarketParams memory ymp = IMetaMorpho.MarketParams(USDC, ELE, ELE_ORACLE, IRM, LLTV_77);
-            IMetaMorpho.MarketAllocation[] memory allocs = new IMetaMorpho.MarketAllocation[](1);
-            allocs[0] = IMetaMorpho.MarketAllocation({marketParams: ymp, assets: 0});
+            IMetaMorpho.MarketParams memory wmp = IMetaMorpho.MarketParams(USDC, WETH, WETH_ORACLE, IRM, LLTV_86);
+            IMetaMorpho.MarketAllocation[] memory allocs = new IMetaMorpho.MarketAllocation[](2);
+            allocs[0] = IMetaMorpho.MarketAllocation({marketParams: ymp, assets: 1}); // leave 1 wei
+            allocs[1] = IMetaMorpho.MarketAllocation({marketParams: wmp, assets: type(uint256).max});
             IMetaMorpho(YELE).reallocate(allocs);
             IMetaMorpho(YELE).skim(USDC);
 

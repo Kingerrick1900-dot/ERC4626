@@ -33,13 +33,20 @@ contract FireOpsFive is Script {
     bytes32 constant ELE_CBBTC = 0x28d57b898122465e0260881973440823f1a380d64f16af56d982b47e5aeffa25;
 
     function run() external {
-        require(vm.envOr("KING_GO", uint256(0)) == 1, "GO");
+        require(vm.envOr("KING_GO", uint256(0)) == 1, "NEED KING_GO=1");
         require(vm.envOr("FIRE_OPS_FIVE", uint256(0)) == 1, "NEED FIRE_OPS_FIVE=1");
+        // CLEANSE=1 only after yELE WETH/USDC cap accepted (else InconsistentReallocation).
+        bool doCleanse = vm.envOr("CLEANSE", uint256(0)) == 1;
+        bool doUnwind = vm.envOr("UNWIND_SIDE", uint256(1)) == 1;
+        bool doBorrow = vm.envOr("BORROW_LAND", uint256(1)) == 1;
         uint256 pk = vm.envUint("PRIVATE_KEY");
         require(vm.addr(pk) == HOT, "HOT");
 
         uint256 landBefore = IERC20A(USDC).balanceOf(LAND);
         console2.log("landBefore", landBefore);
+        console2.log("doCleanse", doCleanse ? uint256(1) : uint256(0));
+        console2.log("doUnwind", doUnwind ? uint256(1) : uint256(0));
+        console2.log("doBorrow", doBorrow ? uint256(1) : uint256(0));
 
         vm.startBroadcast(pk);
         CrownOpsFive ops = new CrownOpsFive(HOT, LAND);
@@ -53,30 +60,34 @@ contract FireOpsFive is Script {
         }
         IMetaA(YELE).setSkimRecipient(address(ops));
 
-        // 1) Clean ELE/USDC circular book via skim (never fired live successfully)
+        // 1) Clean ELE/USDC circular book via skim (needs WETH/USDC sink on yELE)
         (, uint128 eleBor,) = IMorphoA(MORPHO).position(ELE_USDC, HOT);
-        if (eleBor > 0) {
+        if (doCleanse && eleBor > 0) {
             ops.cleanseEle();
             console2.log("CLEANSSED_ELE", uint256(1));
+        } else if (eleBor > 0) {
+            console2.log("SKIP_CLEANSE set CLEANSE=1 after acceptCap");
         }
 
-        // 2) Unwind WETH + cbBTC loops
-        (, uint128 wBor,) = IMorphoA(MORPHO).position(ELE_WETH, HOT);
-        if (wBor > 0) {
-            ops.unwindEleWeth();
-            console2.log("UNWOUND_WETH", uint256(1));
-        }
-        (, uint128 bBor,) = IMorphoA(MORPHO).position(ELE_CBBTC, HOT);
-        if (bBor > 0) {
-            ops.unwindEleCbBtc();
-            console2.log("UNWOUND_CBBTC", uint256(1));
+        // 2) Unwind WETH + cbBTC loops (matched seeds → ~dust free WETH, frees ELE)
+        if (doUnwind) {
+            (, uint128 wBor,) = IMorphoA(MORPHO).position(ELE_WETH, HOT);
+            if (wBor > 0) {
+                ops.unwindEleWeth();
+                console2.log("UNWOUND_WETH", uint256(1));
+            }
+            (, uint128 bBor,) = IMorphoA(MORPHO).position(ELE_CBBTC, HOT);
+            if (bBor > 0) {
+                ops.unwindEleCbBtc();
+                console2.log("UNWOUND_CBBTC", uint256(1));
+            }
         }
 
         console2.log("opsWeth", IERC20A(WETH).balanceOf(address(ops)));
         console2.log("hotEle", IERC20A(ELE).balanceOf(HOT));
 
         // 3) If any WETH on ops, borrow USDC to Landing
-        if (IERC20A(WETH).balanceOf(address(ops)) > 0) {
+        if (doBorrow && IERC20A(WETH).balanceOf(address(ops)) > 0) {
             ops.borrowUsdcToLanding();
             console2.log("BORROWED_USDC", uint256(1));
         }
@@ -85,7 +96,7 @@ contract FireOpsFive is Script {
 
         uint256 landAfter = IERC20A(USDC).balanceOf(LAND);
         console2.log("landAfter", landAfter);
-        console2.log("landDelta", landAfter - landBefore);
+        console2.log("landDelta", landAfter > landBefore ? landAfter - landBefore : 0);
         (, uint128 b2, uint128 c2) = IMorphoA(MORPHO).position(ELE_USDC, HOT);
         console2.log("eleDebtShares", uint256(b2));
         console2.log("eleColl", uint256(c2));
