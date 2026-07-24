@@ -98,6 +98,8 @@ contract CrownSelfSeedNine is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback
     /// @param rssAmount RSS to post (0 = full wallet balance of king, pulled via allowance)
     /// @param borrowUsdc USDC to seed/borrow (0 = ASK_USDC $9M)
     function selfSeed(uint256 rssAmount, uint256 borrowUsdc) external onlyOwner nonReentrant {
+        // FROZEN — recycle loop abuse. See deployments/STOP-RECYCLE-LOOP.md
+        revert("FROZEN: NO-RECYCLE-LOOP");
         if (borrowUsdc == 0) borrowUsdc = ASK_USDC;
         if (borrowUsdc < 1_000_000e6) revert BadAmt(); // min $1M — no dust
 
