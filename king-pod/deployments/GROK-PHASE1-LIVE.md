@@ -27,8 +27,16 @@ No liquid USDC split in this fire — King pulls via Morpho when he chooses.
 | Upsize `phase1` → $13M | `0x6d2c6990…be3f` |
 | feeRecipient → KingVault | `0x7a85ea204e077746a711c78c02626212dc3c8cf903fc8a65b1436d8dda9367b8` |
 
-## Pull-out
-Morpho / yELE withdraw & collateral paths stay with King — no agent-forced split.
+## Pull-out (ops)
+Morpho allowed the USD loan without pre-seeded external idle (self-seed in-tx).  
+HF-safe collateral pull executed for ops:
+
+| | |
+|--|--|
+| Pulled | **3,787,370.18 Elepan** → Landing |
+| Tx | `0xc874e4e5843932820829c1c8ba94192ad01de6159ae9ab437511ce593f528fad` |
+| Debt left | **$13,000,000** (loan stays open) |
+| HF after | **~1.55** |
 
 ## Phase 2+
 ELE/WETH + ELE/cbBTC loops already self-seeded prior.
