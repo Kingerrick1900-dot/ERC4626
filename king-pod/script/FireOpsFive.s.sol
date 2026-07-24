@@ -18,6 +18,13 @@ interface IMetaA {
 
 interface IERC20A {
     function balanceOf(address) external view returns (uint256);
+    function approve(address, uint256) external returns (bool);
+}
+
+interface IZkGateA {
+    function isProven(address) external view returns (bool);
+    function attestations(address) external view returns (uint256 value, uint256 ts, uint256 flag);
+    function minThreshold() external view returns (uint256);
 }
 
 contract FireOpsFive is Script {
@@ -28,6 +35,7 @@ contract FireOpsFive is Script {
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant ELE = 0x50639C42E2FFDEC4F68FB468968a55b3Af944583;
     address constant WETH = 0x4200000000000000000000000000000000000006;
+    address constant GATE = 0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30;
     bytes32 constant ELE_USDC = 0xa4ec527128b425ee3fcb7f60eca37677b63b3d003345ec2a72ef6a2e72da53fc;
     bytes32 constant ELE_WETH = 0xac7c17fa240d82d89268b5307971144970fe9be0ea45ed7d6bcb707e33b7ed44;
     bytes32 constant ELE_CBBTC = 0x28d57b898122465e0260881973440823f1a380d64f16af56d982b47e5aeffa25;
@@ -35,16 +43,29 @@ contract FireOpsFive is Script {
     function run() external {
         require(vm.envOr("KING_GO", uint256(0)) == 1, "NEED KING_GO=1");
         require(vm.envOr("FIRE_OPS_FIVE", uint256(0)) == 1, "NEED FIRE_OPS_FIVE=1");
-        // CLEANSE=1 only after yELE WETH/USDC cap accepted (else InconsistentReallocation).
+        // ZK gate: hot must be proven + attest ≥ minThreshold before any ops fire.
+        require(IZkGateA(GATE).isProven(HOT), "NOT_PROVEN");
+        (uint256 attest,,) = IZkGateA(GATE).attestations(HOT);
+        require(attest >= IZkGateA(GATE).minThreshold(), "BELOW_THRESHOLD");
+        console2.log("zkAttestUsdc6", attest);
+        // CLEANSE=1: yELE reallocate+skim (needs WETH/USDC cap accepted).
+        // CLEANSE_REDEEM=1: flash-repay + yELE withdraw (no WETH cap; burns shares; frees ELE).
         bool doCleanse = vm.envOr("CLEANSE", uint256(0)) == 1;
+        bool doCleanseRedeem = vm.envOr("CLEANSE_REDEEM", uint256(0)) == 1;
         bool doUnwind = vm.envOr("UNWIND_SIDE", uint256(1)) == 1;
         bool doBorrow = vm.envOr("BORROW_LAND", uint256(1)) == 1;
+        // Redeem path is the no-USDC-in engineer default; skip side unwind/borrow unless asked.
+        if (doCleanseRedeem) {
+            doUnwind = vm.envOr("UNWIND_SIDE", uint256(0)) == 1;
+            doBorrow = vm.envOr("BORROW_LAND", uint256(0)) == 1;
+        }
         uint256 pk = vm.envUint("PRIVATE_KEY");
         require(vm.addr(pk) == HOT, "HOT");
 
         uint256 landBefore = IERC20A(USDC).balanceOf(LAND);
         console2.log("landBefore", landBefore);
         console2.log("doCleanse", doCleanse ? uint256(1) : uint256(0));
+        console2.log("doCleanseRedeem", doCleanseRedeem ? uint256(1) : uint256(0));
         console2.log("doUnwind", doUnwind ? uint256(1) : uint256(0));
         console2.log("doBorrow", doBorrow ? uint256(1) : uint256(0));
 
@@ -59,14 +80,21 @@ contract FireOpsFive is Script {
             IMetaA(YELE).setIsAllocator(address(ops), true);
         }
         IMetaA(YELE).setSkimRecipient(address(ops));
+        // Share allowance for redeem cleanse (owner=king, spender=ops).
+        IERC20A(YELE).approve(address(ops), type(uint256).max);
+        // Dust top-up if yELE maxWithdraw is a few wei short of flashAmt.
+        IERC20A(USDC).approve(address(ops), type(uint256).max);
 
-        // 1) Clean ELE/USDC circular book via skim (needs WETH/USDC sink on yELE)
+        // 1) Clean ELE/USDC circular book
         (, uint128 eleBor,) = IMorphoA(MORPHO).position(ELE_USDC, HOT);
-        if (doCleanse && eleBor > 0) {
+        if (doCleanseRedeem && eleBor > 0) {
+            ops.cleanseEleRedeem();
+            console2.log("CLEANSED_ELE_REDEEM", uint256(1));
+        } else if (doCleanse && eleBor > 0) {
             ops.cleanseEle();
             console2.log("CLEANSSED_ELE", uint256(1));
         } else if (eleBor > 0) {
-            console2.log("SKIP_CLEANSE set CLEANSE=1 after acceptCap");
+            console2.log("SKIP_CLEANSE set CLEANSE_REDEEM=1 or CLEANSE=1");
         }
 
         // 2) Unwind WETH + cbBTC loops (matched seeds → ~dust free WETH, frees ELE)

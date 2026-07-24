@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {IZkGateBook, ZkKingGate} from "./lib/ZkKingGate.sol";
+
 interface IERC20 {
     function balanceOf(address) external view returns (uint256);
     function approve(address, uint256) external returns (bool);
     function transfer(address, uint256) external returns (bool);
+    function transferFrom(address, address, uint256) external returns (bool);
 }
 
 interface IMorpho {
@@ -49,6 +52,10 @@ interface IMetaMorpho {
 
     function reallocate(MarketAllocation[] calldata allocations) external;
     function skim(address token) external;
+    function maxWithdraw(address owner) external view returns (uint256);
+    function withdraw(uint256 assets, address receiver, address owner) external returns (uint256);
+    function balanceOf(address) external view returns (uint256);
+    function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
 }
 
 interface IAero {
@@ -68,9 +75,13 @@ interface IAero {
     ) external returns (uint256[] memory);
 }
 
-/// @dev Path A: flash-repay ELE/USDC → yELE reallocate+skim → repay flash (clean books, ELE free).
+/// @dev Path A: flash-repay ELE/USDC → yELE reallocate+skim → repay flash (needs WETH/USDC cap).
+///      Path A2: flash-repay ELE/USDC → yELE withdraw/redeem → repay flash (no WETH cap; burns shares).
 ///      Path B: flash-unwind ELE/WETH + ELE/cbBTC → WETH coll on WETH/USDC → borrow USDC → Landing.
+///      All king entrypoints ZK-gated (gate.requireProven).
 contract CrownOpsFive {
+    using ZkKingGate for IZkGateBook;
+
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant ELE = 0x50639C42E2FFDEC4F68FB468968a55b3Af944583;
@@ -84,6 +95,7 @@ contract CrownOpsFive {
     address constant IRM = 0x46415998764C29aB2a25CbeA6254146D50D22687;
     address constant AERO = 0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43;
     address constant AERO_FACT = 0x420DD381b31aEf6683db6B902084cB0FFECe40Da;
+    address constant GATE = 0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30;
     uint256 constant LLTV_77 = 770000000000000000;
     uint256 constant LLTV_86 = 860000000000000000;
     bytes32 constant ELE_USDC = 0xa4ec527128b425ee3fcb7f60eca37677b63b3d003345ec2a72ef6a2e72da53fc;
@@ -91,20 +103,23 @@ contract CrownOpsFive {
     bytes32 constant ELE_CBBTC = 0x28d57b898122465e0260881973440823f1a380d64f16af56d982b47e5aeffa25;
     bytes32 constant WETH_USDC = 0x8793cf302b8ffd655ab97bd1c695dbd967807e8367a65cb2f4edaf1380ba1bda;
 
+    IZkGateBook public immutable gate;
     address public immutable king;
     address public immutable landing;
 
-    uint256 private mode; // 1=ele cleanse, 2=weth unwind, 3=cbbtc unwind
+    uint256 private mode; // 1=ele cleanse realloc, 2=weth unwind, 3=cbbtc unwind, 4=ele cleanse redeem
     bool private locking;
 
     constructor(address king_, address landing_) {
+        gate = IZkGateBook(GATE);
         king = king_;
         landing = landing_;
     }
 
-    /// @notice Clean ELE/USDC self-seed via yELE skim (no Landing key).
+    /// @notice Clean ELE/USDC self-seed via yELE skim (needs WETH/USDC sink cap).
     function cleanseEle() external {
         require(msg.sender == king, "KING");
+        gate.requireProven(king);
         IMorpho.MarketParams memory mp = IMorpho.MarketParams(USDC, ELE, ELE_ORACLE, IRM, LLTV_77);
         IMorpho(MORPHO).accrueInterest(mp);
         (, uint128 borShares, uint128 coll) = IMorpho(MORPHO).position(ELE_USDC, king);
@@ -116,6 +131,40 @@ contract CrownOpsFive {
         IMorpho(MORPHO).flashLoan(USDC, flashAmt, abi.encode(uint256(borShares), uint256(coll), flashAmt));
         locking = false;
         mode = 0;
+        _shipResiduals();
+    }
+
+    /// @notice Clean ELE/USDC self-seed by redeeming king yELE after flash-repay (no WETH cap).
+    /// @dev Burns yELE shares for flash repayment. Frees ELE collateral. Does not mint external USDC —
+    ///      circular self-seed equity is the ELE. Surplus vault USDC (if any) lands on Landing.
+    function cleanseEleRedeem() external {
+        require(msg.sender == king, "KING");
+        gate.requireProven(king);
+        IMorpho.MarketParams memory mp = IMorpho.MarketParams(USDC, ELE, ELE_ORACLE, IRM, LLTV_77);
+        IMorpho(MORPHO).accrueInterest(mp);
+        (, uint128 borShares, uint128 coll) = IMorpho(MORPHO).position(ELE_USDC, king);
+        require(borShares > 0, "NO_DEBT");
+        (,, uint128 tba, uint128 tbs,,) = IMorpho(MORPHO).market(ELE_USDC);
+        uint256 flashAmt = (uint256(tba) * uint256(borShares) + uint256(tbs) - 1) / uint256(tbs) + 5e6;
+        mode = 4;
+        locking = true;
+        IMorpho(MORPHO).flashLoan(USDC, flashAmt, abi.encode(uint256(borShares), uint256(coll), flashAmt));
+        locking = false;
+        mode = 0;
+
+        // Sweep any leftover vault claim (interest surplus) to Landing.
+        uint256 sharesLeft = IMetaMorpho(YELE).balanceOf(king);
+        if (sharesLeft > 0) {
+            uint256 mw = IMetaMorpho(YELE).maxWithdraw(king);
+            if (mw > 0) {
+                uint256 got = IMetaMorpho(YELE).withdraw(mw, landing, king);
+                got; // silence
+            }
+        }
+        _shipResiduals();
+    }
+
+    function _shipResiduals() internal {
         uint256 ele = IERC20(ELE).balanceOf(address(this));
         if (ele > 0) IERC20(ELE).transfer(king, ele);
         uint256 dust = IERC20(USDC).balanceOf(address(this));
@@ -125,6 +174,7 @@ contract CrownOpsFive {
     /// @notice Unwind ELE/WETH self-seed → free WETH to this contract.
     function unwindEleWeth() external {
         require(msg.sender == king, "KING");
+        gate.requireProven(king);
         IMorpho.MarketParams memory mp = IMorpho.MarketParams(WETH, ELE, WETH_ELE_ORACLE, IRM, LLTV_77);
         IMorpho(MORPHO).accrueInterest(mp);
         (uint256 supShares, uint128 borShares, uint128 coll) = IMorpho(MORPHO).position(ELE_WETH, king);
@@ -143,6 +193,7 @@ contract CrownOpsFive {
     /// @notice Unwind ELE/cbBTC → swap cbBTC to WETH → this holds WETH.
     function unwindEleCbBtc() external {
         require(msg.sender == king, "KING");
+        gate.requireProven(king);
         IMorpho.MarketParams memory mp = IMorpho.MarketParams(CBBTC, ELE, CBBTC_ELE_ORACLE, IRM, LLTV_77);
         IMorpho(MORPHO).accrueInterest(mp);
         (uint256 supShares, uint128 borShares, uint128 coll) = IMorpho(MORPHO).position(ELE_CBBTC, king);
@@ -169,6 +220,7 @@ contract CrownOpsFive {
     /// @notice Post all WETH on WETH/USDC and borrow max idle USDC → Landing.
     function borrowUsdcToLanding() external {
         require(msg.sender == king, "KING");
+        gate.requireProven(king);
         uint256 wethBal = IERC20(WETH).balanceOf(address(this));
         require(wethBal > 0, "NO_WETH");
         IMorpho.MarketParams memory mp = IMorpho.MarketParams(USDC, WETH, WETH_ORACLE, IRM, LLTV_86);
@@ -207,6 +259,24 @@ contract CrownOpsFive {
             IMetaMorpho(YELE).reallocate(allocs);
             IMetaMorpho(YELE).skim(USDC);
 
+            require(IERC20(USDC).balanceOf(address(this)) >= flashAmt, "SHORT");
+            IERC20(USDC).approve(MORPHO, flashAmt);
+        } else if (mode == 4) {
+            (uint256 borShares, uint256 coll, uint256 flashAmt) = abi.decode(data, (uint256, uint256, uint256));
+            require(assets == flashAmt, "AMT");
+            IMorpho.MarketParams memory mp = IMorpho.MarketParams(USDC, ELE, ELE_ORACLE, IRM, LLTV_77);
+            IERC20(USDC).approve(MORPHO, type(uint256).max);
+            IMorpho(MORPHO).repay(mp, 0, borShares, king, "");
+            if (coll > 0) IMorpho(MORPHO).withdrawCollateral(mp, coll, king, address(this));
+
+            // Debt cleared → Morpho ELE idle ≈ repaid. Pull max liquid yELE; top dust from king.
+            uint256 mw = IMetaMorpho(YELE).maxWithdraw(king);
+            if (mw > 0) IMetaMorpho(YELE).withdraw(mw, address(this), king);
+            uint256 bal = IERC20(USDC).balanceOf(address(this));
+            if (bal < flashAmt) {
+                uint256 gap = flashAmt - bal;
+                require(IERC20(USDC).transferFrom(king, address(this), gap), "GAP");
+            }
             require(IERC20(USDC).balanceOf(address(this)) >= flashAmt, "SHORT");
             IERC20(USDC).approve(MORPHO, flashAmt);
         } else if (mode == 2) {
