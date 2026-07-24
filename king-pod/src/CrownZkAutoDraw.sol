@@ -2,15 +2,14 @@
 pragma solidity ^0.8.20;
 
 /// @notice Permissionless keeper: when ZK credit has USDC and King is proven, draw → Landing.
-/// @dev Anyone can poke. No custody. Completes the automated fill→cash path.
+/// @dev Uses operatorBorrowTo so isProven checks King, not the keeper.
 interface IZkGateA {
     function isProven(address account) external view returns (bool);
 }
 
 interface IZkCreditA {
     function maxBorrow(address account) external view returns (uint256);
-    function borrowTo(address to, uint256 amount) external;
-    function borrow(uint256 amount) external;
+    function operatorBorrowTo(address to, uint256 amount) external;
     function landing() external view returns (address);
     function king() external view returns (address);
     function gate() external view returns (address);
@@ -44,20 +43,19 @@ contract CrownZkAutoDraw {
         amount = credit.maxBorrow(king);
         require(amount > 0, "NO_LIQUIDITY");
         uint256 before = IERC20A(usdc).balanceOf(landing);
-        // Prefer borrow() — credit already routes to landing; borrowTo as fallback path via low-level
-        credit.borrow(amount);
+        credit.operatorBorrowTo(landing, amount);
         uint256 afterBal = IERC20A(usdc).balanceOf(landing);
         require(afterBal >= before + amount, "LANDING_MISS");
         emit Drew(msg.sender, amount, afterBal);
     }
 
-    /// @notice Sized draw (still to Landing via credit.borrow).
+    /// @notice Sized draw (operatorBorrowTo Landing).
     function pokeAmount(uint256 amount) external {
         require(gate.isProven(king), "NOT_PROVEN");
         uint256 maxB = credit.maxBorrow(king);
         require(amount > 0 && amount <= maxB, "SIZE");
         uint256 before = IERC20A(usdc).balanceOf(landing);
-        credit.borrow(amount);
+        credit.operatorBorrowTo(landing, amount);
         require(IERC20A(usdc).balanceOf(landing) >= before + amount, "LANDING_MISS");
         emit Drew(msg.sender, amount, IERC20A(usdc).balanceOf(landing));
     }

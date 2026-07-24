@@ -25,7 +25,8 @@ Machine-readable: `zk-liquidity-match.json`
 | Max match | **$700,000** |
 | King ask | **$500,000** |
 | Receive | Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
-| Auto-draw | `0xB6481E2ca95c14BC47B29b60fec6eF7e4A398a23` (operator **true**) |
+| Completer | **`0x12514e1f999131eA78D402a7258b67A65F9342Ff`** (operator **true**) |
+| Auto-draw | `0xE7e7008D71387a79Bf57F1E5Ab75534d4b3DA34A` (operator **true**) |
 
 ### Fortress behind the proof
 | Book | Live |
@@ -37,25 +38,26 @@ Machine-readable: `zk-liquidity-match.json`
 
 ---
 
-## Match flow (whale, not YouTube)
+## Match flow — loan complete
+
+**Primary (one tx):** completer `0x1251…42Ff`
 
 ```
-1. Counterparty verifies isProven(hot) + attestation $1M
-2. Counterparty USDC.approve(credit) + credit.supply(500_000e6)
-3. Anyone: autoDraw.poke()  OR  King: FIRE_ZK_CREDIT ASK=500000e6
-4. $500k USDC on Landing
+1. Verify isProven(hot) + attestation $1M
+2. USDC.approve(completer) + complete(500_000e6)
+3. $500k USDC on Landing
 ```
-
-Supply calldata (500k):  
-`0x35403023000000000000000000000000000000000000000000000000000000746a528800`
 
 ```bash
-# after supply lands
-KING_GO=1 FIRE_ZK_CREDIT=1 ASK_USDC=500000000000 \
-  forge script script/FireZkCreditDraw.s.sol:FireZkCreditDraw \
+KING_GO=1 FIRE_LOAN_MATCH=1 ASK_USDC=500000000000 \
+  MATCHER_KEY=$MATCHER_KEY \
+  forge script script/FireMatcherComplete.s.sol:FireMatcherComplete \
   --rpc-url $BASE_RPC --broadcast --slow
-# or: cast send 0xB6481E2ca95c14BC47B29b60fec6eF7e4A398a23 "poke()" --rpc-url $BASE_RPC
 ```
+
+Full sheet: `LOAN-COMPLETE-LIVE.md`
+
+**Alt:** `credit.supply(500k)` → `autoDraw.poke()` or `FIRE_ZK_CREDIT`
 
 ---
 

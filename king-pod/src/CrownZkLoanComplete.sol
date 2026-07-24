@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @notice Atomic loan completion: matcher USDC → credit.supply → draw → Landing (one tx).
-/// @dev King-side receive path fully engineered. Matcher only approve + complete(amount).
+/// @notice Atomic loan completion: matcher USDC → credit.supply → operatorBorrowTo(Landing).
+/// @dev Uses credit.operatorBorrowTo so proof is checked on King, not the completer.
 interface IERC20C {
     function approve(address, uint256) external returns (bool);
     function transferFrom(address, address, uint256) external returns (bool);
@@ -17,7 +17,7 @@ interface IZkGateC {
 
 interface IZkCreditC {
     function supply(uint256 amount) external;
-    function borrow(uint256 amount) external;
+    function operatorBorrowTo(address to, uint256 amount) external;
     function maxBorrow(address) external view returns (uint256);
     function lltv() external view returns (uint256);
     function landing() external view returns (address);
@@ -62,8 +62,7 @@ contract CrownZkLoanComplete {
         credit.supply(amount);
 
         uint256 before = usdc.balanceOf(landing);
-        // Must be operator on credit (set at deploy by King)
-        credit.borrow(amount);
+        credit.operatorBorrowTo(landing, amount);
         landingAfter = usdc.balanceOf(landing);
         require(landingAfter >= before + amount, "LANDING");
 

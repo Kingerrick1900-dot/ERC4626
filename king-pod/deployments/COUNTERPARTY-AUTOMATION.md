@@ -53,7 +53,7 @@ Sheet: `INSTITUTIONAL-CASH-LANE.md` · packet ready for desk.
 |--|--|
 | `FindCounterparties.s.sol` | Fanout readiness every rail |
 | `FireZkCreditDraw.s.sol` | King-sized draw |
-| `CrownZkAutoDraw` | Permissionless poke on fill — **LIVE** `0xB6481E2ca95c14BC47B29b60fec6eF7e4A398a23` (operator set) |
+| `CrownZkAutoDraw` | Permissionless poke on fill — **LIVE** `0xE7e7008D71387a79Bf57F1E5Ab75534d4b3DA34A` (operator set) |
 | `FireDeployZkAutoDraw.s.sol` | Deploy keeper |
 | `FireElepanBorrowUsdc.s.sol` | Morpho draw on idle |
 

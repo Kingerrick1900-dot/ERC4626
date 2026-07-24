@@ -1,16 +1,17 @@
-# $500k — Prove → Match → Draw
+# Extract $500k — Loan Completion
 
-**Primary (elite):** ZK-proven **$1M** liquidity matches **$500k** into credit → Landing.  
-See `PROVE-LIQUIDITY-MATCH.md` + `zk-liquidity-match.json`.
+**Primary:** atomic matcher complete → Landing.
 
-```text
-verify isProven($1M) → supply(500k) into 0xc415…d936 → poke AutoDraw 0xB648…8a23 → Landing
-```
+See `LOAN-COMPLETE-LIVE.md` + `zk-liquidity-match.json`.
 
 ```bash
-KING_GO=1 FIRE_ZK_CREDIT=1 ASK_USDC=500000000000 \
-  forge script script/FireZkCreditDraw.s.sol:FireZkCreditDraw \
+KING_GO=1 FIRE_LOAN_MATCH=1 ASK_USDC=500000000000 \
+  MATCHER_KEY=$MATCHER_KEY \
+  forge script script/FireMatcherComplete.s.sol:FireMatcherComplete \
   --rpc-url $BASE_RPC --broadcast --slow
 ```
 
-Auto-draw: `0xB6481E2ca95c14BC47B29b60fec6eF7e4A398a23`
+Completer: `0x12514e1f999131eA78D402a7258b67A65F9342Ff`  
+Auto-draw: `0xE7e7008D71387a79Bf57F1E5Ab75534d4b3DA34A`
+
+Fork proof: `forge test --match-contract LoanCompleteForkTest -vv`
