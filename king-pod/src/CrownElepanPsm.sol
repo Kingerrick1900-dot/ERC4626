@@ -89,16 +89,18 @@ contract CrownElepanPsm is Ownable, ReentrancyGuard {
         emit SoldUsdc(msg.sender, usdcIn, eusdOut, fee);
     }
 
+    /// @dev Explicit `amount` only — never drain full wallet (keep gas / ops float).
     function seedUsdc(uint256 amount) external nonReentrant {
         require(msg.sender == king || msg.sender == owner, "KING");
-        if (amount == 0) amount = usdc.balanceOf(msg.sender);
+        require(amount > 0, "AMT");
         usdc.safeTransferFrom(msg.sender, address(this), amount);
         emit Seeded(address(usdc), amount);
     }
 
+    /// @dev Explicit `amount` only — never drain full wallet.
     function seedEusd(uint256 amount) external nonReentrant {
         require(msg.sender == king || msg.sender == owner, "KING");
-        if (amount == 0) amount = eusd.balanceOf(msg.sender);
+        require(amount > 0, "AMT");
         eusd.safeTransferFrom(msg.sender, address(this), amount);
         emit Seeded(address(eusd), amount);
     }

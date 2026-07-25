@@ -10,12 +10,15 @@ interface IERC20F {
 }
 
 /// @notice Deploy / seed Kingdom PSM. KING_GO=1 FIRE_PSM=1
-/// @dev Optional: PSM=0x existing · SEED_EUSD=1 · SEED_USDC=1 · FEE_BPS=0 · BUY_USDC=<usdc6 out via eUSD>
+/// @dev Go-live = deploy only. Seed ONLY explicit amounts (never full balance).
+///      PSM=0x… · SEED_EUSD_AMT · SEED_USDC_AMT · FEE_BPS · BUY_USDC · MIN_ETH_WEI
 contract FireElepanPsm is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant LAND = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
     address constant EUSD = 0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+    /// @dev Keep ~0.0003 ETH on hot for later fires (Base is cheap; do not drain).
+    uint256 constant DEFAULT_MIN_ETH = 3e14;
 
     function run() external {
         require(vm.envOr("KING_GO", uint256(0)) == 1, "NEED KING_GO=1");
@@ -25,9 +28,19 @@ contract FireElepanPsm is Script {
         require(vm.addr(pk) == HOT, "HOT");
 
         uint16 feeBps = uint16(vm.envOr("FEE_BPS", uint256(0)));
-        bool seedEusd = vm.envOr("SEED_EUSD", uint256(0)) == 1;
-        bool seedUsdc = vm.envOr("SEED_USDC", uint256(0)) == 1;
+        uint256 seedEusdAmt = vm.envOr("SEED_EUSD_AMT", uint256(0));
+        uint256 seedUsdcAmt = vm.envOr("SEED_USDC_AMT", uint256(0));
         uint256 buyUsdcAmt = vm.envOr("BUY_USDC", uint256(0));
+        uint256 minEth = vm.envOr("MIN_ETH_WEI", DEFAULT_MIN_ETH);
+
+        // Reject legacy full-drain flags.
+        require(vm.envOr("SEED_EUSD", uint256(0)) == 0, "USE SEED_EUSD_AMT");
+        require(vm.envOr("SEED_USDC", uint256(0)) == 0, "USE SEED_USDC_AMT");
+
+        uint256 ethBal = HOT.balance;
+        console2.log("hotEth", ethBal);
+        console2.log("minEth", minEth);
+        require(ethBal >= minEth, "GAS_FLOOR");
 
         vm.startBroadcast(pk);
         address existing = vm.envOr("PSM", address(0));
@@ -36,21 +49,21 @@ contract FireElepanPsm is Script {
             : CrownElepanPsm(existing);
         console2.log("psm", address(psm));
 
-        if (seedEusd) {
+        if (seedEusdAmt > 0) {
             uint256 bal = IERC20F(EUSD).balanceOf(HOT);
-            console2.log("seedEusd", bal);
-            if (bal > 0) {
-                IERC20F(EUSD).approve(address(psm), bal);
-                psm.seedEusd(bal);
-            }
+            require(bal >= seedEusdAmt, "EUSD_BAL");
+            // Never dump the entire eUSD bag in one seed.
+            require(seedEusdAmt < bal, "KEEP_EUSD_FLOAT");
+            console2.log("seedEusdAmt", seedEusdAmt);
+            IERC20F(EUSD).approve(address(psm), seedEusdAmt);
+            psm.seedEusd(seedEusdAmt);
         }
-        if (seedUsdc) {
+        if (seedUsdcAmt > 0) {
             uint256 bal = IERC20F(USDC).balanceOf(HOT);
-            console2.log("seedUsdc", bal);
-            if (bal > 0) {
-                IERC20F(USDC).approve(address(psm), bal);
-                psm.seedUsdc(bal);
-            }
+            require(bal >= seedUsdcAmt, "USDC_BAL");
+            console2.log("seedUsdcAmt", seedUsdcAmt);
+            IERC20F(USDC).approve(address(psm), seedUsdcAmt);
+            psm.seedUsdc(seedUsdcAmt);
         }
 
         if (buyUsdcAmt > 0) {
@@ -67,6 +80,7 @@ contract FireElepanPsm is Script {
         (uint256 u, uint256 e) = psm.reserves();
         console2.log("reserveUsdc", u);
         console2.log("reserveEusd", e);
+        console2.log("hotEthAfter", HOT.balance);
         console2.log("landUsdc", IERC20F(USDC).balanceOf(LAND));
         console2.log("PSM_OK", uint256(1));
     }
