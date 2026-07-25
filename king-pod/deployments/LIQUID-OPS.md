@@ -14,7 +14,8 @@
 
 - Morpho `supply(onBehalf=vault)` donation → inflate NAV → withdraw idle = flash body → **net $0**
 - Debt-repay unlock → frees idle → withdraw → repay flash → **net $0**, shares cleared
-- Spendable ops USDC = wallet USDC + ELE sold into the pool (or foreign idle)
+- **$10 oracle market with no idle** → borrow reverts → **$0**; self-seed then borrow → **$0** circular
+- Spendable ops USDC = **buyer USDC** (OTC / pool / foreign idle) — see `BUYER-PATH.md`
 
 ## Fire residual dust unlock (optional)
 
