@@ -9,15 +9,37 @@ interface IERC20F {
     function approve(address, uint256) external returns (bool);
 }
 
+interface IMorphoPsm {
+    struct MarketParams {
+        address loanToken;
+        address collateralToken;
+        address oracle;
+        address irm;
+        uint256 lltv;
+    }
+
+    function accrueInterest(MarketParams memory) external;
+    function borrow(MarketParams memory, uint256 assets, uint256 shares, address onBehalf, address receiver)
+        external
+        returns (uint256, uint256);
+    function market(bytes32 id) external view returns (uint128, uint128, uint128, uint128, uint128, uint128);
+}
+
 /// @notice Deploy / seed Kingdom PSM. KING_GO=1 FIRE_PSM=1
-/// @dev Go-live = deploy only. Seed ONLY explicit amounts (never full balance).
-///      PSM=0x… · SEED_EUSD_AMT · SEED_USDC_AMT · FEE_BPS · BUY_USDC · MIN_ETH_WEI
+/// @dev Seed ONLY explicit amounts. Optional IDLE_TO_PSM_USDC borrows that size from Morpho → hot → PSM.
 contract FireElepanPsm is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant LAND = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
     address constant EUSD = 0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
-    /// @dev Keep ~0.0003 ETH on hot for later fires (Base is cheap; do not drain).
+    address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
+    address constant ELE = 0x50639C42E2FFDEC4F68FB468968a55b3Af944583;
+    address constant ORACLE = 0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19;
+    address constant IRM = 0x46415998764C29aB2a25CbeA6254146D50D22687;
+    address constant LIVE_PSM = 0x9199E5099C2C46A688F982E377a146Ab6db8060b;
+    bytes32 constant ELE_USDC = 0xa4ec527128b425ee3fcb7f60eca37677b63b3d003345ec2a72ef6a2e72da53fc;
+    uint256 constant LLTV_77 = 770000000000000000;
+    /// @dev Keep ETH on hot for later fires.
     uint256 constant DEFAULT_MIN_ETH = 3e14;
 
     function run() external {
@@ -30,10 +52,10 @@ contract FireElepanPsm is Script {
         uint16 feeBps = uint16(vm.envOr("FEE_BPS", uint256(0)));
         uint256 seedEusdAmt = vm.envOr("SEED_EUSD_AMT", uint256(0));
         uint256 seedUsdcAmt = vm.envOr("SEED_USDC_AMT", uint256(0));
+        uint256 idleToPsm = vm.envOr("IDLE_TO_PSM_USDC", uint256(0));
         uint256 buyUsdcAmt = vm.envOr("BUY_USDC", uint256(0));
         uint256 minEth = vm.envOr("MIN_ETH_WEI", DEFAULT_MIN_ETH);
 
-        // Reject legacy full-drain flags.
         require(vm.envOr("SEED_EUSD", uint256(0)) == 0, "USE SEED_EUSD_AMT");
         require(vm.envOr("SEED_USDC", uint256(0)) == 0, "USE SEED_USDC_AMT");
 
@@ -43,16 +65,31 @@ contract FireElepanPsm is Script {
         require(ethBal >= minEth, "GAS_FLOOR");
 
         vm.startBroadcast(pk);
-        address existing = vm.envOr("PSM", address(0));
-        CrownElepanPsm psm = existing == address(0)
+        address existing = vm.envOr("PSM", LIVE_PSM);
+        CrownElepanPsm psm = existing.code.length == 0
             ? new CrownElepanPsm(HOT, LAND, EUSD, USDC, feeBps)
             : CrownElepanPsm(existing);
         console2.log("psm", address(psm));
 
+        if (idleToPsm > 0) {
+            IMorphoPsm.MarketParams memory mp =
+                IMorphoPsm.MarketParams(USDC, ELE, ORACLE, IRM, LLTV_77);
+            IMorphoPsm(MORPHO).accrueInterest(mp);
+            (uint128 sa,, uint128 ba,,,) = IMorphoPsm(MORPHO).market(ELE_USDC);
+            uint256 idle = uint256(sa) > uint256(ba) ? uint256(sa) - uint256(ba) : 0;
+            // Leave 1 wei idle on market; never take more than asked.
+            require(idle > 1, "NO_IDLE");
+            uint256 take = idleToPsm;
+            if (take > idle - 1) take = idle - 1;
+            require(take > 0, "IDLE0");
+            console2.log("idleBorrow", take);
+            IMorphoPsm(MORPHO).borrow(mp, take, 0, HOT, HOT);
+            seedUsdcAmt += take; // sized seed of what we just drew
+        }
+
         if (seedEusdAmt > 0) {
             uint256 bal = IERC20F(EUSD).balanceOf(HOT);
             require(bal >= seedEusdAmt, "EUSD_BAL");
-            // Never dump the entire eUSD bag in one seed.
             require(seedEusdAmt < bal, "KEEP_EUSD_FLOAT");
             console2.log("seedEusdAmt", seedEusdAmt);
             IERC20F(EUSD).approve(address(psm), seedEusdAmt);
@@ -61,6 +98,7 @@ contract FireElepanPsm is Script {
         if (seedUsdcAmt > 0) {
             uint256 bal = IERC20F(USDC).balanceOf(HOT);
             require(bal >= seedUsdcAmt, "USDC_BAL");
+            // If USDC came only from idle borrow, seeding it all into PSM is intentional sized go-live.
             console2.log("seedUsdcAmt", seedUsdcAmt);
             IERC20F(USDC).approve(address(psm), seedUsdcAmt);
             psm.seedUsdc(seedUsdcAmt);
@@ -81,6 +119,7 @@ contract FireElepanPsm is Script {
         console2.log("reserveUsdc", u);
         console2.log("reserveEusd", e);
         console2.log("hotEthAfter", HOT.balance);
+        console2.log("hotUsdcAfter", IERC20F(USDC).balanceOf(HOT));
         console2.log("landUsdc", IERC20F(USDC).balanceOf(LAND));
         console2.log("PSM_OK", uint256(1));
     }

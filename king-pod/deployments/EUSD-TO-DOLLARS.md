@@ -27,7 +27,7 @@ What is missing is a **clear into USDC/USD**.
 | Aerodrome ELE/USDC | **No pool** |
 | DexScreener for Kingdom eUSD | **No pairs** |
 | Aggregator route eUSD→USDC | **None** (no venue to quote) |
-| `CrownElepanPsm` | **Ship now** — see `ELEPAN-PSM.md` / `FIRE_PSM=1` |
+| `CrownElepanPsm` | **Live** `0x9199E5099C2C46A688F982E377a146Ab6db8060b` — seed sized amts only (`ELEPAN-PSM.md`) |
 | Old `CrownPsm` `0x3fbb…4ecf` | **kUSD only** — wrong token, do not use |
 
 **Verdict:** You cannot “just swap” in a wallet today. Public DEX path does not exist yet for *this* eUSD.

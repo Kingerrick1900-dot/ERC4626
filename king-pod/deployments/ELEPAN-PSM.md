@@ -13,9 +13,11 @@
 
 ## Seed policy (gas first)
 
-- **Go-live = deploy.** Do not drain hot.
-- Seed **only** `SEED_USDC_AMT` / `SEED_EUSD_AMT` (explicit). Legacy `SEED_USDC=1` / `SEED_EUSD=1` (full balance) is **rejected**.
+- **Go-live = deploy + tiny dollar reserve.** Do not drain hot.
+- Seed **only** sized amts: `SEED_USDC_AMT` / `SEED_EUSD_AMT` / `IDLE_TO_PSM_USDC`.
+- Legacy full-balance `SEED_USDC=1` / `SEED_EUSD=1` is **rejected**.
 - Keep `MIN_ETH_WEI` (default `3e14` ≈ 0.0003 ETH) on hot for later fires.
+- Landing holds ~$59 USDC (needs `LANDING_KEY` to move). Prefer `IDLE_TO_PSM_USDC` for a minimal Morpho-dust seed.
 - Redeem size ≤ USDC reserve. Do not park payroll USDC in the PSM beyond the clear you intend.
 
 ## Fire
