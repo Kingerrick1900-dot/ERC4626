@@ -3,7 +3,7 @@
 | Rail | Status |
 |--|--|
 | Hot USDC | **~$60.75** (`OWN-STACK-CASH-LIVE.md`) |
-| Hot ELE | **~59.75** free |
+| Hot ELE | **~13.23M** free (`FREE-ELE-LIVE.md`) |
 | TEN $10/91.5% | ~14M ELE coll · $700k supply/borrow matched · refinance script **fork-proven** |
 | ELE77 | ~86M ELE · ~$50M matched |
 | ELE/USDC pool | exists `0x4615a3E4…7410` — LP unwound to hot |
