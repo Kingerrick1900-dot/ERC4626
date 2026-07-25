@@ -2,27 +2,22 @@
 
 ## Reality
 
-yELE-K **$700k shares** on cold are **Morpho supply matched to king debt**. Not idle. Not redeemable until debt is repaid (flash unwind) or borrowers repay.
+yELE-K **$700k shares** are on **hot** — Morpho supply matched to king debt. Not idle. Not redeemable until debt is repaid (flash unwind) or borrowers repay.
 
 | Need | Status |
 |--|--|
-| Spendable USDC for ops | Landing ~$59 (needs `LANDING_KEY`) + dust idle |
-| Free ELE | 14M on 91.5% — withdrawable now (hot) |
-| ELE/USDC DEX | **none** — must create + seed |
-| Unlock $700k to USDC | Cold signs + flash repay debt + redeem (nets deleverage unless ELE is sold) |
+| Spendable USDC for ops | **~$60.38 on hot** (Landing $59.38 moved · Landing **frozen**) |
+| Free ELE | **14M on hot** |
+| ELE/USDC DEX | **none** — create + seed (no timelock) |
+| Unlock $700k shares → USDC tokens | Hot flash repay debt + redeem (matched book ≈ net $0; clears share trap) |
 
-## Fire (hot)
+## Landing freeze
 
-```bash
-KING_GO=1 FIRE_LIQUID=1 \
-forge script script/FireLiquidOps.s.sol:FireLiquidOps \
-  --rpc-url "$RPC_URL" --broadcast --slow --private-key "$PRIVATE_KEY"
-# optional: LANDING_KEY=0x… moves Landing USDC → cold
-```
+See `LANDING-FROZEN.md`. Key exposed — do not reuse `0x5Adc…`.
 
-## Next phase (swap + unlock)
+## Next phase (swap rail)
 
-1. Put `LANDING_KEY` in env → real USDC to cold for bills.  
-2. Create UniV3/Aero **ELE/USDC** pool (no timelock) seeded with that USDC + ELE.  
-3. Cold: approve unwind / send yELE-K shares to hot.  
-4. Flash: repay pot debt → redeem shares → USDC → sell ELE as needed for ops float → repay flash.
+1. Aero: dust ETH→USDC (keep ≥0.0003 ETH gas on hot).  
+2. UniV3 **ELE/USDC** pool — create + seed with hot USDC + ELE.  
+3. Hot pot-unlock: flash repay → redeem yELE-K → USDC tokens (expect ~net $0 from pot alone).  
+4. Ops bills from wallet USDC; larger float needs ELE buyers or foreign idle.
