@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @notice Flash-repay king Morpho debt → redeem yELE-K → repay flash.
-/// @dev Morpho Blue flash: callback is onMorphoFlashLoan(assets, data); fee = 0;
-///      Morpho pulls repayment via transferFrom after callback (approve, do not transfer).
-///      Matched pot: redeem ≈ flash body → net ops USDC ≈ 0; shares cleared.
+/// @notice Flash-repay king Morpho debt → withdraw/redeem yELE-K → repay flash.
+/// @dev Morpho flash fee = 0; repayment via approve + transferFrom after callback.
+///      Withdraw ONLY what repay frees (maxWithdraw after repay). Full-share redeem
+///      can hit NotEnoughLiquidity from queue rounding / WETH stub position.
 interface IERC20D {
     function balanceOf(address) external view returns (uint256);
     function approve(address, uint256) external returns (bool);
@@ -26,12 +26,17 @@ interface IMorphoD {
         external
         returns (uint256, uint256);
     function accrueInterest(MarketParams memory) external;
+    function market(bytes32) external view returns (uint128, uint128, uint128, uint128, uint128, uint128);
 }
 
 interface IVaultD {
     function balanceOf(address) external view returns (uint256);
+    function maxWithdraw(address) external view returns (uint256);
+    function maxRedeem(address) external view returns (uint256);
+    function withdraw(uint256 assets, address receiver, address owner) external returns (uint256);
     function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
     function convertToAssets(uint256) external view returns (uint256);
+    function previewRedeem(uint256) external view returns (uint256);
 }
 
 contract CrownDebtRepayUnlock {
@@ -48,26 +53,24 @@ contract CrownDebtRepayUnlock {
     bool private locking;
     address private shareOwner;
     address private receiver;
-    uint256 private shareAmt;
 
     error NotKing();
     error BadCb();
     error Short();
+    error NoLiquidity();
 
     constructor(address king_, address vault_) {
         king = king_;
         vault = vault_;
     }
 
-    /// @param flashAssets USDC to flash (= share claim / debt slice to free)
-    /// @param shares yELE-K shares to redeem (owner must have approved this contract)
-    /// @param owner_ share owner (hot)
-    /// @param to_ receives any dust leftover after Morpho pulls flash repay
-    function unlock(uint256 flashAssets, uint256 shares, address owner_, address to_) external {
+    /// @param flashAssets USDC to flash and repay against king debt (sizes the idle freed)
+    /// @param owner_ yELE-K share owner (must approve this contract)
+    /// @param to_ dust receiver after Morpho pulls flash repay
+    function unlock(uint256 flashAssets, address owner_, address to_) external {
         if (msg.sender != king) revert NotKing();
         shareOwner = owner_;
         receiver = to_;
-        shareAmt = shares;
         locking = true;
         IMorphoD(MORPHO).flashLoan(USDC, flashAssets, "");
         locking = false;
@@ -80,18 +83,21 @@ contract CrownDebtRepayUnlock {
             IMorphoD.MarketParams(USDC, ELE, ORACLE, IRM, LLTV_77);
         IMorphoD(MORPHO).accrueInterest(mp);
 
-        // 1) Repay king debt → frees vault Morpho supply as idle
+        // 1) Repay king debt → frees Morpho idle on ELE/USDC
         IERC20D(USDC).approve(MORPHO, assets);
         IMorphoD(MORPHO).repay(mp, assets, 0, king, "");
 
-        // 2) Redeem shares → USDC here
-        uint256 out = IVaultD(vault).redeem(shareAmt, address(this), shareOwner);
-        if (out + 1e6 < assets) revert Short();
+        // 2) Pull exactly `assets` — Morpho pulls the same amount after callback.
+        //    Full-share redeem overshoots idle (NotEnoughLiquidity); size flash to freeable.
+        uint256 liquid = IVaultD(vault).maxWithdraw(shareOwner);
+        if (liquid < assets) revert NoLiquidity();
 
-        // 3) Approve Morpho to pull flash principal after callback
+        uint256 out = IVaultD(vault).withdraw(assets, address(this), shareOwner);
+        if (out < assets) revert Short();
+
+        // 3) Morpho pulls flash principal via transferFrom after callback
         IERC20D(USDC).approve(MORPHO, assets);
 
-        // 4) Dust (if any) → receiver. Matched book → typically 0.
         uint256 bal = IERC20D(USDC).balanceOf(address(this));
         if (bal > assets) {
             IERC20D(USDC).transfer(receiver, bal - assets);

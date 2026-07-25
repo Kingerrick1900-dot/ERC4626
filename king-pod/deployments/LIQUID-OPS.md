@@ -1,23 +1,25 @@
-# Liquid ops — real USDC, not trapped shares
+# Liquid ops — real USDC + swap rail
 
-## Reality
+## Live now
 
-yELE-K **$700k shares** are on **hot** — Morpho supply matched to king debt. Not idle. Not redeemable until debt is repaid (flash unwind) or borrowers repay.
-
-| Need | Status |
+| Rail | Status |
 |--|--|
-| Spendable USDC for ops | **~$60.38 on hot** (Landing $59.38 moved · Landing **frozen**) |
-| Free ELE | **14M on hot** |
-| ELE/USDC DEX | **none** — create + seed (no timelock) |
-| Unlock $700k shares → USDC tokens | Hot flash repay debt + redeem (matched book ≈ net $0; clears share trap) |
+| Hot USDC | **~$1–60** (pool seed took most of Landing sweep; ~$1 left liquid) |
+| yELE-K $700k shares | **Unlocked** — claim residual ~$15.82 · see `POT-UNLOCK-LIVE.md` |
+| ELE | **~14M** on hot |
+| ELE/USDC UniV3 | **LIVE** `0x4615a3E4…7410` · see `ELE-USDC-POOL.md` |
+| Landing | **FROZEN** · `LANDING-FROZEN.md` |
 
-## Landing freeze
+## Physics (do not rewrite)
 
-See `LANDING-FROZEN.md`. Key exposed — do not reuse `0x5Adc…`.
+- Morpho `supply(onBehalf=vault)` donation → inflate NAV → withdraw idle = flash body → **net $0**
+- Debt-repay unlock → frees idle → withdraw → repay flash → **net $0**, shares cleared
+- Spendable ops USDC = wallet USDC + ELE sold into the pool (or foreign idle)
 
-## Next phase (swap rail)
+## Fire residual dust unlock (optional)
 
-1. Aero: dust ETH→USDC (keep ≥0.0003 ETH gas on hot).  
-2. UniV3 **ELE/USDC** pool — create + seed with hot USDC + ELE.  
-3. Hot pot-unlock: flash repay → redeem yELE-K → USDC tokens (expect ~net $0 from pot alone).  
-4. Ops bills from wallet USDC; larger float needs ELE buyers or foreign idle.
+```bash
+KING_GO=1 FIRE_POT_UNLOCK=1 \
+forge script script/FirePotUnlock.s.sol:FirePotUnlock \
+  --rpc-url "$RPC_URL" --broadcast --slow --private-key "$PRIVATE_KEY"
+```
