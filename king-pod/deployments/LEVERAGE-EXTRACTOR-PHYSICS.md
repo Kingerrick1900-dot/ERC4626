@@ -9,8 +9,8 @@
 | LLTV headroom | ~**$27M** unclaimed |
 | Landing USDC | ~**$59.38** |
 | ELE/USDC idle | ~**$1** buffer |
-| Extractor (armed) | `0x3734658F1b86bD0EE86b5ac15015fE98B7Ad8947` |
-| Deploy tx | [`0x…`](https://basescan.org) — see `broadcast/FireLeverageExtract.s.sol/8453/run-latest.json` |
+| Extractor (armed) | [`0x3734658F1b86bD0EE86b5ac15015fE98B7Ad8947`](https://basescan.org/address/0x3734658F1b86bD0EE86b5ac15015fE98B7Ad8947) |
+| Deploy tx | [`0xef8b4e80…ff3db`](https://basescan.org/tx/0xef8b4e803ec53e87f98ec93fe2f2016bd3d0c04737cfc33359e4dfd46dcff3db) |
 
 Headroom needs **foreign idle** into ELE/USDC (PA `maxIn` on a funded vault), then borrow.  
 Live arm: foreign `maxIn=0`, yELE WETH disabled → `ARM_ONLY=1` (no fake $700k).

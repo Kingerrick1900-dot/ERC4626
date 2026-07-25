@@ -23,13 +23,10 @@ interface IMorphoX {
     function borrow(MarketParams memory, uint256 assets, uint256 shares, address onBehalf, address receiver)
         external
         returns (uint256, uint256);
-    function position(bytes32 id, address user) external view returns (uint256, uint128, uint128);
     function market(bytes32 id) external view returns (uint128, uint128, uint128, uint128, uint128, uint128);
     function accrueInterest(MarketParams memory) external;
 }
 
-/// @dev Morpho Public Allocator — this is the live “move idle USDC into ELE market” rail.
-///      MetaMorpho.reallocate is vault-allocator only and uses MarketParams, not market addresses.
 interface IPublicAllocatorX {
     struct MarketParams {
         address loanToken;
@@ -49,13 +46,29 @@ interface IPublicAllocatorX {
         payable;
 
     function fee(address vault) external view returns (uint256);
-
     function flowCaps(address vault, bytes32 id) external view returns (uint128 maxIn, uint128 maxOut);
 }
 
-/// @notice ELE collateral + PA pull idle USDC into ELE/USDC + borrow → Landing.
-/// @dev Correct Morpho Blue / Public Allocator APIs. Does not invent USDC — needs maxIn > 0
-///      on a funded vault (curator flowCaps) or existing market idle.
+interface IMetaMorphoX {
+    struct MarketParams {
+        address loanToken;
+        address collateralToken;
+        address oracle;
+        address irm;
+        uint256 lltv;
+    }
+
+    struct MarketAllocation {
+        MarketParams marketParams;
+        uint256 assets;
+    }
+
+    function reallocate(MarketAllocation[] calldata allocations) external;
+    function isAllocator(address) external view returns (bool);
+}
+
+/// @notice King-owned disk fill: move vault USDC into ELE/USDC, borrow → Landing.
+/// @dev Prefer curator `reallocate` (no PA flow caps). PA path kept for foreign vaults.
 contract CrownLeverageExtractor {
     using ZkKingGate for IZkGateBook;
 
@@ -63,6 +76,7 @@ contract CrownLeverageExtractor {
     address constant PA = 0xA090dD1a701408Df1d4d0B85b716c87565f90467;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant ELE = 0x50639C42E2FFDEC4F68FB468968a55b3Af944583;
+    address constant YELE = 0x61bfD6F7df1f72427F472144d043c25d742D145E;
     address constant ORACLE = 0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19;
     address constant IRM = 0x46415998764C29aB2a25CbeA6254146D50D22687;
     address constant GATE = 0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30;
@@ -76,7 +90,7 @@ contract CrownLeverageExtractor {
     address public immutable king;
     address public immutable landing;
 
-    event Extracted(uint256 paPulled, uint256 borrowed, uint256 landUsdc);
+    event Extracted(uint256 pulled, uint256 borrowed, uint256 landUsdc);
 
     constructor(address king_, address landing_) {
         gate = IZkGateBook(GATE);
@@ -84,7 +98,6 @@ contract CrownLeverageExtractor {
         landing = landing_;
     }
 
-    /// @notice Post ELE coll for king (0 = all free ELE on king).
     function depositCollateral(uint256 amount) external {
         require(msg.sender == king, "KING");
         gate.requireProven(king);
@@ -92,15 +105,43 @@ contract CrownLeverageExtractor {
         if (amount == 0) return;
         require(IERC20X(ELE).transferFrom(king, address(this), amount), "ELE");
         IERC20X(ELE).approve(MORPHO, amount);
-        IMorphoX.MarketParams memory mp = _eleMp();
-        IMorphoX(MORPHO).supplyCollateral(mp, amount, king, "");
+        IMorphoX(MORPHO).supplyCollateral(_eleMp(), amount, king, "");
     }
 
-    /// @notice PA reallocateTo(vault → ELE/USDC) then borrow idle → Landing.
-    /// @param vault MetaMorpho vault with flowCaps.maxIn on ELE/USDC > 0 and idle in `from`.
-    /// @param from  Market to withdraw from (e.g. WETH/USDC). Zero amount skips PA.
-    /// @param pull  USDC amount to pull via PA (≤ vault maxIn / liquid).
-    /// @param borrowAmt USDC to borrow (0 = all idle minus $1 buffer).
+    /// @notice Curator disk-fill: yELE.reallocate WETH→ELE, then borrow `amount` → Landing.
+    /// @dev Vault must already hold USDC in WETH/USDC (deposit after acceptCap). King must be allocator.
+    function curatorDiskFill(uint256 amount) external {
+        require(msg.sender == king, "KING");
+        gate.requireProven(king);
+        require(amount > 0, "AMT");
+        require(IMetaMorphoX(YELE).isAllocator(address(this)) || IMetaMorphoX(YELE).isAllocator(king), "ALLOC");
+
+        IMorphoX.MarketParams memory eleBlue = _eleMp();
+        IMorphoX(MORPHO).accrueInterest(eleBlue);
+
+        IMetaMorphoX.MarketParams memory wethMp =
+            IMetaMorphoX.MarketParams(USDC, WETH, WETH_ORACLE, IRM, LLTV_86);
+        IMetaMorphoX.MarketParams memory eleMp =
+            IMetaMorphoX.MarketParams(USDC, ELE, ORACLE, IRM, LLTV_77);
+
+        IMetaMorphoX.MarketAllocation[] memory allocs = new IMetaMorphoX.MarketAllocation[](2);
+        // Leave 1 wei on WETH; park the rest into ELE/USDC.
+        allocs[0] = IMetaMorphoX.MarketAllocation({marketParams: wethMp, assets: 1});
+        allocs[1] = IMetaMorphoX.MarketAllocation({marketParams: eleMp, assets: type(uint256).max});
+        IMetaMorphoX(YELE).reallocate(allocs);
+
+        (uint128 sa1,, uint128 ba1,,,) = IMorphoX(MORPHO).market(ELE_USDC);
+        uint256 idle1 = uint256(sa1) > uint256(ba1) ? uint256(sa1) - uint256(ba1) : 0;
+        // Need liquid idle ≥ ask (+ $1 buffer kept in _borrowIdle).
+        require(idle1 >= amount, "NO_DISK");
+
+        uint256 borrowed = _borrowIdle(eleBlue, amount);
+        // Allow dust (share rounding) under ask — within $1.
+        require(borrowed + 1e6 >= amount, "BORROW_SHORT");
+        emit Extracted(amount, borrowed, IERC20X(USDC).balanceOf(landing));
+    }
+
+    /// @notice PA path for foreign vaults (or yELE when flow caps + liquid supply allow).
     function reallocateAndBorrow(
         address vault,
         IPublicAllocatorX.MarketParams calldata from,
@@ -138,7 +179,6 @@ contract CrownLeverageExtractor {
 
             (uint128 sa1,, uint128 ba1,,,) = IMorphoX(MORPHO).market(ELE_USDC);
             uint256 idle1 = uint256(sa1) > uint256(ba1) ? uint256(sa1) - uint256(ba1) : 0;
-            // PA must actually increase ELE/USDC idle by ~pull (vault-owned source liquidity).
             require(idle1 >= idle0 + uint256(pull), "PA_NO_LIQ");
             pulled = uint256(pull);
             if (borrowAmt == 0) borrowAmt = pulled;
@@ -149,7 +189,6 @@ contract CrownLeverageExtractor {
         emit Extracted(pulled, borrowed, IERC20X(USDC).balanceOf(landing));
     }
 
-    /// @notice Borrow current ELE/USDC idle only (no PA).
     function borrowIdle(uint256 borrowAmt) external {
         require(msg.sender == king, "KING");
         gate.requireProven(king);
@@ -159,7 +198,6 @@ contract CrownLeverageExtractor {
         emit Extracted(0, borrowed, IERC20X(USDC).balanceOf(landing));
     }
 
-    /// @notice Convenience: WETH/USDC as PA source market params.
     function wethUsdcParams() external pure returns (IPublicAllocatorX.MarketParams memory) {
         return IPublicAllocatorX.MarketParams({
             loanToken: USDC,
