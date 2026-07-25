@@ -63,12 +63,13 @@ contract FireTenRefinanceSeed is Script {
         console2.log("supplyAssets", supplyAssets);
         console2.log("coll", uint256(coll));
         console2.log("hotUsdc", usdcBal);
-        require(debt > 0, "NO_DEBT");
+        require(borShares > 0, "NO_DEBT");
+        // Wire must cover debt; repay-by-shares avoids asset-rounding panic
         require(usdcBal >= debt, "NEED_WIRE_USDC_FOR_DEBT");
 
         vm.startBroadcast(pk);
-        IERC20R(USDC).approve(MORPHO, debt);
-        IMorphoR(MORPHO).repay(mp, debt, 0, HOT, "");
+        IERC20R(USDC).approve(MORPHO, type(uint256).max);
+        IMorphoR(MORPHO).repay(mp, 0, borShares, HOT, "");
 
         // After repay, idle ≥ prior supply — withdraw king's supply to hot (the seed)
         (supShares,,) = IMorphoR(MORPHO).position(TEN, HOT);

@@ -1,27 +1,24 @@
-# Liquid ops — live rails
-
-## Live now
+# Liquid ops — completed inventory
 
 | Rail | Status |
 |--|--|
-| Hot USDC | **$1** liquid |
-| ELE | **0** free — **~14M** posted on **$10 / 91.5%** self-seed book |
-| $10 self-seed | **LIVE** · see `SELF-SEED-TEN-LIVE.md` · supply=borrow=$700k |
-| ELE/USDC UniV3 | **LIVE** `0x4615a3E4…7410` · see `ELE-USDC-POOL.md` |
-| yELE-K | unlocked residual ~$15.82 · `POT-UNLOCK-LIVE.md` |
-| Landing | **FROZEN** · `LANDING-FROZEN.md` |
+| Hot USDC | **~$60.75** (`OWN-STACK-CASH-LIVE.md`) |
+| Hot ELE | **~59.75** free |
+| TEN $10/91.5% | ~14M ELE coll · $700k supply/borrow matched · refinance script **fork-proven** |
+| ELE77 | ~86M ELE · ~$50M matched |
+| ELE/USDC pool | exists `0x4615a3E4…7410` — LP unwound to hot |
+| Landing | frozen |
 
-## Physics
+## Completable engineering (done)
 
-- Self-seed flash → supply → borrow → repay flash = **matched book**, wallet USDC **Δ ≈ 0**
-- $10 oracle sizes headroom; does not create idle beyond what was seeded
-- Pot unlock / NAV donate = same conservation law
+- Own-stack cash fire  
+- `FireTenRefinanceSeed` + fork test → **~$700k USDC** when hot holds wire ≥ debt (repay-by-shares)  
+- Packet: `SEED-700K-PLAYS.md`  
 
-## Fire
+## Live fire refinance (needs USDC on hot ≥ ~$700k)
 
 ```bash
-# $10 oracle + createMarket + $700k self-seed (already live)
-KING_GO=1 FIRE_SELF_SEED_TEN=1 \
-forge script script/FireSelfSeedTen.s.sol:FireSelfSeedTen \
+KING_GO=1 FIRE_TEN_REFANCE=1 \
+forge script script/FireTenRefinanceSeed.s.sol:FireTenRefinanceSeed \
   --rpc-url "$RPC_URL" --broadcast --slow --private-key "$PRIVATE_KEY"
 ```
