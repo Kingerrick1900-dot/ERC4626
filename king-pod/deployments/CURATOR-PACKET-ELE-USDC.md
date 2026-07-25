@@ -1,7 +1,9 @@
-# Curator Packet — Elepan/USDC (send today)
+# Curator Packet — Elepan/USDC (kingdom raise)
 
-**One ask:** enable Public Allocator `maxIn` on Morpho Blue **Elepan/USDC** so idle USDC can reach this market.  
+**One ask:** enable Public Allocator flow into Morpho Blue **Elepan/USDC** so idle USDC can reach this market.  
 King posts Elepan collateral and borrows USDC → **Landing KEEP** (no vault recycle).
+
+**Hottest door (live):** Gauntlet USDC Prime already supplies **~$26.1M** into WETH/USDC Blue (`0x8793…1bda`). WETH market idle ≈ **$7.5M**. Fork-proven: open ELE cap + `maxOut(WETH)=$700k` + `maxIn(ELE)=$700k` → Landing **$700k** (`CashHuntGauntletForkTest`).
 
 ---
 
