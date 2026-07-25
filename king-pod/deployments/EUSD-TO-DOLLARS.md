@@ -27,7 +27,7 @@ What is missing is a **clear into USDC/USD**.
 | Aerodrome ELE/USDC | **No pool** |
 | DexScreener for Kingdom eUSD | **No pairs** |
 | Aggregator route eUSD→USDC | **None** (no venue to quote) |
-| `CrownEusdPsm` | **Not deployed** (never shipped) |
+| `CrownElepanPsm` | **Ship now** — see `ELEPAN-PSM.md` / `FIRE_PSM=1` |
 | Old `CrownPsm` `0x3fbb…4ecf` | **kUSD only** — wrong token, do not use |
 
 **Verdict:** You cannot “just swap” in a wallet today. Public DEX path does not exist yet for *this* eUSD.
@@ -40,9 +40,9 @@ What is missing is a **clear into USDC/USD**.
 **What it is:** Kingdom contract that swaps **eUSD ↔ USDC** near $1 (fee → Landing).
 
 **What we need:**
-1. Deploy `CrownEusdPsm` (soft peg, fee, pause, caps, USDC reserve).
+1. Deploy `CrownElepanPsm` (`FIRE_PSM=1`) — soft peg, fee, pause, caps, USDC reserve.
 2. Seed the PSM with **real USDC** (size = how much eUSD you want to clear).
-3. Then: send eUSD in → get USDC out to Landing.
+3. Then: `buyUsdc` — eUSD in → USDC out to Landing.
 
 **First dollar for the reserve comes from Door 2 or Door 3** (or a treasury wire).  
 No USDC in the PSM ⇒ no redeem.
