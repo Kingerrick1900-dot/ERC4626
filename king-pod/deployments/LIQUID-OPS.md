@@ -1,26 +1,27 @@
-# Liquid ops — real USDC + swap rail
+# Liquid ops — live rails
 
 ## Live now
 
 | Rail | Status |
 |--|--|
-| Hot USDC | **~$1–60** (pool seed took most of Landing sweep; ~$1 left liquid) |
-| yELE-K $700k shares | **Unlocked** — claim residual ~$15.82 · see `POT-UNLOCK-LIVE.md` |
-| ELE | **~14M** on hot |
+| Hot USDC | **$1** liquid |
+| ELE | **0** free — **~14M** posted on **$10 / 91.5%** self-seed book |
+| $10 self-seed | **LIVE** · see `SELF-SEED-TEN-LIVE.md` · supply=borrow=$700k |
 | ELE/USDC UniV3 | **LIVE** `0x4615a3E4…7410` · see `ELE-USDC-POOL.md` |
+| yELE-K | unlocked residual ~$15.82 · `POT-UNLOCK-LIVE.md` |
 | Landing | **FROZEN** · `LANDING-FROZEN.md` |
 
-## Physics (do not rewrite)
+## Physics
 
-- Morpho `supply(onBehalf=vault)` donation → inflate NAV → withdraw idle = flash body → **net $0**
-- Debt-repay unlock → frees idle → withdraw → repay flash → **net $0**, shares cleared
-- **$10 oracle market with no idle** → borrow reverts → **$0**; self-seed then borrow → **$0** circular
-- Spendable ops USDC = **buyer USDC** (OTC / pool / foreign idle) — see `BUYER-PATH.md`
+- Self-seed flash → supply → borrow → repay flash = **matched book**, wallet USDC **Δ ≈ 0**
+- $10 oracle sizes headroom; does not create idle beyond what was seeded
+- Pot unlock / NAV donate = same conservation law
 
-## Fire residual dust unlock (optional)
+## Fire
 
 ```bash
-KING_GO=1 FIRE_POT_UNLOCK=1 \
-forge script script/FirePotUnlock.s.sol:FirePotUnlock \
+# $10 oracle + createMarket + $700k self-seed (already live)
+KING_GO=1 FIRE_SELF_SEED_TEN=1 \
+forge script script/FireSelfSeedTen.s.sol:FireSelfSeedTen \
   --rpc-url "$RPC_URL" --broadcast --slow --private-key "$PRIVATE_KEY"
 ```
