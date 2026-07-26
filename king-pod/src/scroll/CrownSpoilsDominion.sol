@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Ownable} from "../lib/Core.sol";
+import {Ownable} from "../core/Core.sol";
 
 /// @notice Scroll dominion registry — spoils of war surface under Elepan rules.
 /// @dev Records sovereign credit capacity and capture events. Does not touch Base.

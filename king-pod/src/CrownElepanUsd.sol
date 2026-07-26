@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Ownable} from "./lib/Core.sol";
+import {Ownable} from "./core/Core.sol";
 
 /// @notice Kingdom native stablecoin — multi-minter for isolated CDP vaults.
 /// @dev Soft $1 unit of account. 18 decimals. No public mint.

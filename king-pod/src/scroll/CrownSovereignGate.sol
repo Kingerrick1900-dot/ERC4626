@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Ownable} from "../lib/Core.sol";
+import {Ownable} from "../core/Core.sol";
 
 /// @notice Elepan-native credit attestation gate (Scroll dominion).
 /// @dev Same surface as ZK wallet-bind: isProven + attestations + minThreshold.

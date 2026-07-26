@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IERC20, SafeTransfer, Ownable, ReentrancyGuard} from "../lib/Core.sol";
+import {IERC20, SafeTransfer, Ownable, ReentrancyGuard} from "../core/Core.sol";
 
 interface IZkGate {
     function isProven(address subject) external view returns (bool);
