@@ -34,3 +34,17 @@ forge test --match-contract GoldOracleTenForkTest -vv
 ## Physics
 
 Matched self-seed: flash USDC → supply market → borrow vs kXAU @ $10 / 91.5% → repay flash. Hot wallet Δ USDC ≈ 0. King holds collateral + supply shares + debt. Pool is live at minimum size for subsequent scale.
+
+## Live (Base) — fired
+
+| Piece | Address / value |
+|--|--|
+| kXAU | `0x76822B470DeC1b94Df4219727288e7a196224853` |
+| Oracle ($10 / `1e35`) | `0xCf2BC42FC9d158CCd77462c24670F17Cc57dBEd0` |
+| Helper | `0xB16E55aa18155715652e6F4F15654e600B0988aC` |
+| Market id | `0xe433538a1eafb9ae985f6962435f6b14a1e27d50f8f30cab99b517f68b5e23da` |
+| Supply / borrow | **$1 / $1** (matched) |
+| King coll | **1.0 kXAU** |
+
+Create tx: `0xa0b0907b7825f0d441941d927b7dfa8561f85712aa956352e515fe2475a349ad`  
+Oracle tx: `0xec17f2747969f49e378805408398f52a4ec7314268f68fc0a20a731331d1f116`
