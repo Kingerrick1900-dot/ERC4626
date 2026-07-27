@@ -36,7 +36,17 @@ On Scroll, **Elepan is the ruleset**: attested credit capacity → completer →
 
 ## Spoils path
 
-`completer.complete(amount)` — matcher supplies Scroll USDC → credit → Landing.  
+`completer.complete(amount)` — matcher supplies Scroll USDC → credit → Landing.
+
+## Sale-source Uni V3 (desk plumbing · LIVE)
+
+Dust exit surfaces so kXAU / eUSD clear to USDC on Scroll. See `SCROLL-KXAU-EUSD-SALES-SOURCE-LIVE.md`.
+
+| Pair | Pool | NFT |
+|--|--|--|
+| kXAU / USDC 0.3% | `0xce5Dd7bF3acd10152a601563AE2730b3E4dCD241` | `11056` |
+| eUSD / USDC 0.3% | `0x5f3f22344FbBF23DD6cF63670B05d4C6689063Fc` | `11057` |
+| kXAU / eUSD 0.3% | `0x9c5768f292A85080294C7764b54930F3C560788d` | `11058` |  
 No Morpho. No Base write. Elepan honors attestation natively.
 
 ## Fire again / verify

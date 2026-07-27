@@ -284,34 +284,65 @@ Morpho Blue (optional venue)      (no Morpho)
 
 ---
 
-## 10) Live seed snapshot (ops)
+## 10) Sale-source Uniswap V3 (desk plumbing)
+
+Same-chain exit surfaces so inventory can clear to USDC. Dust depth until King sizes idle **R**. Not kingdom law.
+
+### Base
+
+| Pair | Fee | Pool | NFT | Seed |
+|--|--|--|--|--|
+| ELE / USDC | 0.3% | `0x4615a3E473944C12bDF4e1E3d1ea5e5968397410` | `5669978` | 1 ELE + $1 |
+| GOLD / USDC | 0.3% | `0x47EBd710De9c0396AC44927A7CC3345F13b321A7` | `5669999` | 0.1 GOLD + $1 |
+
+Doc: `ELE-GOLD-SALES-SOURCE-LIVE.md`
+
+### Scroll
+
+| Pair | Fee | Pool | NFT | Seed |
+|--|--|--|--|--|
+| kXAU / USDC | 0.3% | `0xce5Dd7bF3acd10152a601563AE2730b3E4dCD241` | `11056` | 0.02 kXAU + $0.20 |
+| eUSD / USDC | 0.3% | `0x5f3f22344FbBF23DD6cF63670B05d4C6689063Fc` | `11057` | 0.2 eUSD + $0.20 |
+| kXAU / eUSD | 0.3% | `0x9c5768f292A85080294C7764b54930F3C560788d` | `11058` | 0.05 kXAU + ~0.5 eUSD |
+
+Factory `0x70C62C8b8e801124A4Aa81ce07b637A3e83cb919` · NPM `0xB39002E4033b162fAc607fc3471E205FA2aE5967`  
+Doc: `SCROLL-KXAU-EUSD-SALES-SOURCE-LIVE.md`
+
+---
+
+## 11) Live seed snapshot (ops)
 
 | Pool | Seed |
 |--|--|
 | Base GOLD91 Morpho | ~**$1.00** USDC |
 | Scroll credit | ~**$0.95** USDC (post-bridge) |
+| Base ELE/GOLD Uni V3 | dust sale sources (above) |
+| Scroll kXAU/eUSD Uni V3 | dust sale sources (above) |
 | Base Hot USDC residual | ops float |
 
 Gold yELE caps: submitted **$14M**; accept after timelock `validAt`.
 
 ---
 
-## 11) Non-goals
+## 12) Non-goals
 
 - Morpho on Scroll  
 - Treating ZK attestation as Morpho collateral  
 - Routing through retired Cake / wrong eUSD  
 - Re-locking freed RSS without proven exit  
 - Flash bridging funding gaps  
+- Optics-only 100% util flash seed without idle **R**
 
 ---
 
-## 12) Reference docs
+## 13) Reference docs
 
 | Doc | Scope |
 |--|--|
 | `SCROLL-DOMINION.md` | Scroll credit stack live |
 | `SCROLL-GOLD.md` / `SCROLL-GOLD-ENGINE.md` | Gold rail + mint |
+| `ELE-GOLD-SALES-SOURCE-LIVE.md` | Base Uni V3 sale sources |
+| `SCROLL-KXAU-EUSD-SALES-SOURCE-LIVE.md` | Scroll Uni V3 sale sources |
 | `KING-SAVE-SHEET.md` | Base Morpho / yRSS sheet |
 | `OWN-CURATOR-MOAT.md` | Curator doctrine |
 | `VAULT-V2-LIVE.md` | V2 owner / exit |
