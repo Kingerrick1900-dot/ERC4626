@@ -7,7 +7,7 @@
 
 ## Empire abstract (~100 words)
 
-Elepan is dual-domain sovereign credit. **Base** holds **ELE** as monetary inventory and **kXAU** as gold; **eUSD** is kingdom liability, cleared via PSM. MetaMorpho (**yELE / yRSS**) may route foreign USDC into Morpho markets—venue, not law. **Scroll** is the Elepan ruleset: gold-synced attestation gates capacity, a public USDC credit pool completes cold into Landing, and a native gold CDP mints eUSD against kXAU. Domains run in parallel. Uniswap sale sources are desk plumbing. No Morpho on Scroll. Capital discipline forbids optics-only self-seed without idle reserves. ZK upgrades the gate without changing the credit ABI.
+Elepan is dual-domain sovereign credit across Base and Scroll. **ELE** is the monetary base; **kXAU** is gold collateral; **eUSD** is the kingdom stable. On Base, inventory is held and optionally cleared through PSM and Morpho MetaMorpho vaults (**yELE / yRSS**) — Morpho is a foreign venue, not protocol law. On Scroll, Elepan is the ruleset: attestation gates capacity, a USDC credit pool and completer settle cold to **Landing**, and a native gold CDP mints eUSD to **Landing**. Domains operate in parallel. Uniswap pools are desk liquidity surfaces. No Morpho on Scroll. Gate attestation is ZK-upgradeable without changing the credit ABI.
 
 ---
 
@@ -248,7 +248,7 @@ Morpho Blue: `0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb`
 | **Scroll** | Elepan **is** the ruleset. Gate → credit → completer → Landing. Gold CDP → eUSD. **No Morpho.** |
 | **Independence** | Domains parallel. Base ELE inventory must not move for Scroll deploys. Sovereign clear = zero Base CDP debt. |
 | **Gold** | Highlight rail. $10 kingdom oracle. Caps submitted on yELE ($14M GOLD91/77). |
-| **Liquidity** | Seed pools with real USDC. No optics-only self-seed that locks the stack. |
+| **Liquidity** | Seed pools with real USDC. Completer and gold CDP settle to Landing. |
 | **Flash** | Only with named same-tx `REPAY_SOURCE` (`FLASH-POLICY.md`). |
 | **Recycle** | Freed assets stay liquid until fork-tested exit + King green light (`NO-RECYCLE-UNTIL-EXIT.md`). |
 | **Ops freeze** | MIN_ETH≥0.05, MIN_BORROW≥$50, gas tax&lt;5%, edge≥200bps; `CARRY_ARMED=1` (`OPS-FREEZE.md`). |
@@ -292,7 +292,7 @@ Morpho Blue (optional venue)      (no Morpho)
 
 ## 10) Sale-source Uniswap V3 (desk plumbing)
 
-Same-chain exit surfaces so inventory can clear to USDC. Dust depth until King sizes idle **R**. Not kingdom law.
+Same-chain exit surfaces so inventory can clear to USDC. Desk liquidity — not protocol law.
 
 ### Base
 
@@ -335,9 +335,7 @@ Gold yELE caps: submitted **$14M**; accept after timelock `validAt`.
 - Morpho on Scroll  
 - Treating ZK attestation as Morpho collateral  
 - Routing through retired Cake / wrong eUSD  
-- Re-locking freed RSS without proven exit  
 - Flash bridging funding gaps  
-- Optics-only 100% util flash seed without idle **R**
 
 ---
 
