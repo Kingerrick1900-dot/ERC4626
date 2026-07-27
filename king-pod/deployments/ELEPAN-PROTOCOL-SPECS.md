@@ -184,6 +184,7 @@ Morpho Blue: `0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb`
 | Allocators | Hot + Public Allocator |
 | Supply queue[0] | **ELE77** — enabled, cap **$14,000,000** |
 | Pending caps | GOLD91, GOLD77, TEN — each **$14,000,000** (accept after `validAt`) |
+| WETH idle | **LIVE** — cap **$50,000,000** enabled `2026-07-27` · tx `0x873cc2e45b4b32db14e1a82eef1fe30be364317051983abcca72767bcbf5d6a8` |
 
 **Role:** Curated USDC vault concentrating liquidity into Elepan Morpho markets (ELE @ $1 / $10, GOLD @ $10). Income fee accrues to Hot.
 
