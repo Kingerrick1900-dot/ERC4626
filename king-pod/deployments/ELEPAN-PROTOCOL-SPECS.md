@@ -5,6 +5,12 @@
 
 ---
 
+## Empire abstract (~100 words)
+
+Elepan is dual-domain sovereign credit. **Base** holds **ELE** as monetary inventory and **kXAU** as gold; **eUSD** is kingdom liability, cleared via PSM. MetaMorpho (**yELE / yRSS**) may route foreign USDC into Morpho markets—venue, not law. **Scroll** is the Elepan ruleset: gold-synced attestation gates capacity, a public USDC credit pool completes cold into Landing, and a native gold CDP mints eUSD against kXAU. Domains run in parallel. Uniswap sale sources are desk plumbing. No Morpho on Scroll. Capital discipline forbids optics-only self-seed without idle reserves. ZK upgrades the gate without changing the credit ABI.
+
+---
+
 ## 0) Thesis
 
 Elepan is a dual-domain credit stack. **ELE** is the monetary base. **eUSD** is the kingdom stable. **kXAU** is hard gold collateral that prices capacity and mint. **yELE / yRSS** are USDC MetaMorpho vaults that route liquidity into kingdom Morpho markets. Attestation (today owner-attested; Groth16-ready) sets borrow capacity. Completers cold-or-revert USDC to Landing. No self-lend mirror as payroll. No Morpho on Scroll.
