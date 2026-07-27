@@ -5,13 +5,13 @@
 
 ---
 
-## Empire abstract (~100 words)
+## Empire abstract — LIVE (~100 words)
 
-Elepan is dual-domain sovereign credit across Base and Scroll. **ELE** is the monetary base; **kXAU** is gold collateral; **eUSD** is the kingdom stable. On Base, inventory is held and optionally cleared through PSM and Morpho MetaMorpho vaults (**yELE / yRSS**) — Morpho is a foreign venue, not protocol law. On Scroll, Elepan is the ruleset: attestation gates capacity, a USDC credit pool and completer settle cold to **Landing**, and a native gold CDP mints eUSD to **Landing**. Domains operate in parallel. Uniswap pools are desk liquidity surfaces. No Morpho on Scroll. Gate attestation is ZK-upgradeable without changing the credit ABI.
+Elepan is dual-domain sovereign credit under King Errick. On Base — hot curator, Landing as liquid sink: ~98M ELE free, ~2M ELE Morpho collateral, ~$700k USDC lit in yELE via one real ELE flash-seed; Uni sale sources for ELE/GOLD; DiskFill and WETH acceptCap ready as optional Morpho rails. On Scroll — Gold CDP locks 100,001 kXAU against ~645k eUSD; ~545k eUSD cold (`0xD42A…`), 100k eUSD convert tranche on hot; dominion gate, credit, and completer live to Landing; Uni rails for kXAU/eUSD/USDC. Domains parallel. Morpho Base-only and optional. Attestation ZK-ready. Gold highlight intact. Kingdom book seeded.
 
-### External liquidity → Landing (~100 words)
+### External liquidity — Morpho venue (~100 words)
 
-External liquidity on Base routes through kingdom MetaMorpho. **yELE accepts USDC only** — ELE cannot deposit. After WETH market `acceptCap`, USDC in yELE allocates onto the WETH Morpho book; the curator path borrows against positioned collateral and settles approximately **$700k USDC to Landing** (fork-proven `699999999998`). Fourteen million ELE already sits free on hot after Morpho surface. Live fire (`FireDiskFill700k`) runs when the WETH cap is live and hot holds the USDC ask. Morpho remains an optional venue; **Landing** remains the liquid destination.
+External liquidity on Base routes through kingdom MetaMorpho. **yELE accepts USDC only** — ELE cannot deposit. One real ELE flash-seed lit **~$700k** into yELE against ~2M ELE Morpho collateral (matched supply/borrow). After WETH market `acceptCap`, DiskFill can settle USDC from hot through yELE → Morpho → **Landing** when a real USDC ask exists. Flash-seed lights the book; it is not Landing payroll. Morpho remains an optional venue; **Landing** remains the liquid destination.
 
 ---
 
