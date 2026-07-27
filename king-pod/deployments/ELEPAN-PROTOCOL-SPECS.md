@@ -9,6 +9,10 @@
 
 Elepan is dual-domain sovereign credit across Base and Scroll. **ELE** is the monetary base; **kXAU** is gold collateral; **eUSD** is the kingdom stable. On Base, inventory is held and optionally cleared through PSM and Morpho MetaMorpho vaults (**yELE / yRSS**) — Morpho is a foreign venue, not protocol law. On Scroll, Elepan is the ruleset: attestation gates capacity, a USDC credit pool and completer settle cold to **Landing**, and a native gold CDP mints eUSD to **Landing**. Domains operate in parallel. Uniswap pools are desk liquidity surfaces. No Morpho on Scroll. Gate attestation is ZK-upgradeable without changing the credit ABI.
 
+### External liquidity → Landing (~100 words)
+
+External liquidity on Base routes through kingdom MetaMorpho. **yELE accepts USDC only** — ELE cannot deposit. After WETH market `acceptCap`, USDC in yELE allocates onto the WETH Morpho book; the curator path borrows against positioned collateral and settles approximately **$700k USDC to Landing** (fork-proven `699999999998`). Fourteen million ELE already sits free on hot after Morpho surface. Live fire (`FireDiskFill700k`) runs when the WETH cap is live and hot holds the USDC ask. Morpho remains an optional venue; **Landing** remains the liquid destination.
+
 ---
 
 ## 0) Thesis
