@@ -79,4 +79,30 @@ contract DiskFillWarped is Test {
         assertGe(delta, ASK - 1e6, "700k");
         vm.stopPrank();
     }
+
+    /// @dev Path A: external USDC → yELE → ELE77 idle → live extractor borrowIdle → Landing $500k.
+    ///      No new builds. Depositor ≠ hot recycle.
+    function test_landing_500k_borrowIdle_external_deposit() public {
+        address extractor = 0x5d99EEf1954053EDc4D73ba1429E51DaC539bf58;
+        address whale = address(0xBEEF);
+        uint256 ask = 500_000e6;
+
+        // External depositor (not hot) seeds yELE → ELE77 idle.
+        deal(USDC, whale, ask);
+        vm.startPrank(whale);
+        IERC20(USDC).approve(YELE, ask);
+        IYele(YELE).deposit(ask, whale);
+        vm.stopPrank();
+
+        vm.startPrank(HOT);
+        if (!IMorpho(MORPHO).isAuthorized(HOT, extractor)) {
+            IMorpho(MORPHO).setAuthorization(extractor, true);
+        }
+        uint256 landBefore = IERC20(USDC).balanceOf(LAND);
+        CrownLeverageExtractor(payable(extractor)).borrowIdle(ask);
+        uint256 delta = IERC20(USDC).balanceOf(LAND) - landBefore;
+        console2.log("land500kDelta", delta);
+        assertGe(delta, ask - 1e6, "500k");
+        vm.stopPrank();
+    }
 }
