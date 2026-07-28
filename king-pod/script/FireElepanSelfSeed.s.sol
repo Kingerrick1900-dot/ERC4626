@@ -49,11 +49,10 @@ contract FireElepanSelfSeed is Script {
         require(vm.addr(pk) == HOT, "HOT");
 
         bool doFire = vm.envOr("FIRE_ELEPAN_SEED", uint256(0)) == 1;
-        // One real seed: $700k. Override with BORROW_USDC.
-        uint256 borrowUsdc = vm.envOr("BORROW_USDC", uint256(700_000e6));
+        // King GO: $17.5M @ 70% vs 25M ELE
+        uint256 borrowUsdc = vm.envOr("BORROW_USDC", uint256(17_500_000e6));
         require(borrowUsdc >= 700_000e6, "MIN_700K");
-        // Default coll: 2M ELE (~35% LTV at $700k) — whale eats into the book
-        uint256 elepanColl = vm.envOr("ELEPAN_COLL", uint256(2_000_000e8));
+        uint256 elepanColl = vm.envOr("ELEPAN_COLL", uint256(25_000_000e8));
         address existing = vm.envOr("SEEDER", address(0));
 
         uint256 eleBal = IERC20S(ELEPAN).balanceOf(HOT);
@@ -115,7 +114,8 @@ contract FireElepanSelfSeed is Script {
         console2.log("hotUsdc", IERC20S(USDC).balanceOf(HOT));
         if (doFire) {
             require(uint256(coll) >= elepanColl, "COLL_MISS");
-            require(IMetaMorphoS(YELE).totalAssets() >= borrowUsdc, "VAULT_MISS");
+            require(uint256(mBor) >= borrowUsdc - 1e6, "BORROW_MISS");
+            require(uint256(sup) >= borrowUsdc - 1e6, "SUPPLY_MISS");
             console2.log("ELEPAN_SELF_SEED_OK", uint256(1));
         } else {
             console2.log("ELEPAN_SELF_SEED_PREP_OK", uint256(1));

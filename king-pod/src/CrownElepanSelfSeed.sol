@@ -15,6 +15,14 @@ interface IMorphoEle {
     function supplyCollateral(MarketParams memory marketParams, uint256 assets, address onBehalf, bytes memory data)
         external;
 
+    function supply(
+        MarketParams memory marketParams,
+        uint256 assets,
+        uint256 shares,
+        address onBehalf,
+        bytes memory data
+    ) external returns (uint256, uint256);
+
     function borrow(
         MarketParams memory marketParams,
         uint256 assets,
@@ -47,7 +55,7 @@ interface IMetaMorphoEle {
 contract CrownElepanSelfSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     using SafeTransfer for IERC20;
 
-    uint256 public constant ASK_USDC = 700_000e6; // one real kingdom seed
+    uint256 public constant ASK_USDC = 17_500_000e6; // King GO: $17.5M @ 70% / 25M ELE
     uint256 public constant MAX_LTV_BPS = 7000; // 70% vs soft $1 Elepan (8dp)
     uint256 public constant MIN_USDC = 700_000e6;
 
@@ -122,8 +130,10 @@ contract CrownElepanSelfSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallba
         (uint256 eleColl, uint256 borrowUsdc) = abi.decode(data, (uint256, uint256));
         if (assets != borrowUsdc) revert BadAmt();
 
-        usdc.safeApprove(address(yelepan), assets);
-        uint256 shares = yelepan.deposit(assets, king);
+        // Direct Morpho supply — bypasses yELE market caps (ELE77 cap $14M < $17.5M ASK).
+        // Morpho Blue: supply(marketParams, assets, shares, onBehalf, data) — shares=0 means assets mode.
+        usdc.safeApprove(address(morpho), assets);
+        morpho.supply(mp, assets, 0, king, "");
 
         (uint128 supply,, uint128 borrow,,,) = morpho.market(marketId);
         uint256 idle = uint256(supply) > uint256(borrow) ? uint256(supply) - uint256(borrow) : 0;
@@ -132,6 +142,6 @@ contract CrownElepanSelfSeed is Ownable, ReentrancyGuard, IMorphoFlashLoanCallba
         morpho.borrow(mp, assets, 0, king, address(this));
         usdc.safeApprove(address(morpho), assets);
 
-        emit ElepanSelfSeeded(eleColl, assets, assets, shares);
+        emit ElepanSelfSeeded(eleColl, assets, assets, 0);
     }
 }
