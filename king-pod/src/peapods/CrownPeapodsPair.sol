@@ -18,8 +18,8 @@ contract CrownPeapodsPair {
     IERC20 public immutable lpToken;
     address public immutable king;
 
-    /// @dev Peapods: LP holds pELE + fUSDC (~2× fUSDC-leg at soft $1). 50% LTV on full LP ≈ 100% of deposited USDC.
-    uint256 public constant LTV_BPS = 5000;
+    /// @dev Peapods: LP ≈ 2× fUSDC-leg at soft $1. 50.5% covers UniV2 MINIMUM_LIQUIDITY rounding on first mint.
+    uint256 public constant LTV_BPS = 5050;
 
     mapping(address => uint256) public collateral;
     mapping(address => uint256) public debt;
