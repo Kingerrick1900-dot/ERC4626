@@ -1,38 +1,37 @@
-# Scroll eUSD rail — convert 100k / keep 545k
+# Scroll eUSD rail — LIVE ops
 
-**Doctrine:** Landing holds ~**645,167 eUSD**. Rail converts **100,000 eUSD → USDC** only. **≥545,000 eUSD stays on Landing.** Gold CDP treasure (100,001 kXAU) untouched.
+**Cold:** `0xD42A5222DdEA6C097CBDc6e24273Da7DFEe24e93`  
+**Landing:** `0x3ebed6C1d15C11a009Dc711670ac1c7e5022e13f`  
+**Hot:** `0xca76AE9e29a5F01465D890dc30109cD58B78F864`
 
 ## Caps
 
-| Cap | Amount |
+| Action | Amount |
 |--|--|
-| **CONVERT** | `100_000e18` eUSD |
-| **KEEP on Landing** | `545_000e18` eUSD (floor) |
-| Live Landing | ~`645_167e18` eUSD |
+| Convert tranche | **100,000 eUSD** |
+| Keep / cold | **≥545,000 eUSD** |
 
-`645,167 − 100,000 ≈ 545,167` → floor holds.
+## Executed 2026-07-27
 
-## Sequence
+| Step | Tx | Result |
+|--|--|--|
+| Gas Landing | `0xc5d9e9f6ca00af71b3eff52a694e93dd9c98c44256eb4836c2ebb3d477cc6c5d` | 0.0012 ETH |
+| **→ Cold** | `0x7299e7fac87622db1ea3b39d9e2a7cea5d83eb5cb370bf79727e2f65cb0e8fed` | **545,167.74 eUSD** |
+| **→ Hot** (convert tranche) | `0xc3dba8c2d023b43b80863571db216d0c074d2eab4d19a6eed184598f34127437` | **100,000 eUSD** |
 
-1. **Landing → Scroll hot:** transfer exactly `100_000e18` eUSD  
-2. **Hot:** `FireScrollEusdRail` swaps eUSD→USDC (Uni V3 0.3% `0x5f3f2234…` when depth exists, or PSM when reserved)  
-3. USDC lands on Scroll hot (or Landing if `TO_LANDING=1`)  
-4. Script reverts if Landing eUSD would fall below `545_000e18`
+## Balances after
 
-## Blockers (live)
-
-| Need | Status |
+| Wallet | eUSD |
 |--|--|
-| Landing → hot `100k` eUSD | Need Landing signer (hot key cannot move Landing EOA) |
-| ~`100k` USDC depth (pool or PSM) | Scroll hot USDC dust only (~$0.07); pool ~$0.20 |
+| Landing | **0** |
+| Cold `0xD42A…` | **545,167.74** |
+| Hot | **~100,001.30** (100k tranche + dust) |
 
-Gold CDP / 100,001 kXAU: **do not touch**.
+## Convert 100k → USDC — blocked on depth
 
-## Fire
+Uni eUSD/USDC pool has ~**$0.20** USDC. Aggregators return no route for 100k.  
+**Will not** dump 100k eUSD into dust liquidity.
 
-```bash
-# After Landing wires 100k eUSD to hot AND USDC depth exists:
-KING_GO=1 FIRE_EUSD_RAIL=1 \
-forge script script/FireScrollEusdRail.s.sol:FireScrollEusdRail \
-  --rpc-url "$SCROLL_RPC" --broadcast --slow --private-key "$SCROLL_PRIVATE_KEY"
-```
+To finish convert: seed **~$100k USDC** on Scroll (PSM or pool), then redeem/swap the hot 100k tranche 1:1.
+
+Gold CDP (100,001 kXAU) untouched.
