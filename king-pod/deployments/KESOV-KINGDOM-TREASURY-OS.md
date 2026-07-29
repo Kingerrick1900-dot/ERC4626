@@ -51,7 +51,7 @@ Shared Base eUSD (multi-minter): `0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a`.
 |------|-------|--------|-----|
 | **Gold Parity PSM** | Scroll | LIVE | Depth still dust — capitalize before public force-to-$1 |
 | **eUSD Link** Base↔Scroll | Both | LIVE | Bridge into Scroll redeem |
-| **Base USDC PSM** | Base | **IN FLIGHT** | Maker mint/redeem (`CrownBaseUsdcPsm`) — see `BASE-USDC-PSM.md` |
+| **Base USDC PSM** | Base | **LIVE** | `0xfFEd…4977` Maker mint/redeem — WIRE seed ≈$0.14; capitalize before CDP scale |
 
 Gold redeem stays **Scroll-native**. Base holds the link leg today.
 
