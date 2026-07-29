@@ -51,7 +51,7 @@ Shared Base eUSD (multi-minter): `0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a`.
 |------|-------|--------|-----|
 | **Gold Parity PSM** | Scroll | LIVE | Depth still dust — capitalize before public force-to-$1 |
 | **eUSD Link** Base↔Scroll | Both | LIVE | Bridge into Scroll redeem |
-| **Base USDC PSM** | Base | **MISSING** | Hard USDC exit on Base without Scroll hop |
+| **Base USDC PSM** | Base | **IN FLIGHT** | Maker mint/redeem (`CrownBaseUsdcPsm`) — see `BASE-USDC-PSM.md` |
 
 Gold redeem stays **Scroll-native**. Base holds the link leg today.
 
@@ -74,9 +74,9 @@ eUSD is bigger than ELE when:
 
 ## Build order (King-gated fire only)
 
-1. **Capitalize Scroll Gold PSM** — real USDC + free kXAU (not CDP gold).  
-2. **Keeper buy-bridge-redeem** — Base discount → link → Scroll `redeemUsdc` / `redeemKxau`.  
-3. **Base USDC PSM** — same doctrine, home-chain exit.  
+1. **Base USDC PSM** — deploy Maker mint/redeem + `setMinter` (home-chain peg).  
+2. **Seed Base PSM USDC** — capitalize peg floor before scaling external CDP debt.  
+3. **Capitalize Scroll Gold PSM** — real USDC + free kXAU (not CDP gold).  
 4. **Scale WETH/cbBTC CDPs** — mint eUSD against external coll; ELE share of float falls.  
 5. **Morpho** — draw / PA only when idle exists; never confuse borrow headroom with PSM depth.
 
