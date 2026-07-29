@@ -1,0 +1,23 @@
+{
+  "title": "Phase 2 — Cake address locked + create-order dry-run",
+  "ranAt": "2026-07-16T02:26Z",
+  "cakeShielded": "u1gc8zvzwhcszmyya0tvpjnq56k9uvtvxy4nvty30ae7hvf21p30kwiq3wf37fmqn9vjx9z0ky0xn5ny6tqx863kxc0k4d3j0n658dgdk4",
+  "addressClass": "u1 shielded — correct for Cake privacy rail",
+  "quotesStillLive": {
+    "ChangeNOW": {"100_USDC": 0.1748288, "1000_USDC": 1.7431271, "10000_USDC": 17.4290865, "etaMin": "10-60"},
+    "N.exchange": {"pair": "USDCBASEZEC", "minUsdc": 43.78096101, "maxUsdc": 414366.66}
+  },
+  "createOrderFromCloudRunner": {
+    "ChangeNOW": "Unauthorized — API key required for create",
+    "N.exchange": "blocked — User IP has risk (cloud agent IP)",
+    "SideShift/SimpleSwap/Exolix/Trocador": "API key or pair unavailable"
+  },
+  "bulletproofCreatePath": "King creates order FROM CAKE BUILT-IN EXCHANGE or browser on his machine (not cloud IP). Receive = this u1 address. Asset from = USDC Base. Probe first >= provider min (~44 USDC on N.exchange / ~0.4 on ChangeNOW).",
+  "noFundsSent": true,
+  "nextOnGo": [
+    "Phase 1 elite close confirm",
+    "King opens Cake Exchange → USDC (Base) → ZEC shielded (this u1)",
+    "PROBE tranche → wait ZEC credit in Cake",
+    "Full size"
+  ]
+}
