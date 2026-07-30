@@ -8,6 +8,25 @@ eUSD **exits to USDC** through a PSM.
 
 That is how eUSD stops being “Elepan’s internal dollar” and becomes an overcollateralized stable that can survive outside the empire.
 
+## Mainnet Activation (`feat/seed-liquidity`)
+
+One PR. Two scripts. Two commands.
+
+| Layer | Status |
+|-------|--------|
+| L1 eUSD/WETH Pool | Script ready — fire when `EUSD_L1` + 50k eUSD + 15 WETH on hot |
+| Base USDC PSM | LIVE WIRE (~$0.14) — $25k capitalize script ready (`scripts/seedBasePsm.ts`) |
+
+```bash
+# Step 1: Seed L1 (needs EUSD_L1 + inventory)
+EUSD_L1=0x… npx hardhat run scripts/seedEthPool.ts --network mainnet
+
+# Step 2: Capitalize Base PSM ($25k USDC on hot)
+npx hardhat run scripts/seedBasePsm.ts --network base
+```
+
+After both fires clear, flip this table to ✅ Seeded / ✅ Capitalized.
+
 ```
 [ ELE | kXAU | WETH | cbBTC ]
             │  mint (CDP)
