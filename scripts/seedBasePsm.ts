@@ -1,21 +1,21 @@
 import { ethers } from "hardhat";
 
 /**
- * Script 2 — Capitalize Base USDC PSM (Maker mint leg).
+ * Base Maker PSM — dust capitalize (micro preflight).
  *
  * Live PSM: 0xfFEd7981f924Edc652E9b767aCa601505dfa4977
- * mint(usdc, to) pulls USDC into reserve and mints eUSD 1:1.
+ * Doctrine: keep $990k+ eUSD float; only dust USDC into PSM for contract/preflight green.
  *
  * Env:
- *   PRIVATE_KEY   — Base hot (PSM owner / USDC holder)
- *   BASE_RPC      — Base RPC
- *   PSM           — override PSM address
- *   USDC_AMOUNT   — default 25000 (6dp human units)
- *   MODE          — "mint" (default, King script) | "seed" (seedUsdc only, no eUSD mint)
+ *   PRIVATE_KEY / BASE_RPC
+ *   PSM           — default live Maker PSM
+ *   USDC_AMOUNT   — default 1 (human $1) dust; was 25000
+ *   MODE          — seed (default dust) | mint
+ *   SKIP_IF_RESERVED — if 1 and reserve>0, no-op success (already WIRE-seeded)
  */
 async function main() {
   const [deployer] = await ethers.getSigners();
-  console.log("Capitalizing Base PSM:", deployer.address);
+  console.log("Base PSM dust capitalize:", deployer.address);
 
   const net = await ethers.provider.getNetwork();
   if (Number(net.chainId) !== 8453) {
@@ -24,36 +24,43 @@ async function main() {
 
   const PSM = process.env.PSM || "0xfFEd7981f924Edc652E9b767aCa601505dfa4977";
   const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-  const mode = (process.env.MODE || "mint").toLowerCase();
+  const mode = (process.env.MODE || "seed").toLowerCase();
 
   const amount = process.env.USDC_AMOUNT
     ? ethers.parseUnits(process.env.USDC_AMOUNT, 6)
-    : ethers.parseUnits("25000", 6);
+    : ethers.parseUnits("1", 6); // $1 dust default
 
   const usdc = await ethers.getContractAt("IERC20", USDC);
   const psm = await ethers.getContractAt("IPSMModule", PSM);
 
+  const reserveBefore = await psm.usdcReserve();
+  console.log("psmReserveBefore", reserveBefore.toString());
+
+  if (process.env.SKIP_IF_RESERVED === "1" && reserveBefore > 0n) {
+    console.log("✅ Base PSM already has reserve — skip dust. Reserve:", reserveBefore.toString());
+    return;
+  }
+
   const bal = await usdc.balanceOf(deployer.address);
   console.log("hotUsdc", bal.toString());
-  console.log("psmReserveBefore", (await psm.usdcReserve()).toString());
   if (bal < amount) {
     throw new Error(
-      `Need ${amount} USDC (6dp) to capitalize, have ${bal}. Fund hot, then re-run.`
+      `Need ${amount} USDC dust (6dp), have ${bal}. PSM may already be WIRE-seeded — set SKIP_IF_RESERVED=1.`
     );
   }
 
   await (await usdc.approve(PSM, amount)).wait();
 
   let tx;
-  if (mode === "seed") {
-    tx = await psm.seedUsdc(amount);
-  } else {
+  if (mode === "mint") {
     tx = await psm.mint(amount, deployer.address);
+  } else {
+    tx = await psm.seedUsdc(amount);
   }
   const receipt = await tx.wait();
 
   console.log("psmReserveAfter", (await psm.usdcReserve()).toString());
-  console.log("✅ Base PSM capitalized. Tx:", receipt?.hash ?? tx.hash);
+  console.log("✅ Base PSM dust capitalized. Tx:", receipt?.hash ?? tx.hash);
 }
 
 main().catch((e) => {

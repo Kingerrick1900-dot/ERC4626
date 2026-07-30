@@ -10,22 +10,21 @@ That is how eUSD stops being “Elepan’s internal dollar” and becomes an ove
 
 ## Mainnet Activation (`feat/seed-liquidity`)
 
-One PR. Two scripts. Two commands.
+Concentrated micro-seed — not fat TVL. Tight ticks ≈ **0.999–1.001** snap the $1 display.
 
 | Layer | Status |
 |-------|--------|
-| L1 eUSD/WETH Pool | Script ready — fire when `EUSD_L1` + 50k eUSD + 15 WETH on hot |
-| Base USDC PSM | LIVE WIRE (~$0.14) — $25k capitalize script ready (`scripts/seedBasePsm.ts`) |
+| Peg pool (Base eUSD/USDC) | Micro-seed script ready — **$500–$1k** + matching USDC · keep ≥**$899k** eUSD float |
+| Base USDC PSM | ✅ WIRE dust live (`0xfFEd…4977`) — `SKIP_IF_RESERVED=1` |
+| Treasury float | ✅ **900k eUSD** on hot (1M machine) |
 
 ```bash
-# Step 1: Seed L1 (needs EUSD_L1 + inventory)
-EUSD_L1=0x… npx hardhat run scripts/seedEthPool.ts --network mainnet
+# Step 1: Micro-seed Base peg pool ($1000 default, reserve floor 990k)
+npx hardhat run scripts/seedEthPool.ts --network base
 
-# Step 2: Capitalize Base PSM ($25k USDC on hot)
-npx hardhat run scripts/seedBasePsm.ts --network base
+# Step 2: PSM dust (no-op if already reserved)
+SKIP_IF_RESERVED=1 npx hardhat run scripts/seedBasePsm.ts --network base
 ```
-
-After both fires clear, flip this table to ✅ Seeded / ✅ Capitalized.
 
 ```
 [ ELE | kXAU | WETH | cbBTC ]

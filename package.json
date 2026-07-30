@@ -5,6 +5,7 @@
   "description": "KESOV Mainnet Activation — L1 eUSD/WETH pool seed + Base PSM capitalize",
   "scripts": {
     "seed:l1": "hardhat run scripts/seedEthPool.ts --network mainnet",
+    "seed:pool": "hardhat run scripts/seedEthPool.ts --network base",
     "seed:psm": "hardhat run scripts/seedBasePsm.ts --network base",
     "compile": "hardhat compile"
   },

@@ -1,38 +1,49 @@
-# feat/seed-liquidity — KESOV Mainnet Activation
+# feat/seed-liquidity — Micro-Seed Calibration
 
-**PR:** one package · **Scripts:** two · **Commands:** two
+**PR:** `#78` · **Doctrine:** concentrated liquidity snaps $1 — not fat TVL.
 
-| Script | Network | Job |
-|--------|---------|-----|
-| `scripts/seedEthPool.ts` | Ethereum | Seed L1 eUSD/WETH Uni V3 (50k / 15, fee 500, full range) |
-| `scripts/seedBasePsm.ts` | Base | Capitalize Maker PSM via `mint` ($25k USDC → reserve + eUSD) |
+## Why micro works
 
-## Live anchors
+Uniswap V3 tight band (≈ **0.999–1.001**) around the peg gives **2,000×–4,000×** capital efficiency vs full-range.  
+**$500–$1,000** eUSD/USDC in that band ≈ multi-million Uniswap V2 depth **at $1.00**.
 
-| Piece | Address |
-|-------|---------|
-| Base PSM | `0xfFEd7981f924Edc652E9b767aCa601505dfa4977` |
-| Base USDC | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
-| L1 WETH | `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2` |
-| L1 NPM | `0xC36442b4a4522E871399CD717aBDD847Ab11FE88` |
-| L1 eUSD | **set `EUSD_L1`** — Base eUSD is not on Ethereum |
+## Minimal preflight
 
-## Run
+| Leg | Target |
+|-----|--------|
+| Treasury float | **≥ $990k eUSD** on hot (after 1M machine) |
+| Pool micro-seed | **$500–$1,000** eUSD + matching USDC · tight ticks |
+| Base Maker PSM | **Dust USDC** already WIRE-seeded on `0xfFEd…4977` |
+
+## Scripts
 
 ```bash
 npm install
 
-# Step 1: Seed L1
-EUSD_L1=0x… npx hardhat run scripts/seedEthPool.ts --network mainnet
+# Step 1 — Micro-seed Base eUSD/USDC at $1 (default $1000, ±0.1% ticks)
+# Requires matching USDC on hot. RESERVE_FLOOR keeps ≥990k eUSD.
+npx hardhat run scripts/seedEthPool.ts --network base
 
-# Step 2: Capitalize PSM
-npx hardhat run scripts/seedBasePsm.ts --network base
+# Step 2 — PSM dust (no-op if already reserved)
+SKIP_IF_RESERVED=1 npx hardhat run scripts/seedBasePsm.ts --network base
 ```
 
-Optional: `USDC_AMOUNT=25000` · `MODE=seed` (seedUsdc only) · `EUSD_AMOUNT` / `WETH_AMOUNT`.
+### Env knobs
 
-## Preflight (honest)
+| Var | Default | Notes |
+|-----|---------|-------|
+| `EUSD_AMOUNT` | `1000` | Cap **1000** (micro max) |
+| `USDC_AMOUNT` | = eUSD | 6dp match |
+| `PAIR` | `USDC` | true $1 peg snap (prefer over WETH) |
+| `FEE` | `500` | 0.05% |
+| `TICK_WIDTH` | `10` | ≈ ±0.1% |
+| `RESERVE_FLOOR` | `899000` | post-1M hot holds 900k; refuses seed if float would breach |
+| `SKIP_IF_RESERVED` | — | PSM skip when reserve > 0 |
 
-- Hot Base USDC is dust after WIRE seed — fund **$25k** before Step 2.
-- L1 eUSD must exist and be funded (50k eUSD + 15 WETH) before Step 1.
-- Scripts exit loud if balances are short — no silent partial fire.
+## Status
+
+| Layer | Status |
+|-------|--------|
+| Treasury float | ✅ **900k eUSD** on hot — micro ≤$1k keeps ≥**$899k** |
+| Peg pool (Base eUSD/USDC) | Micro-seed script ready — fire when hot holds **$500–$1k USDC** match |
+| Base USDC PSM | ✅ WIRE dust live (`0xfFEd…4977`) |
