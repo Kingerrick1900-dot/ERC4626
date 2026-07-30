@@ -143,3 +143,14 @@ Set A room @77% ≈ **$78k** but idle ≈ **$1** → cannot draw without new USD
 Flash-atomic `transfer(Landing, X)` always shorts flash repay by `X`.  
 **Net free USDC on Landing** needs durable USDC (yRSS deposit / treasury) or a non-flash temporary credit equal to `X`.  
 Maker PSM still **$0.31** from earlier dust seed.
+
+---
+
+## Extractor Landing fire (follow-on)
+
+DeepSeek / CrownLeverageExtractor path executed live — see `EXTRACTOR-LANDING-FIRE.md`.
+
+- Landing USDC: **3 → 945,003** ($0.945)
+- Tools: live extractor PA yRSS→ELE77 + Morpho WETH/cbBTC dust borrow → Landing
+- Set B: **6.5M ELE** free coll withdrawn to hot (LLTV headroom)
+- Scale still gated on sized WETH/cbBTC inventory or yELE disk — rail proven
