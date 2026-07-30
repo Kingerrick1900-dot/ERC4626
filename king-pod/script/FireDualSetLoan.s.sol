@@ -3,10 +3,9 @@ pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
 
-/// @notice Dual-set loan: liberate Set B USDC → seed Set A → borrow Set A → Landing/PSM.
-/// @dev Docs: deployments/DUAL-SET-LOAN-PLAN.md
-///      KING_GO=1 ROUTE=1|2|3 X=<usdc 6dp> forge script ... --broadcast
-///      FROZEN by default (reverts without KING_GO=1).
+/// @notice Dual-set loan: liberate Set B USDC → seed Set A → borrow Set A.
+/// @dev Morpho flashLoan callbacks msg.sender — receiver must initiate the flash.
+///      KING_GO=1 ROUTE=1|2|3 X=<usdc6> forge script ... --broadcast
 
 interface IERC20D {
     function balanceOf(address) external view returns (uint256);
@@ -48,20 +47,15 @@ interface IMorphoD {
         view
         returns (uint128, uint128, uint128, uint128, uint128, uint128);
 
-    function position(bytes32, address) external view returns (uint256, uint128, uint128);
-}
-
-interface IOtcUnstock {
-    // selector 0xf644448f — owner unstock(uint256 amount, address to); verified live
-    function f644448f(uint256 amount, address to) external;
+    function setAuthorization(address authorized, bool newIsAuthorized) external;
 }
 
 interface IPsmSeed {
     function seedUsdc(uint256 amount) external;
 }
 
-/// @dev Morpho flash callback target — must be the contract Morpho calls back.
-contract DualSetFlashReceiver {
+/// @dev Initiates Morpho flashLoan so callback lands here (not on the EOA).
+contract DualSetExecutor {
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant ELE = 0x50639C42E2FFDEC4F68FB468968a55b3Af944583;
@@ -70,87 +64,85 @@ contract DualSetFlashReceiver {
     address constant ORACLE_A = 0x284EC3A9674e6C62ea552Bf75BDeE9B799627D2e;
     address constant IRM = 0x46415998764C29aB2a25CbeA6254146D50D22687;
     uint256 constant LLTV = 770000000000000000;
-    address constant OTC = 0x683886A3911323e92A6C764c3331CAC168D0029E;
     address constant LAND = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
     address constant PSM = 0xfFEd7981f924Edc652E9b767aCa601505dfa4977;
 
     address public immutable king;
     uint256 public lastBorrowedA;
 
+    error OnlyKing();
+    error OnlyMorpho();
+
     constructor(address king_) {
         king = king_;
     }
 
-    /// @notice Morpho flash callback. `data` = abi.encode(uint8 route, uint256 x, uint256 rss18Coll)
+    /// @notice King-gated fire. Prefund this contract with rss18Coll before calling.
+    function fire(uint8 route, uint256 x, uint256 rss18Coll) external {
+        if (msg.sender != king) revert OnlyKing();
+        IMorphoD(MORPHO).flashLoan(USDC, x, abi.encode(route, x, rss18Coll));
+    }
+
     function onMorphoFlashLoan(uint256 assets, bytes calldata data) external {
-        require(msg.sender == MORPHO, "only Morpho");
+        if (msg.sender != MORPHO) revert OnlyMorpho();
         (uint8 route, uint256 x, uint256 rss18Coll) = abi.decode(data, (uint8, uint256, uint256));
         require(assets == x, "amt");
 
         IMorphoD.MarketParams memory setB = IMorphoD.MarketParams(USDC, ELE, ORACLE_B, IRM, LLTV);
         IMorphoD.MarketParams memory setA = IMorphoD.MarketParams(USDC, RSS18, ORACLE_A, IRM, LLTV);
 
-        // Phase 0: repay Set B + withdraw supply → free USDC on this contract
+        // Phase 0: flash USDC is on THIS contract. Repay king's Set B debt, withdraw king's supply here.
         IERC20D(USDC).approve(MORPHO, x);
         IMorphoD(MORPHO).repay(setB, x, 0, king, "");
         IMorphoD(MORPHO).withdraw(setB, x, 0, king, address(this));
 
-        if (route == 1) {
-            // MIGRATE B→A: seed Set A, borrow X, leave USDC here to repay flash
-            _unstockAndPostA(setA, rss18Coll);
-            IERC20D(USDC).approve(MORPHO, x);
-            IMorphoD(MORPHO).supply(setA, x, 0, address(this), "");
-            // authorize king? borrow onBehalf this contract
-            (uint256 borrowed,) = IMorphoD(MORPHO).borrow(setA, x, 0, address(this), address(this));
-            lastBorrowedA = borrowed;
-        } else if (route == 2) {
-            // ELEPAN: send freed USDC to Landing + seed PSM; flash repay MUST be pre-funded
-            // For atomic flash safety: supply/borrow Set A to refill repay, send only surplus=0
-            // True Route 2 without circularity needs external X (see plan). Here: PSM seed dust path
-            // after migrating like route 1, then push borrowed to Landing — flash still repaid from borrow.
-            _unstockAndPostA(setA, rss18Coll);
-            IERC20D(USDC).approve(MORPHO, x);
-            IMorphoD(MORPHO).supply(setA, x, 0, address(this), "");
-            (uint256 borrowed,) = IMorphoD(MORPHO).borrow(setA, x, 0, address(this), address(this));
-            lastBorrowedA = borrowed;
-            // Move to Landing then pull back for flash repay would fail — keep for repay.
-            // Post-flash, king pulls from this contract / Set A borrow receiver was this.
-        } else {
-            revert("ROUTE");
-        }
-
-        // Morpho pulls flash repayment via transferFrom(this)
-        IERC20D(USDC).approve(MORPHO, x);
-    }
-
-    function _unstockAndPostA(IMorphoD.MarketParams memory setA, uint256 rss18Coll) internal {
-        if (rss18Coll > 0) {
-            // OTC unstock to this receiver (king must have approved/ownership — OTC owner is king;
-            // unstock must be called by king. For flash callback we expect coll already on this or king.
-            // Safer: script pre-unstocks to king, king transfers coll in before flash.
-        }
+        // Post Set A coll (prefunded)
         uint256 bal = IERC20D(RSS18).balanceOf(address(this));
         require(bal >= rss18Coll && rss18Coll > 0, "RSS18 coll");
         IERC20D(RSS18).approve(MORPHO, rss18Coll);
         IMorphoD(MORPHO).supplyCollateral(setA, rss18Coll, address(this), "");
+
+        // Seed Set A idle + borrow against Set A
+        IERC20D(USDC).approve(MORPHO, x);
+        IMorphoD(MORPHO).supply(setA, x, 0, address(this), "");
+        (uint256 borrowed,) = IMorphoD(MORPHO).borrow(setA, x, 0, address(this), address(this));
+        lastBorrowedA = borrowed;
+
+        if (route == 2) {
+            // Push to Landing then seed PSM — but must keep `x` for flash repay.
+            // Route 2 atomic: migrate like route 1; king pulls post-tx via pullUsdc after
+            // separate non-flash funding. Keep USDC here for repay.
+        }
+
+        // Morpho pulls flash repayment via transferFrom(this, morpho, x)
+        IERC20D(USDC).approve(MORPHO, x);
     }
 
     function pullUsdc(address to, uint256 amt) external {
-        require(msg.sender == king, "king");
+        if (msg.sender != king) revert OnlyKing();
         IERC20D(USDC).transfer(to, amt);
     }
 
+    function pullRss18(address to, uint256 amt) external {
+        if (msg.sender != king) revert OnlyKing();
+        IERC20D(RSS18).transfer(to, amt);
+    }
+
     function seedPsm(uint256 amt) external {
-        require(msg.sender == king, "king");
+        if (msg.sender != king) revert OnlyKing();
         IERC20D(USDC).approve(PSM, amt);
         IPsmSeed(PSM).seedUsdc(amt);
+    }
+
+    function toLanding(uint256 amt) external {
+        if (msg.sender != king) revert OnlyKing();
+        IERC20D(USDC).transfer(LAND, amt);
     }
 }
 
 contract FireDualSetLoan is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
-    address constant ELE = 0x50639C42E2FFDEC4F68FB468968a55b3Af944583;
     address constant RSS18 = 0x7a305D07B537359cf468eAea9bb176E5308bC337;
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
     address constant OTC = 0x683886A3911323e92A6C764c3331CAC168D0029E;
@@ -162,7 +154,8 @@ contract FireDualSetLoan is Script {
     function run() external {
         require(vm.envOr("KING_GO", uint256(0)) == 1, "FROZEN: need KING_GO=1");
         uint256 route = vm.envOr("ROUTE", uint256(1));
-        uint256 x = vm.envOr("X", uint256(700_000e6));
+        // Default $500k — fits 700k OTC RSS18 @ 77% with buffer
+        uint256 x = vm.envOr("X", uint256(500_000e6));
         require(route == 1 || route == 2 || route == 3, "ROUTE");
 
         uint256 pk = vm.envUint("PRIVATE_KEY");
@@ -179,12 +172,9 @@ contract FireDualSetLoan is Script {
         vm.startBroadcast(pk);
 
         if (route == 3) {
-            // Dust: borrow existing Set A idle to Landing (unstock dust coll if needed)
             uint256 idleA = uint256(sA) > uint256(bA) ? uint256(sA) - uint256(bA) : 0;
             require(idleA > 0, "no SetA idle");
-            uint256 collNeed = (idleA * 1e12) / 77 * 100 / 100; // rough 18dp RSS @ $1, 77% — override via RSS18_COLL
-            collNeed = vm.envOr("RSS18_COLL", (idleA * 1e12) * 100 / 77); // USDC6 → RSS18: *1e12 at $1
-            // unstock from OTC to hot
+            uint256 collNeed = vm.envOr("RSS18_COLL", (idleA * 1e12) * 100 / 77);
             (bool ok,) = OTC.call(abi.encodeWithSelector(0xf644448f, collNeed, HOT));
             require(ok, "unstock");
             IMorphoD.MarketParams memory setA = IMorphoD.MarketParams(
@@ -198,30 +188,33 @@ contract FireDualSetLoan is Script {
             return;
         }
 
-        // RSS18 coll for X at $1 and 77% LLTV with 5% buffer
-        uint256 rss18Coll = vm.envOr("RSS18_COLL", (x * 1e12) * 105 / 77);
+        // Full OTC bag as Set A coll (700k RSS18 covers ~$539k at 77%; X default 500k)
+        uint256 rss18Coll = vm.envOr("RSS18_COLL", uint256(700_000 ether));
         console2.log("RSS18 coll", rss18Coll);
 
-        // Pre-unstock RSS18 to hot, then fund receiver
-        {
-            (bool ok,) = OTC.call(abi.encodeWithSelector(0xf644448f, rss18Coll, HOT));
-            require(ok, "unstock OTC");
-        }
+        (bool okUnstock,) = OTC.call(abi.encodeWithSelector(0xf644448f, rss18Coll, HOT));
+        require(okUnstock, "unstock OTC");
 
-        DualSetFlashReceiver recv = new DualSetFlashReceiver(HOT);
-        IERC20D(RSS18).transfer(address(recv), rss18Coll);
+        DualSetExecutor exec = new DualSetExecutor(HOT);
+        require(IERC20D(RSS18).transfer(address(exec), rss18Coll), "fund exec");
 
-        // King must authorize receiver to repay/withdraw on behalf of king for Set B
-        // Morpho authorization
-        (bool authOk,) = MORPHO.call(abi.encodeWithSignature("setAuthorization(address,bool)", address(recv), true));
-        require(authOk, "auth");
+        // Authorize executor to repay/withdraw Set B on behalf of king
+        IMorphoD(MORPHO).setAuthorization(address(exec), true);
 
-        IMorphoD(MORPHO).flashLoan(USDC, x, abi.encode(uint8(route), x, rss18Coll));
+        DualSetExecutor(exec).fire(uint8(route), x, rss18Coll);
 
-        console2.log("recv USDC", IERC20D(USDC).balanceOf(address(recv)));
+        console2.log("exec USDC", IERC20D(USDC).balanceOf(address(exec)));
         console2.log("Landing USDC", IERC20D(USDC).balanceOf(LAND));
         console2.log("PSM USDC", IERC20D(USDC).balanceOf(PSM));
-        console2.log("lastBorrowedA", recv.lastBorrowedA());
+        console2.log("lastBorrowedA", exec.lastBorrowedA());
+        console2.log("exec", address(exec));
+
+        // Route 2: after successful migrate, nothing left on exec (flash repaid).
+        // Optional: seed PSM from Landing if route 3 style dust exists.
+        if (route == 2) {
+            uint256 landBal = IERC20D(USDC).balanceOf(LAND);
+            console2.log("route2 landing", landBal);
+        }
 
         vm.stopBroadcast();
     }
