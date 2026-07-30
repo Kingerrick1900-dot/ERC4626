@@ -118,3 +118,28 @@ Phase 0 liberates Set B’s locked supply. Seeding Set A with that USDC opens th
 **Elepan wins when free USDC hits Landing/PSM** (Route 2). Route 1 prepares the second rail; Route 3 is dust proof.
 
 **Awaiting King command:** `ROUTE` + `X` + `KING_GO=1` to broadcast.
+
+---
+
+## Live fires (Base)
+
+### Route 1 — `0x164aebf3…817ac`
+- Liberated **$500k** Set B → Set A
+- Executor `0xbF4F2939…7Cb6` · OTC 700k RSS18 coll
+
+### Route 2 — `0x34f6d5ce…094373` (KING_GO ROUTE=2 X=500k)
+- Unstock MULTI 700k RSS18 `0xf006f7a7…612e`
+- Second **$500k** B→A migrate
+
+### Post–Route 2 book
+| Book | Supply | Borrow | Coll |
+|---|---|---|---|
+| Set B ELE | ~$16.51M | ~$16.51M | ~28M ELE (hot) |
+| Set A RSS18 | ~$1,000,001 | ~$1,000,000 | **1.4M RSS18** on exec |
+
+Set A room @77% ≈ **$78k** but idle ≈ **$1** → cannot draw without new USDC supply.
+
+### Route 2 / Elepan cash constraint
+Flash-atomic `transfer(Landing, X)` always shorts flash repay by `X`.  
+**Net free USDC on Landing** needs durable USDC (yRSS deposit / treasury) or a non-flash temporary credit equal to `X`.  
+Maker PSM still **$0.31** from earlier dust seed.
