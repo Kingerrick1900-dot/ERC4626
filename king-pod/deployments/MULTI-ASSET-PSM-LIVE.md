@@ -12,10 +12,23 @@
 |--|--|
 | Contract | `CrownMultiAssetPsm` |
 | Chain | Base (8453) |
-| Address | _pending deploy — see Fire log / update after broadcast_ |
+| Address | [`0xF7337A26d9456e42a36531A12036A4556EF1F987`](https://basescan.org/address/0xF7337A26d9456e42a36531A12036A4556EF1F987) |
 | eUSD | `0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a` |
 | Landing | `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
 | Owner | King hot `0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1` |
+| Deploy tx | [`0xd240e0e3…cea46a`](https://basescan.org/tx/0xd240e0e35cfd0024e4fa4a78f3a8adafa78ebe4b9f8b57bf3ed672951fcea46a) |
+
+### Live quotes (1 eUSD → asset, verified post-deploy)
+
+| Asset | Out |
+|--|--|
+| USDC | ~1.000234 |
+| USDT | ~1.001151 |
+| DAI | ~1.00024 |
+| WETH | ~0.00053 (~$1 / ETH feed) |
+| EURC | ~0.868478 |
+
+Reserves: empty until seeded (hot had 0 of each token at deploy).
 
 ---
 
