@@ -1,3 +1,9 @@
 lib/
 out/
 cache/
+zk/node_modules/
+zk/build/*.ptau
+zk/build/*_0000.zkey
+zk/build/*_0001.zkey
+zk/proofs/*.wtns
+zk/proofs/_*.txt
