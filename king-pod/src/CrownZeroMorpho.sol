@@ -75,8 +75,8 @@ contract CrownZeroMorpho is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
 
         if (bor > 0) {
             (,, uint128 tba, uint128 tbs,,) = morpho.market(marketId);
-            uint256 flashAmt = (uint256(tba) * uint256(bor) + uint256(tbs) - 1) / uint256(tbs);
-            flashAmt += 10e6; // $10 buffer; yRSS ~$301 covers
+            uint256             flashAmt = (uint256(tba) * uint256(bor) + uint256(tbs) - 1) / uint256(tbs);
+            flashAmt += 1e6; // $1 buffer — vault redeem covers matched books
             _locking = true;
             morpho.flashLoan(address(usdc), flashAmt, abi.encode(uint256(bor), uint256(coll)));
             _locking = false;
@@ -100,21 +100,23 @@ contract CrownZeroMorpho is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         if (borShares > 0) morpho.repay(mp, 0, borShares, king, "");
         if (coll > 0) morpho.withdrawCollateral(mp, coll, king, king);
 
+        // Pull full vault liquidity (matched self-seed: USDC sits in vault, not Morpho supplyShares).
+        uint256 maxR = yrss.maxRedeem(king);
+        if (maxR > 0) {
+            yrss.redeem(maxR, address(this), king);
+        }
         uint256 have = usdc.balanceOf(address(this));
         if (have < assets) {
-            uint256 need = assets - have;
             uint256 maxW = yrss.maxWithdraw(king);
-            uint256 pull = maxW < need ? maxW : need;
-            if (pull > 0) yrss.withdraw(pull, address(this), king);
-            // also use king's wallet USDC if approved
+            if (maxW > 0) yrss.withdraw(maxW, address(this), king);
             have = usdc.balanceOf(address(this));
-            if (have < assets) {
-                uint256 still = assets - have;
-                uint256 kingBal = usdc.balanceOf(king);
-                uint256 take = kingBal < still ? kingBal : still;
-                if (take > 0) usdc.safeTransferFrom(king, address(this), take);
-                have = usdc.balanceOf(address(this));
-            }
+        }
+        if (have < assets) {
+            uint256 still = assets - have;
+            uint256 kingBal = usdc.balanceOf(king);
+            uint256 take = kingBal < still ? kingBal : still;
+            if (take > 0) usdc.safeTransferFrom(king, address(this), take);
+            have = usdc.balanceOf(address(this));
         }
         if (have < assets) revert Short();
         usdc.approve(address(morpho), assets);
