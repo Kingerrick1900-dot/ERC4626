@@ -130,3 +130,9 @@ version.py
 
 # IDEs stuff
 .vscode
+
+# Hardhat seed-liquidity
+node_modules/
+artifacts-hardhat/
+cache-hardhat/
+dist-hardhat/
