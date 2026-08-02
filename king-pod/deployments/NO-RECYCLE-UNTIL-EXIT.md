@@ -25,14 +25,20 @@ Landing wallet (preferred liquid destination): `0x5Adcea5319eA9Eac1241B95Ca53690
 
 ## Forbidden scripts until King lifts freeze
 
-- `FireSelfSeedNine.s.sol`
+- `FireSelfSeedNine.s.sol` (legacy — use Comfort Throne instead)
 - `FirePositionSeed700k.s.sol`
-- `CrownSelfSeedNine`
+- `CrownSelfSeedNine` (legacy)
 - Any carry/scaler that re-locks King RSS
 - `DeployKingVaultV2.s.sol` **broadcast** (requires King `LIVE_ARMED=1`)
+
+## Lift path (King ordered comfort seat)
+
+See `COMFORT-THRONE.md` — `FireComfortThrone.s.sol` behind **`KING_GO=1`**.
+Keeps free RSS + stables out of the loop; folds dust; arms pay rail.
 
 ## Exit bar (minimum)
 
 **Vault V2 access (fork):** PASS — see `VAULT-V2-FORK-PASS.md` (`forceDeallocate` ×2 at ~100% util).
 
 Before any re-lock: live V2 must be deployed **only after King green light**, then a live-proven unwind back to landing. No story charts.
+Comfort fire still requires explicit `KING_GO=1`.
