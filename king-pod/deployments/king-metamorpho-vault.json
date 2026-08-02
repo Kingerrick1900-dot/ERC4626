@@ -8,7 +8,7 @@
   "owner": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
   "curator": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
   "allocator": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
-  "feeRecipient": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "feeRecipient": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
   "managementFee": "0%",
   "performanceFee": "10%",
   "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
