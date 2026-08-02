@@ -1,0 +1,3 @@
+# King Errick — Full Specs (a16z memo, ≤100 words)
+
+**King Errick** is a sovereign credit + **eUSD** peg system across Base and Scroll. Peg clears via gold-parity and multi-asset PSMs (**USDC, USDT, DAI, ETH, EURC**) on Chainlink. Credit collateral—ELE, RSS, Morpho ELE77 (~$16.5M PoR), WETH/cbBTC CDPs—is loaned, never sold. Async exits: **ERC-7540** redeem queues + **ERC-7683** solver intents (public fill). Attestation: Chainlink PoR (ELE77 + Gold CDP ~$1M). Mark: Uniswap **v4** eUSD hook. Rails: **CCIP / LayerZero** + eUSD Link. **ZK** (Circom/Groth16): wallet-bind, Elepan-bind, credit/AutoDraw gates, settlement fill proofs—7540/7683 untouched. Doctrine: code-first balance sheet, Landing sink, King hot ops, no keeper dependency.
