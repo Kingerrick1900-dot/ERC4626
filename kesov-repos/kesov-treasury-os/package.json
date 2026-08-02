@@ -1,0 +1,19 @@
+{
+  "name": "kesov-treasury-os",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "snapshot": "node src/cli/snapshot.js",
+    "dashboard": "node src/dashboard/server.js",
+    "checklist": "node src/cli/prebuild-checklist.js",
+    "run-once": "node src/cli/run-once.js",
+    "test": "node test/phase2.test.js && node test/oracle-switch.test.js && node test/phase3-4.test.js",
+    "test:phase2": "node test/phase2.test.js",
+    "test:oracle": "node test/oracle-switch.test.js",
+    "test:phase3": "node test/phase3-4.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
