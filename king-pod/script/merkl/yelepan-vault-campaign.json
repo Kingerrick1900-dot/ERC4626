@@ -1,0 +1,25 @@
+{
+  "campaignType": 56,
+  "computeChainId": 8453,
+  "distributionChainId": 8453,
+  "creator": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "rewardToken": "0x50639C42E2FFDEC4F68FB468968a55b3Af944583",
+  "amount": "400000000000000",
+  "targetToken": "0x61bfD6F7df1f72427F472144d043c25d742D145E",
+  "distributionMethodParameters": {
+    "distributionMethod": "DUTCH_AUCTION",
+    "distributionSettings": {}
+  },
+  "blacklist": [],
+  "whitelist": [],
+  "notes": {
+    "vault": "yELEPAN-USDC",
+    "budgetElepan": "4000000",
+    "durationWeeks": 4,
+    "merklFee": "3% of Elepan budget (defaultFees=3e7/1e9), not USDC",
+    "status": "ENCODE_OK_CREATE_BLOCKED_CampaignRewardTokenNotWhitelisted",
+    "latestCampaignData": "0xc4922ce7799c673cfb94ff52b687a4ca572a960c88a49ca812582ccf290b248a",
+    "latestStartTimestamp": 1784856067,
+    "tncTx": "0xf753bc20bf3037dc37e2e97b3efd43b7b9d77067d587d7641e86bc01b85a97e7"
+  }
+}
