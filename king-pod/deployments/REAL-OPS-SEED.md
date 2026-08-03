@@ -1,8 +1,23 @@
 # REAL OPS SEED — desk-free, using what King holds
 
 **Mission:** Seed the nation — pay ops + reinvest. No desk-wait as primary.  
-**Status:** ARMED — awaiting King fire words  
-**Override:** This path re-locks RSS (self-seed). Requires `KING_OVERRIDE_NO_RECYCLE=1`.
+**Status:** FIRED LIVE (Base) — ONCHAIN SUCCESS  
+**Override:** `KING_OVERRIDE_NO_RECYCLE=1` used on King fire order.
+
+## Live fire (2026-08-03)
+
+| | |
+|--|--|
+| Seeder | `0xBAe84DB68b444f87593ec76225CF63A33d502532` |
+| opsSeed tx | `0x36bf09b3e62b7d9e189493c20c0fac719fff6a7bb3beb8c4a16e265fd0d0df85` |
+| Size | **$700,000** USDC |
+| yRSS TVL after | **~$700,000.03** |
+| hot yRSS assets | **~$700,000.03** |
+| RSS coll posted | **~15.03M** (hot free RSS = 0) |
+| Morpho debt | ~$700k (borrow shares live) |
+| Elepan | **untouched** (~44.6M free) |
+| Liquid USDC | ~0 (flash closed — as designed) |
+| maxWithdraw | **0** (100% util — exit still required for payroll USDC) |
 
 ## What we have (live)
 

@@ -1,6 +1,14 @@
 {
   "mission": "real ops seed - pay ops + reinvest - desk free",
-  "status": "ARMED",
+  "status": "FIRED_LIVE",
+  "live": {
+    "seeder": "0xBAe84DB68b444f87593ec76225CF63A33d502532",
+    "opsSeedTx": "0x36bf09b3e62b7d9e189493c20c0fac719fff6a7bb3beb8c4a16e265fd0d0df85",
+    "borrowUsdc": "700000000000",
+    "yRssTvlApprox": "700000.03",
+    "rssCollPostedApprox": "15030000",
+    "maxWithdraw": "0"
+  },
   "sizeUsdBand": [600000, 700000],
   "collateral": {
     "token": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
