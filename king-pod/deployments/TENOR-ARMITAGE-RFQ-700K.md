@@ -1,8 +1,9 @@
 # Tenor → Armitage RFQ — $700k USDC facility
 
-**Status:** LIVE RFQ FIRED  
-**Inquiry ID:** `fe39d446-cc36-4230-b569-4b0b1864026b` (active → Armitage)  
-**Primary key:** Tenor OTC `createQuoteInquiry` → **Armitage by Wintermute**  
+**Status:** CANCELLED (King order 2026-08-03)  
+**Cancelled inquiries:** `fe39d446…` (Armitage-only) · `a2dfabd9…` (broadcast-all) — both `deleteQuoteInquiry` success; inbox empty  
+**Reason:** Elepan must stay free; collateral path if any is true RSS `0x7a305…` only (not Elepan `0x50639…`)  
+**Primary key:** Tenor OTC `createQuoteInquiry` → **Armitage by Wintermute** (dormant until King re-authorizes RSS RFQ)  
 **App:** https://app.tenor.finance/otc  
 **API:** https://api.tenor.finance/graphql  
 **Packet:** `tenor-armitage-rfq-700k.json`

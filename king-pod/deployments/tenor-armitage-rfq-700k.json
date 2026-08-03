@@ -1,5 +1,11 @@
 {
-  "status": "READY_TO_FIRE",
+  "status": "CANCELLED",
+  "cancelledAt": "2026-08-03T18:17:00Z",
+  "cancelledInquiries": [
+    "fe39d446-cc36-4230-b569-4b0b1864026b",
+    "a2dfabd9-9bee-47cc-8798-54027f9da381"
+  ],
+  "cancelReason": "King order: Elepan stays free; do not RFQ Elepan as RSS. Collateral path if any = true RSS 0x7a305… only.",
   "primary": "Tenor OTC createQuoteInquiry → Armitage by Wintermute",
   "askUsd": 700000,
   "askRaw": "700000000000",
@@ -71,12 +77,9 @@
     "note": "buy=false = borrow side. Request is offchain/non-binding until King accepts an onchain lend offer."
   },
   "liveInquiry": {
-    "id": "fe39d446-cc36-4230-b569-4b0b1864026b",
-    "status": "active",
-    "firedAt": "2026-08-03T11:18:00Z",
-    "counterparty": "Armitage by Wintermute",
-    "askUsd": 700000,
-    "watch": "TENOR_BEARER=... python3 king-pod/script/WatchTenorRfq.py --inquiry-id fe39d446-cc36-4230-b569-4b0b1864026b"
+    "id": null,
+    "status": "cancelled",
+    "note": "Both live Elepan RFQs deleted 2026-08-03 per King. No active Tenor inquiry."
   },
   "institutionalBackups": [
     {
