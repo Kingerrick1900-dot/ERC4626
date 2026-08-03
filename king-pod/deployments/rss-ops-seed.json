@@ -1,0 +1,31 @@
+{
+  "mission": "real ops seed - pay ops + reinvest - desk free",
+  "status": "FIRED_LIVE",
+  "live": {
+    "seeder": "0xBAe84DB68b444f87593ec76225CF63A33d502532",
+    "opsSeedTx": "0x36bf09b3e62b7d9e189493c20c0fac719fff6a7bb3beb8c4a16e265fd0d0df85",
+    "borrowUsdc": "700000000000",
+    "yRssTvlApprox": "700000.03",
+    "rssCollPostedApprox": "15030000",
+    "maxWithdraw": "0"
+  },
+  "sizeUsdBand": [600000, 700000],
+  "collateral": {
+    "token": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+    "holding": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+    "amountApprox": "15030000"
+  },
+  "elepan": "UNTOUCHED 0x50639C42E2FFDEC4F68FB468968a55b3Af944583",
+  "endState": {
+    "form": "yRSS war chest",
+    "liquidUsdc": "~0 after flash",
+    "debt": "Morpho RSS market = seed size",
+    "feeRail": "yRSS 10% -> KingVault"
+  },
+  "fire": {
+    "override": "KING_OVERRIDE_NO_RECYCLE=1",
+    "script": "king-pod/script/FireRssOpsSeed.s.sol:FireRssOpsSeed",
+    "prep": "FIRE=0",
+    "live": "FIRE=1 BORROW_USDC=700000000000"
+  }
+}

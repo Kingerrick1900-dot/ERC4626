@@ -1,0 +1,28 @@
+{
+  "plan": "RSS Option C atomic seed → Landing",
+  "status": "ARMED_AWAITING_STEP1",
+  "askUsdBand": [600000, 700000],
+  "option": "C",
+  "steps": {
+    "1_lender_commitment": {
+      "desks": ["Armitage by Wintermute", "Wintermute OTC", "DWF Labs"],
+      "passIf": "RSS Morpho idle USDC >= ask OR accept-ready Tenor lend offer vs true RSS",
+      "check": "python3 king-pod/script/CheckRssLenderCommitment.py --ask 700000"
+    },
+    "2_rss_authority": {
+      "token": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+      "holdingAddress": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+      "confirmedHotRssApprox": "15030000",
+      "approveAtFire": "MORPHO 0xBBBB…FFCb",
+      "elepan": "0x50639C42E2FFDEC4F68FB468968a55b3Af944583 — DO NOT TOUCH"
+    },
+    "3_atomic_fire": {
+      "script": "king-pod/script/FireRssOptionCAtomicSeed.s.sol",
+      "receiver": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+      "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+      "oracle": "0x284EC3A9674e6C62ea552Bf75BDeE9B799627D2e",
+      "lltv": "770000000000000000",
+      "gate": "revert unless idle >= ASK_USDC"
+    }
+  }
+}
