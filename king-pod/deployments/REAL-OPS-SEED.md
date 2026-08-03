@@ -19,6 +19,21 @@
 | Liquid USDC | ~0 (flash closed — as designed) |
 | maxWithdraw | **0** (100% util — exit still required for payroll USDC) |
 
+## Capital allocation fix (same session)
+
+Posted **all 15.03M** on first fire was oversized for a $700k seed. Excess withdrawn:
+
+| | |
+|--|--|
+| withdrawCollateral tx | `0xa00167aad3ad136e54b679af97451d65ea082b8e27ebc3163de6a3d9a4dc8a81` |
+| Freed to hot | **~13.83M RSS** |
+| Still posted | **1.2M RSS** |
+| Debt | $700k |
+| LTV after | **~58.3%** (under 70% soft / 77% LLTV) |
+
+Rule going forward: size coll to ask (+ small buffer), keep treasury free.
+
+
 ## What we have (live)
 
 | Asset | Amount | Role |
