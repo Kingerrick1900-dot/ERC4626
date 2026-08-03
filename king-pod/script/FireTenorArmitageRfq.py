@@ -32,6 +32,8 @@ ORACLE = "0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19"
 LLTV = "770000000000000000"
 ASK = "700000000000"  # $700k USDC 6dp
 ARMITAGE = "123cf521-4b9e-4b58-9335-d6d0b35f8b95"
+# Tenor/Morpho-allowed liquidation cursors (WAD fractions): LOW=0.25 MID=0.30 HIGH=0.50
+LIQ_CURSOR_MID = "300000000000000000"
 BASE_RPC = os.environ.get("BASE_RPC") or os.environ.get("BASE_RPC_URL") or "https://mainnet.base.org"
 PACKET = Path(__file__).resolve().parents[1] / "deployments" / "tenor-armitage-rfq-700k.json"
 
@@ -109,13 +111,21 @@ def build_inquiry(broadcast_all: bool, deadline: int) -> dict:
         "deadline": str(deadline),
         "loanTokenAddress": USDC,
         "chainId": 8453,
-        "collaterals": [{"token": ELE, "oracle": ORACLE, "lltv": LLTV}],
+        "collaterals": [
+            {
+                "token": ELE,
+                "oracle": ORACLE,
+                "lltv": LLTV,
+                "liquidationCursor": LIQ_CURSOR_MID,
+            }
+        ],
         "allowedOrganizationIds": [] if select_all else [ARMITAGE],
         "selectAll": select_all,
     }
 
 
 def mutation_payload(inquiry: dict) -> dict:
+    # PartialCollateral.token is Address scalar (not Token object).
     return {
         "query": """
 mutation($walletAddress: Address!, $quoteInquiry: CreateQuoteInquiryDto!) {
@@ -125,8 +135,10 @@ mutation($walletAddress: Address!, $quoteInquiry: CreateQuoteInquiryDto!) {
       status
       assets
       deadline
+      minDuration
+      maxDuration
       loanToken { address symbol }
-      collaterals { token { address symbol } }
+      collaterals { token oracle lltv liquidationCursor }
     }
   }
 }

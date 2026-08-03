@@ -62,12 +62,21 @@
       {
         "token": "0x50639C42E2FFDEC4F68FB468968a55b3Af944583",
         "oracle": "0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19",
-        "lltv": "770000000000000000"
+        "lltv": "770000000000000000",
+        "liquidationCursor": "300000000000000000"
       }
     ],
     "allowedOrganizationIds": ["123cf521-4b9e-4b58-9335-d6d0b35f8b95"],
     "selectAll": false,
     "note": "buy=false = borrow side. Request is offchain/non-binding until King accepts an onchain lend offer."
+  },
+  "liveInquiry": {
+    "id": "fe39d446-cc36-4230-b569-4b0b1864026b",
+    "status": "active",
+    "firedAt": "2026-08-03T11:18:00Z",
+    "counterparty": "Armitage by Wintermute",
+    "askUsd": 700000,
+    "watch": "TENOR_BEARER=... python3 king-pod/script/WatchTenorRfq.py --inquiry-id fe39d446-cc36-4230-b569-4b0b1864026b"
   },
   "institutionalBackups": [
     {

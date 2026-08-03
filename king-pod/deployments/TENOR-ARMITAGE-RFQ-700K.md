@@ -1,6 +1,7 @@
 # Tenor → Armitage RFQ — $700k USDC facility
 
-**Status:** CODE-FIRST READY  
+**Status:** LIVE RFQ FIRED  
+**Inquiry ID:** `fe39d446-cc36-4230-b569-4b0b1864026b` (active → Armitage)  
 **Primary key:** Tenor OTC `createQuoteInquiry` → **Armitage by Wintermute**  
 **App:** https://app.tenor.finance/otc  
 **API:** https://api.tenor.finance/graphql  
