@@ -1,0 +1,19 @@
+{
+  "chainId": 8453,
+  "role": "rss-usdc-frozen-1200-oracle-market",
+  "elepan": "never",
+  "marketId": "0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88",
+  "oracle": {
+    "address": "0xB5840644142B341a6145335e2ebc82EEBC7aE1B9",
+    "type": "MorphoFrozenFixedOracle",
+    "priceUsdPerRss": 1200,
+    "priceMorphoScale": "1200000000000000000000000000",
+    "frozen": true
+  },
+  "market": {
+    "loanToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "collateralToken": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+    "irm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+    "lltv": "770000000000000000"
+  }
+}
