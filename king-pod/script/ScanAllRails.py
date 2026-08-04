@@ -3,12 +3,14 @@
 
 Rails: Tenor RFQ offers, Morpho RSS idle, foreign PA maxIn, yRSS PA,
 Bound credit liquidity, Vault V2 TVL, Aerodrome RSS/USDC depth, free RSS,
-Landing balance. Prints FIRE lines when any rail can produce Landing USDC.
+Landing balance. With --auto-fire, first green Bundler3-capable rail executes
+via FireBundler3AtomicPack (R2/R3). R10 Aero never auto-fires (loan≠sell).
 
 Usage:
   python3 ScanAllRails.py
-  python3 ScanAllRails.py --poll --interval 60
-  ASK_USDC=500000 python3 ScanAllRails.py
+  python3 ScanAllRails.py --auto-fire
+  python3 ScanAllRails.py --poll --interval 60 --auto-fire
+  ASK_USDC=500000 python3 ScanAllRails.py --auto-fire
 """
 from __future__ import annotations
 
@@ -20,6 +22,9 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
 
 HOT = "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1"
 LANDING = "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357"
@@ -111,6 +116,8 @@ def tenor_offers(inquiry_id: str) -> list[dict]:
 def scan(ask_usdc: int) -> dict:
     ask_raw = ask_usdc * 10**6
     fires: list[str] = []
+    # Ordered auto-exec candidates (Bundler3 primary). First wins.
+    auto: list[dict] = []
 
     rss_hot = cast_nums(RSS, "balanceOf(address)(uint256)", HOT)[0]
     ele = cast_nums(ELEPAN, "balanceOf(address)(uint256)", HOT)[0]
@@ -137,23 +144,33 @@ def scan(ask_usdc: int) -> dict:
     aero_usdc = cast_nums(USDC, "balanceOf(address)(uint256)", AERO)[0]
     aero_rss = cast_nums(RSS, "balanceOf(address)(uint256)", AERO)[0]
 
-    # R2 Morpho idle
+    # R2 Morpho idle → Bundler3 primary
     r2 = idle >= ask_raw and rss_hot >= 800_000 * 10**18
     if r2:
-        fires.append(
-            f"R2_MORPHO_IDLE FIRE=1 ASK_USDC={ask_raw} ADD_BORROW=1 "
-            "forge script FireRssOptionCAtomicSeed --broadcast"
-        )
+        fires.append("R2_MORPHO_IDLE → Bundler3 atomic pack → Landing")
+        auto.append({"rail": "R2", "executor": "bundler3", "ask": ask_usdc})
 
-    # R3 foreign PA
+    # R3 foreign PA → Bundler3 + PA realloc
     pa_hits = []
     for name, vault in FOREIGN_VAULTS:
         caps = cast_nums(PA, "flowCaps(address,bytes32)(uint128,uint128)", vault, RSS_MARKET)
         max_in, max_out = caps[0], caps[1]
-        pa_hits.append({"vault": name, "maxIn": max_in / 1e6, "maxOut": max_out / 1e6})
-        if max_in >= ask_raw:
+        pa_hits.append(
+            {"name": name, "vault": vault, "maxIn": max_in / 1e6, "maxOut": max_out / 1e6}
+        )
+        if max_in >= ask_raw and rss_hot >= 800_000 * 10**18:
             fires.append(
-                f"R3_PA_MAXIN {name} maxIn={max_in/1e6:.0f} → CrownSpoilFire {SPOIL}"
+                f"R3_PA_MAXIN {name} maxIn={max_in/1e6:.0f} → Bundler3+PA → Landing"
+            )
+            auto.append(
+                {
+                    "rail": "R3",
+                    "executor": "bundler3",
+                    "ask": ask_usdc,
+                    "pa_vault": vault,
+                    "pull_usdc": str(min(max_in, ask_raw)),
+                    "name": name,
+                }
             )
 
     # R4 own yRSS PA
@@ -161,6 +178,15 @@ def scan(ask_usdc: int) -> dict:
     r4_caps = {"maxIn": ycaps[0] / 1e6, "maxOut": ycaps[1] / 1e6}
     if ycaps[0] >= ask_raw and yrss_max_wd >= ask_raw:
         fires.append("R4_YRSS_PA spare idle withdrawable — reallocate+borrow Landing")
+        auto.append(
+            {
+                "rail": "R4",
+                "executor": "bundler3",
+                "ask": ask_usdc,
+                "pa_vault": YRSS,
+                "pull_usdc": str(ask_raw),
+            }
+        )
 
     # R5 bound credit
     if proven and credit_usdc >= ask_raw and max_borrow > 0:
@@ -168,6 +194,7 @@ def scan(ask_usdc: int) -> dict:
             f"R5_BOUND_CREDIT credit={credit_usdc/1e6:.0f} maxBorrow={max_borrow/1e6:.0f} "
             "→ Completer/AutoDraw Landing"
         )
+        auto.append({"rail": "R5", "executor": "bound_completer", "ask": ask_usdc})
 
     # R1 Tenor
     tenor = {}
@@ -181,21 +208,29 @@ def scan(ask_usdc: int) -> dict:
                 assets = int(off.get("maxAssets") or 0)
             except (TypeError, ValueError):
                 assets = 0
-            # maxAssets may already be 6dp
             if assets >= ask_raw:
                 fires.append(
                     f"R1_TENOR {label} offer {off.get('id')} "
                     f"maxAssets={assets} org={off.get('organization')} — ACCEPT → Landing"
+                )
+                auto.append(
+                    {
+                        "rail": "R1",
+                        "executor": "tenor_accept",
+                        "inquiry": qid,
+                        "offer": off.get("id"),
+                        "ask": ask_usdc,
+                    }
                 )
 
     # R6 V2
     if v2_assets >= ask_raw:
         fires.append("R6_VAULT_V2 TVL sized — forceDeallocate exit path available")
 
-    # R10 Aero — flag depth only; never auto-sell
+    # R10 Aero — flag only; NEVER auto
     if aero_usdc >= ask_raw:
         fires.append(
-            "R10_AERO depth>=ask — DOCTRINE loan≠sell; King GO required before any swap"
+            "R10_AERO depth>=ask — DOCTRINE loan≠sell; King GO required (no auto-fire)"
         )
 
     report = {
@@ -223,14 +258,54 @@ def scan(ask_usdc: int) -> dict:
                 "maxBorrow": max_borrow / 1e6,
             },
             "R6_vault_v2_assets": v2_assets / 1e6,
-            "R8_bundler3": BUNDLER3,
+            "R8_bundler3_primary": BUNDLER3,
             "R10_aero": {"usdc": aero_usdc / 1e6, "rss": aero_rss / 1e18, "pool": AERO},
             "spoilFire": SPOIL,
         },
         "FIRE": fires,
+        "auto_candidates": auto,
         "any_fire": bool(fires),
     }
     return report
+
+
+def auto_fire_first(report: dict, ask: int) -> int:
+    """Execute first Bundler3-capable green rail. Skip R1/R5/R10 for now."""
+    cands = report.get("auto_candidates") or []
+    if not cands:
+        print("AUTO_FIRE: no green candidates", file=sys.stderr)
+        return 2
+
+    # Prefer Bundler3 rails in order returned (R2 before R3 before R4)
+    chosen = None
+    for c in cands:
+        if c.get("executor") == "bundler3":
+            chosen = c
+            break
+    if not chosen:
+        c = cands[0]
+        print(
+            f"AUTO_FIRE: first green is {c.get('rail')} executor={c.get('executor')} "
+            "— not Bundler3; logging only (accept/completer manual this pass)",
+            file=sys.stderr,
+        )
+        print(json.dumps(c, indent=2), file=sys.stderr)
+        return 3
+
+    cmd = [
+        sys.executable,
+        str(HERE / "FireBundler3AtomicPack.py"),
+        "--fire",
+        "--ask",
+        str(ask),
+    ]
+    if chosen.get("pa_vault"):
+        cmd += ["--pa-vault", chosen["pa_vault"], "--pull-usdc", chosen["pull_usdc"]]
+
+    print("AUTO_FIRE FIRST GREEN:", json.dumps(chosen), file=sys.stderr)
+    print("AUTO_FIRE CMD:", " ".join(cmd), file=sys.stderr)
+    r = subprocess.run(cmd)
+    return r.returncode
 
 
 def main() -> int:
@@ -238,9 +313,13 @@ def main() -> int:
     ap.add_argument("--poll", action="store_true")
     ap.add_argument("--interval", type=int, default=60)
     ap.add_argument("--ask", type=int, default=int(os.environ.get("ASK_USDC", "500000")))
+    ap.add_argument(
+        "--auto-fire",
+        action="store_true",
+        help="Broadcast Bundler3 pack for first green R2/R3/R4 rail",
+    )
     args = ap.parse_args()
 
-    # load tenor bearer if present
     envp = "/tmp/cursor/tenor_bearer.env"
     if os.path.isfile(envp):
         for line in open(envp):
@@ -259,14 +338,23 @@ def main() -> int:
             continue
         print(json.dumps(report, indent=2), flush=True)
         if report["FIRE"]:
-            print("=== RAIL(S) GREEN — King GO to broadcast ===", file=sys.stderr)
+            print("=== RAIL(S) GREEN ===", file=sys.stderr)
             for f in report["FIRE"]:
                 print("FIRE:", f, file=sys.stderr)
+            if args.auto_fire:
+                code = auto_fire_first(report, args.ask)
+                if not args.poll:
+                    return code
+                if code == 0:
+                    print("AUTO_FIRE SUCCESS — stopping poll", file=sys.stderr)
+                    return 0
         else:
             print(
-                "No rail green yet — all scanners still armed (not narrowed to 2).",
+                "No rail green yet — scanners armed; Bundler3 primary executor ready.",
                 file=sys.stderr,
             )
+            if args.auto_fire and not args.poll:
+                return 2
         if not args.poll:
             return 0 if report["any_fire"] else 2
         time.sleep(args.interval)
