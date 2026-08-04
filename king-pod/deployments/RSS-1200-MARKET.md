@@ -14,10 +14,23 @@
 | Deploy oracle | see `broadcast/FireRss1200Market.s.sol/8453/` |
 | Create market | same broadcast |
 
-## Freeze
+## Oracle freeze
 
 `MorphoFrozenFixedOracle` — `priceValue` is `immutable`. No `setPrice`. No owner.
 
-## Next (position)
+## OWN-CAPITAL FREEZE (King order — day one)
 
-Enable on yRSS · supply / supplyCollateral · borrow to Landing when liquidity is live.
+**Do not use other people’s capital.** See `OWN-CAPITAL-ONLY-FREEZE.md`.
+
+| Status | |
+|--|--|
+| Market | Created — **tooling only** |
+| NAV / `supply(onBehalf=yRSS)` / flash-donation redeem | **FORBIDDEN — dead** |
+| Enable on yRSS / PA routing into this market for foreign books | **FORBIDDEN while freeze holds** |
+| Clean path (when King lifts + seeds) | King USDC seed → King RSS collateral → Morpho borrow → Landing |
+
+USDC to Landing = **loan from own seeded liquidity against own assets.** Not vault NAV surplus. Not third-party idle. Not automated routers.
+
+## Next
+
+**Sit.** No fire until King names own-seed size + lifts freeze. Capacity ≠ cash.
