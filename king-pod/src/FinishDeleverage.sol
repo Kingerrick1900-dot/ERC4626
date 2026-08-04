@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IERC20, SafeTransfer, Ownable, ReentrancyGuard} from "./lib/Core.sol";
 
-interface IMorphoZ {
+interface IMorphoF {
     struct MarketParams {
         address loanToken;
         address collateralToken;
@@ -25,13 +25,16 @@ interface IMorphoZ {
         external
         view
         returns (address, address, address, address, uint256);
+    function withdraw(MarketParams memory marketParams, uint256 assets, uint256 shares, address onBehalf, address receiver)
+        external
+        returns (uint256, uint256);
 }
 
 interface IMorphoFlashLoanCallback {
     function onMorphoFlashLoan(uint256 assets, bytes calldata data) external;
 }
 
-interface IYrssZ {
+interface IYrssF {
     struct MarketParams {
         address loanToken;
         address collateralToken;
@@ -47,64 +50,64 @@ interface IYrssZ {
 
     function reallocate(MarketAllocation[] calldata allocations) external;
     function skim(address token) external;
-    function setSkimRecipient(address) external;
     function withdrawQueue(uint256) external view returns (bytes32);
     function withdrawQueueLength() external view returns (uint256);
 }
 
-/// @notice Zero Morpho dust: flash → repay → free coll → yRSS reallocate/skim covers flash.
-contract CrownZeroMorpho is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
+/// @notice Finish freer dust: flash → repay hot → free coll → pull ONLY liquid yRSS supply → skim → repay flash.
+contract FinishDeleverage is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
     using SafeTransfer for IERC20;
 
-    IMorphoZ public immutable morpho;
+    IMorphoF public immutable morpho;
     IERC20 public immutable usdc;
-    IYrssZ public immutable yrss;
-    address public immutable king;
+    IYrssF public immutable yrss;
+    address public immutable borrower;
+    address public immutable receiver;
     bytes32 public immutable marketId;
-    IMorphoZ.MarketParams public mp;
+    IMorphoF.MarketParams public mp;
     bool private _locking;
 
     error OnlyMorpho();
     error Short();
+    error NoDebt();
 
     constructor(
         address morpho_,
         address usdc_,
         address rss_,
         address yrss_,
-        address king_,
+        address borrower_,
+        address receiver_,
         bytes32 marketId_,
         address oracle_,
         address irm_,
         uint256 lltv_,
         address owner_
     ) Ownable(owner_) {
-        morpho = IMorphoZ(morpho_);
+        morpho = IMorphoF(morpho_);
         usdc = IERC20(usdc_);
-        yrss = IYrssZ(yrss_);
-        king = king_;
+        yrss = IYrssF(yrss_);
+        borrower = borrower_;
+        receiver = receiver_;
         marketId = marketId_;
-        mp = IMorphoZ.MarketParams(usdc_, rss_, oracle_, irm_, lltv_);
-        rss_; // silence
+        mp = IMorphoF.MarketParams(usdc_, rss_, oracle_, irm_, lltv_);
     }
 
-    function zeroBooks() external onlyOwner nonReentrant {
+    function execute() external onlyOwner nonReentrant {
         morpho.accrueInterest(mp);
-        (, uint128 bor, uint128 coll) = morpho.position(marketId, king);
+        (, uint128 bor, uint128 coll) = morpho.position(marketId, borrower);
         if (bor == 0 && coll == 0) return;
-
-        if (bor > 0) {
-            (,, uint128 tba, uint128 tbs,,) = morpho.market(marketId);
-            uint256 flashAmt = (uint256(tba) * uint256(bor) + uint256(tbs) - 1) / uint256(tbs);
-            _locking = true;
-            morpho.flashLoan(address(usdc), flashAmt, abi.encode(uint256(bor), uint256(coll)));
-            _locking = false;
-        } else if (coll > 0) {
-            morpho.withdrawCollateral(mp, coll, king, king);
+        if (bor == 0) {
+            morpho.withdrawCollateral(mp, coll, borrower, receiver);
+            return;
         }
-
+        (,, uint128 tba, uint128 tbs,,) = morpho.market(marketId);
+        uint256 flashAmt = (uint256(tba) * uint256(bor) + uint256(tbs) - 1) / uint256(tbs);
+        _locking = true;
+        morpho.flashLoan(address(usdc), flashAmt, abi.encode(uint256(bor), uint256(coll)));
+        _locking = false;
         uint256 dust = usdc.balanceOf(address(this));
-        if (dust > 0) usdc.safeTransfer(king, dust);
+        if (dust > 0) usdc.safeTransfer(receiver, dust);
     }
 
     function onMorphoFlashLoan(uint256 assets, bytes calldata data) external override {
@@ -112,14 +115,13 @@ contract CrownZeroMorpho is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         (uint256 borShares, uint256 coll) = abi.decode(data, (uint256, uint256));
         usdc.approve(address(morpho), type(uint256).max);
 
-        if (borShares > 0) morpho.repay(mp, 0, borShares, king, "");
-        if (coll > 0) morpho.withdrawCollateral(mp, coll, king, king);
+        if (borShares > 0) morpho.repay(mp, 0, borShares, borrower, "");
+        if (coll > 0) morpho.withdrawCollateral(mp, coll, borrower, receiver);
 
-        // Only pull THIS market (repay just freed its liquidity). Full-queue
-        // reallocate reverts on other 100%-util markets.
-        IYrssZ.MarketAllocation[] memory allocs = new IYrssZ.MarketAllocation[](1);
-        allocs[0] = IYrssZ.MarketAllocation({
-            marketParams: IYrssZ.MarketParams(mp.loanToken, mp.collateralToken, mp.oracle, mp.irm, mp.lltv),
+        // Only drain THIS market (now liquid after repay). Do not touch 100% util markets.
+        IYrssF.MarketAllocation[] memory allocs = new IYrssF.MarketAllocation[](1);
+        allocs[0] = IYrssF.MarketAllocation({
+            marketParams: IYrssF.MarketParams(mp.loanToken, mp.collateralToken, mp.oracle, mp.irm, mp.lltv),
             assets: 0
         });
         yrss.reallocate(allocs);
@@ -128,9 +130,9 @@ contract CrownZeroMorpho is Ownable, ReentrancyGuard, IMorphoFlashLoanCallback {
         uint256 have = usdc.balanceOf(address(this));
         if (have < assets) {
             uint256 still = assets - have;
-            uint256 kingBal = usdc.balanceOf(king);
-            uint256 take = kingBal < still ? kingBal : still;
-            if (take > 0) usdc.safeTransferFrom(king, address(this), take);
+            uint256 bal = usdc.balanceOf(borrower);
+            uint256 take = bal < still ? bal : still;
+            if (take > 0) usdc.safeTransferFrom(borrower, address(this), take);
             have = usdc.balanceOf(address(this));
         }
         if (have < assets) revert Short();
