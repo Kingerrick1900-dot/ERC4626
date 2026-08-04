@@ -34,7 +34,7 @@
 | **R5** | Bound credit completer / autodraw | `CrownBoundLandingCompleter` / `CrownZkAutoDraw` | Proven · pool empty | Matcher/`credit.supply` USDC | Yes up to ~$490k (70%×700k) |
 | **R6** | Vault V2 forceDeallocate | V2 + Morpho flash supply | Live · TVL~$1 | Real USDC deposited in V2 | Exit access only (not source) |
 | **R7** | Wet Morpho (WETH/cbBTC) | Morpho borrow vs wet markets | Markets have huge idle | Hot holds sized WETH/cbBTC | Yes scales with wet |
-| **R8** | Morpho Bundler3 atomic pack | Bundler3 `0x6BFd…` | Addr live | Wire R2/R3/R5 as one tx | Yes when sub-rail opens |
+| **R8** | Morpho Bundler3 atomic pack | `FireBundler3AtomicPack` + GA1 | **PRIMARY EXECUTOR** | R2/R3/R4 green → one-tx Landing | Yes when sub-rail opens |
 | **R9** | CrownFlashRouter fee income | Flash desk fee skim | Live on other branch | External flash borrowers | Fee drip, not $500k |
 | **R10** | Aerodrome RSS/USDC AMM | Pool `0x2C4F…537a` | Pool exists | Depth >> dust (**today $1**) | Spot only — doctrine: loan≠sell; King GO required |
 | **R11** | yRSS share secondary / OTC vault | Sell/transfer yRSS shares | Packet only | Buyer of yield claim | Yes without selling RSS/Elepan |
@@ -60,17 +60,20 @@ All scanners run together — first green rail fires (King GO for broadcast):
 # One shot — all rails
 python3 king-pod/script/ScanAllRails.py
 
-# Continuous
-python3 king-pod/script/ScanAllRails.py --poll --interval 60
+# Auto-fire first Bundler3-capable green rail (R2/R3/R4)
+python3 king-pod/script/ScanAllRails.py --auto-fire --ask 500000
+
+# Continuous hunt + auto-fire
+python3 king-pod/script/ScanAllRails.py --poll --interval 60 --auto-fire
 ```
 
 | Priority | If green | Fire |
 |--|--|--|
-| 1 | Tenor offer ≥ $500k vs true RSS | Accept on Tenor → USDC to Landing |
-| 2 | Foreign PA `maxIn>0` | SpoilFire / FirePositionSeed → Landing |
-| 3 | Morpho RSS idle ≥ ask | `FireRssOptionCAtomicSeed` ADD_BORROW |
-| 4 | Credit USDC > 0 + proven | Completer / AutoDraw poke Landing |
-| 5 | Wet inventory sized | Borrow wet markets → Landing |
+| 1 | Morpho RSS idle ≥ ask (R2) | **Bundler3 pack** → Landing |
+| 2 | Foreign PA `maxIn>0` (R3) | **Bundler3 + PA realloc** → Landing |
+| 3 | yRSS spare withdrawable (R4) | **Bundler3 + yRSS PA** → Landing |
+| 4 | Tenor offer ≥ $500k (R1) | Accept on Tenor → Landing |
+| 5 | Credit USDC > 0 + proven (R5) | Completer / AutoDraw → Landing |
 
 ---
 
