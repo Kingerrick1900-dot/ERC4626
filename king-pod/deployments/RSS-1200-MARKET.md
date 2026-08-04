@@ -33,4 +33,5 @@ USDC to Landing = **loan from own seeded liquidity against own assets.** Not vau
 
 ## Next
 
-**Sit.** No fire until King names own-seed size + lifts freeze. Capacity ≠ cash.
+**Sit** on fire. Constructive path: `SYSTEM-SEED-PLAN.md` (King Loan Desk).  
+This market is Layer-3 tooling — seed only with King or named-consent USDC, then borrow against King RSS → Landing. Capacity ≠ cash.
