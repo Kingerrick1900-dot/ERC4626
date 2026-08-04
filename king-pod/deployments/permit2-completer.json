@@ -1,0 +1,16 @@
+{
+  "track": "A_PRIMARY",
+  "status": "LIVE",
+  "permit2Completer": "0xA247c1d0Ad4E7690764E456E5d8d315bA2912468",
+  "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+  "credit": "0x20B1513a137b9CB166E2cC15c405e842278E7D1A",
+  "classicCompleter": "0x3827dA0c33891ee058847BB896D6287C5814F7C6",
+  "gate": "0xab2856626BBd8E6fba9dB93783029eB973E8427F",
+  "hot": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "landing": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+  "maxAskUsdc": 490000,
+  "operator": true,
+  "proven": true,
+  "packet": "MATCHER-PERMIT2-PACKET.md",
+  "watch": "python3 king-pod/script/SucceedWatch.py --poll --ask 490000"
+}
