@@ -1,0 +1,37 @@
+{
+  "asOf": "2026-08-04",
+  "role": "system-seed-live-board",
+  "doctrine": "own-capital-only-no-nav",
+  "plan": "SYSTEM-SEED-PLAN.md",
+  "wallets": {
+    "hot": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+    "landing": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357"
+  },
+  "inventory": {
+    "hotRssFree": "~8.83e6",
+    "hotRssPostedOldMarket": "1.2e6",
+    "hotDebtUsdcApprox": 700052.07,
+    "yRssTotalAssetsUsdc": 700140.99,
+    "yRssKingSharePct": 99.9999999999,
+    "yRssMaxWithdrawUsdc": 0.007642,
+    "oldMarketSupplyUsdc": 1700957.21,
+    "oldMarketNonYrssSupplyUsdc": 1000906.14,
+    "market1200SupplyUsdc": 0,
+    "landingEusd": 900027.39,
+    "landingUsdc": 3.40,
+    "hotUsdc": 0,
+    "completerMaxAskUsdc": 490000,
+    "creditPoolUsdc": 0,
+    "psmUsdcReserve": 0,
+    "eusdOwnerMinter": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1"
+  },
+  "markets": {
+    "oldRssUsdc": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+    "rss1200Usdc": "0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88"
+  },
+  "layers": {
+    "L1": "eUSD float / mint",
+    "L2": "RSS + oracle + King eUSD Morpho loan machine",
+    "L3": "USDC via Completer/Tenor consent or King seed into empty 1200 market"
+  }
+}
