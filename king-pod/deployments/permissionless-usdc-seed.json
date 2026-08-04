@@ -1,0 +1,26 @@
+{
+  "chainId": 8453,
+  "role": "permissionless-usdc-seed",
+  "deskWaitPrimary": false,
+  "seed": {
+    "address": "0x08DD633247F79740708d145A3A8964a8c9Ee501a",
+    "rssEscrow": "5000000000000000000000000",
+    "rssPerUsdc": "1000000000000",
+    "sweetenerBps": 2000,
+    "landing": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+    "rss": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "fill": "fill(uint256 usdcIn)",
+    "quote": "quoteRssOut(uint256 usdcIn) — 1000e6 USDC → 1200e18 RSS"
+  },
+  "impossibleMachine": {
+    "address": "0xd3C59841818552F34599744cf4952B3d7760F41d",
+    "deployTx": "0x9ca3e8e3c555dafdf252d64ffa0ff399cacb6c85620300b68963ba476a96564c"
+  },
+  "treasury": {
+    "landingEusdApprox": "800000e18",
+    "landingUsdc": "945003",
+    "note": "eUSD parked on Landing; USDC awaits open fill"
+  },
+  "fillerOneLiner": "approve USDC to seed then seed.fill(amount) — receive RSS +20%, USDC goes to Landing"
+}
