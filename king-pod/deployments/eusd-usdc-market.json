@@ -1,0 +1,22 @@
+{
+  "chainId": 8453,
+  "role": "eusd-usdc-frozen-1-oracle-market",
+  "note": "Companion to RSS/$1200 market. Morpho markets are immutable — this is a NEW market, not a patch of 0x41c08085…",
+  "status": "created-tooling-only-empty",
+  "marketId": "0x5acc6ed4af3764d5081347db21940c8d25d90f186b263d04e8fd8cd267e45184",
+  "oracle": {
+    "address": "0xACCeCEDE28fC46481299b9306a7D414698dE8584",
+    "type": "MorphoFrozenFixedOracle",
+    "priceUsdPerEusd": 1,
+    "priceMorphoScale": "1000000000000000000000000",
+    "frozen": true
+  },
+  "market": {
+    "loanToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "collateralToken": "0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a",
+    "irm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+    "lltv": "770000000000000000"
+  },
+  "relatedRss1200MarketId": "0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88",
+  "warning": "Empty until USDC is supplied. Posting eUSD collateral alone cannot borrow."
+}
