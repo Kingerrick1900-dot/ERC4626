@@ -1,40 +1,46 @@
-# TARGET: $700k USDC → Landing
+# TARGET $700k — LIVE STATUS
 
-**Focus:** `Landing 0x5Adc…2357` += **$700,000 USDC**. Not idle commentary.
+**Goal:** Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` += **$700,000 USDC**
 
-## Free RSS first — what it does
+## Step 1 — FREE · DONE
 
-| Step | Result |
+| | |
 |--|--|
-| Flash repay ~$700k Morpho debt → withdraw 1.2M RSS → redeem yRSS → repay flash | Hot holds **~10.03M RSS** free · Morpho debt **0** |
-| Landing USDC after free | **Unchanged** (~$3.40) — free unlocks **RSS ammo**, not the $700k |
+| Tx | `0xd01b7b9668f3e8f1e465d0e816eb12786468df4bfbb4d21374aff26ff048afab` |
+| Freer | `0xcFEaEC4eD07559963b0dc21aD46517e3bb9B823A` |
+| Hot RSS after | **~10,029,600** |
+| Morpho debt left | dust ~**$300** |
+| Morpho coll left | ~**400 RSS** |
+| yRSS TVL after | ~**$299** |
 
-So: free first = correct prep. It does **not** by itself deliver the $700k. Then we use that RSS as Morpho collateral to **borrow $700k → Landing**.
+Circular ~$700k loop unwound. Ammo on hot.
 
-## Collateral vs $700k (ammo is not the bottleneck)
+## Step 2 — BORROW $700k → Landing · ARMED / NOT FILLED YET
 
-| Oracle | RSS needed @ ~70% LTV for $700k borrow |
-|--|--|
-| $1 (old market) | ~**1.0M RSS** |
-| $1200 (king market) | ~**833 RSS** |
+Bundler3 dry @ ask **$700k**:
 
-Free pile after unwind ≈ **10.0M RSS** — far above either. **RSS size is enough.**
+- `rssOk` = 1 (ammo enough)
+- `idleOk` = 0
+- `ltvOk` = 0 (needs idle to borrow)
+- Foreign PA maxIn (Gauntlet/Steakhouse) = **0**
+- FIRE list empty
 
-## The $700k machine (hard-coded Morpho)
+```bash
+# Keep hunting + auto-fire first green rail at $700k
+python3 king-pod/script/ScanAllRails.py --poll --interval 60 --auto-fire --ask 700000
 
-```text
-1) FREE  — unwind current ~$700k loop → all RSS on hot
-2) POST  — supplyCollateral (enough RSS for $700k + buffer) on RSS/USDC market
-3) BORROW — morpho.borrow(700_000e6) → Landing
-4) STOP  — no yRSS recycle
+# Direct when idle/PA greens
+ASK_USDC=700000000000 COLL_RSS=2000000000000000000000000 FIRE=1 \
+  forge script script/FireBundler3AtomicPack.s.sol:FireBundler3AtomicPack \
+  --rpc-url $BASE_RPC_URL --broadcast --slow
 ```
 
-Bundler3 pack already encodes post+borrow→Landing. Ask size: **700000e6**.
+## Scoreboard
 
-## Order of fire (King GO)
+| Metric | Now |
+|--|--|
+| Landing USDC | **~$3.40** |
+| Target | **$700,000** |
+| Hot RSS (ammo) | **~10.03M** · ready |
 
-1. **Free now** — `DeployAndChunkFreeRss` / flash-free against live ~$700k book  
-2. **Borrow $700k** — same block or next, the moment the chosen RSS/USDC market can fill the ask (Bundler3 / Option C / SpoilFire)  
-3. Confirm Landing USDC ≥ **$700,000**
-
-Scoreboard = Landing USDC. Nothing else.
+No recycle of freed RSS into yRSS/self-seed. Next dollar move = Morpho borrow $700k → Landing when rail greens.
