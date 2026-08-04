@@ -49,6 +49,6 @@ If any answer fails → **do not fire.**
 - Info / docs / dry-run sims only until King lifts freeze.
 - No NAV, no `onBehalf` donation, no foreign-vault enable, no PA maxIn into $1200 for foreign books.
 - Next funded thesis must name: **own seed size + own collateral + Landing receiver** — nothing else.
-- Constructive path (not NAV): **`SYSTEM-SEED-PLAN.md`** — King Loan Desk layers L1 eUSD · L2 own loan machine · L3 consent/own USDC surface.
+- Honest wall on loans→ops: **`LOANS-TO-OPS-WALL-FREEZE.md`**. Desk-hope is not the plan.
 
-See also: `SYSTEM-SEED-PLAN.md` · `KING-ERRICK-HANDOFF-FREEZE.md` · `OPS-FREEZE.md` · `RSS-1200-MARKET.md`
+See also: `LOANS-TO-OPS-WALL-FREEZE.md` · `SYSTEM-SEED-PLAN.md` · `KING-ERRICK-HANDOFF-FREEZE.md` · `OPS-FREEZE.md` · `RSS-1200-MARKET.md`

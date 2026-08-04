@@ -1,11 +1,14 @@
 # SYSTEM SEED PLAN — extract from what WE have
 
-**Mode:** Plan only · **NAV:** dead · **Foreign silent drain:** dead  
-**Law:** King does not take from anyone. Use **our** assets, oracles, codes, contracts, and loan access.  
-**Target:** lasting seed on Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357`  
-**Companion:** `OWN-CAPITAL-ONLY-FREEZE.md`
+**Mode:** SUPERSEDED as ops strategy · **See instead:** `LOANS-TO-OPS-WALL-FREEZE.md`  
+**NAV:** dead · **Foreign silent drain:** dead · **Desk-hope:** dead (King rejected — square one)
 
-It is not impossible. Prior paths chased the wrong system (NAV / foreign idle / flash reflection). This sheet names the **correct system**.
+This sheet inventoried kingdom tools. It drifted into “build a desk / hope fill,” which is **not** engineering.  
+Honest status of turning **existing loans** into **redeemable USDC ops:** blocked — see wall freeze.
+
+**Law:** King does not take from anyone.  
+**Target:** lasting seed on Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357`  
+**Companion:** `OWN-CAPITAL-ONLY-FREEZE.md` · `LOANS-TO-OPS-WALL-FREEZE.md`
 
 ---
 
