@@ -1,0 +1,16 @@
+{
+  "role": "protocol-ops-eusd-draw",
+  "status": "code-ready-awaiting-king-go",
+  "contract": "CrownOpsEusdDraw",
+  "script": "script/FireOpsEusdDraw.s.sol",
+  "gate": "0xab2856626BBd8E6fba9dB93783029eB973E8427F",
+  "eusd": "0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a",
+  "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "landing": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+  "lltv": "700000000000000000",
+  "boundAttestationUsdc": 700000,
+  "maxAskEusdApprox": 490000,
+  "landingEusdAlready": 900027,
+  "docs": "PROTOCOL-OPS-BOOTSTRAP.md",
+  "note": "Maker-shaped ops credit in eUSD. No USDC desk required. Deploy on FIRE_OPS_EUSD=1."
+}
