@@ -1,3 +1,5 @@
+> **2026-08-04:** Morpho borrow-queue scanning DISABLED. Primary = `CrownAtomicDexFlashRouter` (see `DEX-FLASH-UNWIND.md`).
+
 # MULTI-RAIL AUTOMATION — King standpoint
 
 **Law:** This is **not** a 2-option menu. Every path below is code, contracts, or bots.  
