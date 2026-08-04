@@ -1,0 +1,109 @@
+{
+  "status": "CANCELLED",
+  "cancelledAt": "2026-08-03T18:17:00Z",
+  "cancelledInquiries": [
+    "fe39d446-cc36-4230-b569-4b0b1864026b",
+    "a2dfabd9-9bee-47cc-8798-54027f9da381"
+  ],
+  "cancelReason": "King order: Elepan stays free; do not RFQ Elepan as RSS. Collateral path if any = true RSS 0x7a305… only.",
+  "primary": "Tenor OTC createQuoteInquiry → Armitage by Wintermute",
+  "askUsd": 700000,
+  "askRaw": "700000000000",
+  "chainId": 8453,
+  "app": "https://app.tenor.finance/otc",
+  "api": "https://api.tenor.finance/graphql",
+  "hot": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "landing": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+  "loanToken": {
+    "symbol": "USDC",
+    "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "decimals": 6
+  },
+  "collateral": {
+    "symbol": "ELE (Tenor lists as RSS 8dp)",
+    "address": "0x50639C42E2FFDEC4F68FB468968a55b3Af944583",
+    "decimals": 8,
+    "tenorTokenId": "bef63e34-8281-4c14-916a-f4eb7ff0c731",
+    "suggestedOracle": "0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19",
+    "suggestedLltv": "770000000000000000",
+    "freeHotApprox": "44599950.25",
+    "morphoCollApprox": "21515791.87",
+    "morphoMarket": "0xa4ec527128b425ee3fcb7f60eca37677b63b3d003345ec2a72ef6a2e72da53fc"
+  },
+  "zk": {
+    "elepanGate": "0xca2a41A59c36ef22a623fCD452Cf1b01Ecf33f30",
+    "boundGate": "0xab2856626BBd8E6fba9dB93783029eB973E8427F",
+    "note": "Both isProven(hot)=true at $700k at fire time of bound stack"
+  },
+  "creditRail": {
+    "boundCredit": "0x20B1513a137b9CB166E2cC15c405e842278E7D1A",
+    "completer": "0x3827dA0c33891ee058847BB896D6287C5814F7C6",
+    "autoDraw": "0x364bEF6c5A3DC2c02D7ECf1e12a2d1F08B0513ba"
+  },
+  "tenorOrganizations": {
+    "armitage": {
+      "id": "123cf521-4b9e-4b58-9335-d6d0b35f8b95",
+      "name": "Armitage by Wintermute",
+      "type": "Curator",
+      "website": "https://armitage.wintermute.com/",
+      "role": "PRIMARY — RFQ target"
+    },
+    "alsoOnTenor": [
+      {"id": "fbc5892b-cf16-4700-afc9-8141544390c0", "name": "Gauntlet"},
+      {"id": "e70558e4-8638-423e-bfd9-f78e548c6928", "name": "KPK"},
+      {"id": "6114e233-5899-4e63-97b1-cec283548575", "name": "RockawayX"},
+      {"id": "92cf2d01-14ae-4617-a041-67694dc88ca2", "name": "Re7 Labs"},
+      {"id": "1047ea91-3b5a-41cd-a027-7d936fd1da50", "name": "Clearstar"}
+    ]
+  },
+  "createQuoteInquiry": {
+    "buy": false,
+    "taker": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+    "assets": "700000000000",
+    "minDurationSec": 604800,
+    "maxDurationSec": 2592000,
+    "loanTokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "chainId": 8453,
+    "collaterals": [
+      {
+        "token": "0x50639C42E2FFDEC4F68FB468968a55b3Af944583",
+        "oracle": "0xe290B586FAa8A2cC219edFEb202bf1E6ec64cf19",
+        "lltv": "770000000000000000",
+        "liquidationCursor": "300000000000000000"
+      }
+    ],
+    "allowedOrganizationIds": ["123cf521-4b9e-4b58-9335-d6d0b35f8b95"],
+    "selectAll": false,
+    "note": "buy=false = borrow side. Request is offchain/non-binding until King accepts an onchain lend offer."
+  },
+  "liveInquiry": {
+    "id": null,
+    "status": "cancelled",
+    "note": "Both live Elepan RFQs deleted 2026-08-03 per King. No active Tenor inquiry."
+  },
+  "institutionalBackups": [
+    {
+      "name": "Wintermute OTC / Liquidity",
+      "url": "https://www.wintermute.com/contact",
+      "ask": "$700k USDC facility / refinance vs ELE Morpho book"
+    },
+    {
+      "name": "Wildcat (Wintermute co-incubated)",
+      "url": "https://wildcat.finance",
+      "ask": "Institutional onchain credit line"
+    },
+    {
+      "name": "DWF Labs",
+      "email": "hello@dwf-labs.com",
+      "url": "https://rfq.dwf-labs.com/",
+      "ask": "Working-capital / inventory facility $700k USDC"
+    },
+    {
+      "name": "Galaxy GOFR",
+      "url": "https://www.galaxy.com/global-markets/lending/galaxy-onchain-financing-rate",
+      "ask": "≥$1M structured if desk requires; else size $700k if allowed"
+    }
+  ],
+  "fire": "python3 king-pod/script/FireTenorArmitageRfq.py",
+  "watch": "python3 king-pod/script/WatchTenorRfq.py --inquiry-id <ID>"
+}
