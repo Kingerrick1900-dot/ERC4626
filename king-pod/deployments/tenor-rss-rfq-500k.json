@@ -1,0 +1,19 @@
+{
+  "plan": "Option C Tenor RFQ $500k vs TRUE RSS",
+  "status": "LIVE",
+  "askUsdc": 500000,
+  "askRaw": "500000000000",
+  "collateral": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+  "oracle": "0x284EC3A9674e6C62ea552Bf75BDeE9B799627D2e",
+  "lltv": "770000000000000000",
+  "hot": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "landing": "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+  "elepanDenylist": "0x50639C42E2FFDEC4F68FB468968a55b3Af944583",
+  "armitage": "123cf521-4b9e-4b58-9335-d6d0b35f8b95",
+  "app": "https://app.tenor.finance/otc",
+  "inquiries": {
+    "armitageOnly": "7e35d157-3dfe-40bc-81e5-e0841037976d",
+    "broadcastAll": "caaa6250-04c3-4b9a-98e1-64531f67be97"
+  },
+  "postFillLaw": "USDC to Landing. Do not recycle into yRSS / RSS Morpho. Elepan free."
+}
