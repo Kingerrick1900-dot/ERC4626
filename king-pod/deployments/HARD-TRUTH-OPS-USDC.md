@@ -33,5 +33,5 @@ Until one of those happens, **there is no redeemable dollar ops path from the cu
 
 ## Freeze
 
-No more fake runway. No eUSD-as-dollars. No desk theater as the plan.  
-Info / real USDC-entry work only.
+No more fake runway. No eUSD-as-dollars. No desk theater. No bond/buyer plans.  
+Info only until a path that does **not** assume buyers is named.
