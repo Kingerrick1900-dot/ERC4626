@@ -49,6 +49,6 @@ If any answer fails → **do not fire.**
 - Info / docs / dry-run sims only until King lifts freeze.
 - No NAV, no `onBehalf` donation, no foreign-vault enable, no PA maxIn into $1200 for foreign books.
 - Next funded thesis must name: **own seed size + own collateral + Landing receiver** — nothing else.
-- Protocol ops bootstrap (common DeFi survival path): **`PROTOCOL-OPS-BOOTSTRAP.md`** + `CrownOpsEusdDraw`.
+- Hard truth (no games): **`HARD-TRUTH-OPS-USDC.md`** — no USDC in ⇒ no dollar ops out. eUSD ≠ ops.
 
-See also: `PROTOCOL-OPS-BOOTSTRAP.md` · `LOANS-TO-OPS-WALL-FREEZE.md` · `KING-ERRICK-HANDOFF-FREEZE.md` · `OPS-FREEZE.md` · `RSS-1200-MARKET.md`
+See also: `HARD-TRUTH-OPS-USDC.md` · `KING-ERRICK-HANDOFF-FREEZE.md` · `OPS-FREEZE.md` · `RSS-1200-MARKET.md`
