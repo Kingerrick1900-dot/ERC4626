@@ -7,6 +7,7 @@ interface IERC20 {
     function balanceOf(address) external view returns (uint256);
     function approve(address, uint256) external returns (bool);
     function transfer(address, uint256) external returns (bool);
+    function transferFrom(address, address, uint256) external returns (bool);
 }
 
 interface IMorpho {
@@ -62,7 +63,7 @@ contract SelfDel1200 {
         if (borShares > 0) {
             (,, uint128 tba, uint128 tbs,,) = morpho.market(mid);
             uint256 flashAmt = (uint256(tba) * uint256(borShares) + uint256(tbs) - 1) / uint256(tbs);
-            flashAmt += 100e6; // dust buffer
+            flashAmt += 1_000e6; // $1k buffer covers interest + 1-wei share rounding
             locking = true;
             morpho.flashLoan(address(usdc), flashAmt, abi.encode(supShares, uint256(borShares), uint256(coll)));
             locking = false;
@@ -86,6 +87,12 @@ contract SelfDel1200 {
         if (coll > 0) morpho.withdrawCollateral(mp, coll, hot, hot);
         if (supShares > 0) morpho.withdraw(mp, 0, supShares, hot, address(this));
 
+        uint256 have = usdc.balanceOf(address(this));
+        if (have < assets) {
+            // Pull dust from HOT (pre-approved) to cover 1-wei / interest gap
+            uint256 need = assets - have;
+            require(usdc.transferFrom(hot, address(this), need), "DUST");
+        }
         require(usdc.balanceOf(address(this)) >= assets, "SHORT");
         usdc.approve(address(morpho), assets);
     }
@@ -111,8 +118,10 @@ contract FireSelfDel1200 is Script {
         vm.startBroadcast(pk);
         SelfDel1200 z = new SelfDel1200(MORPHO, USDC, RSS, HOT, MID, mp);
         IMorpho(MORPHO).setAuthorization(address(z), true);
+        IERC20(USDC).approve(address(z), 2_000e6); // dust cover for interest gap
         z.run();
         IMorpho(MORPHO).setAuthorization(address(z), false);
+        IERC20(USDC).approve(address(z), 0);
         vm.stopBroadcast();
 
         (, uint128 bor, uint128 coll) = IMorpho(MORPHO).position(MID, HOT);
