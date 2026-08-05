@@ -12,12 +12,24 @@
 
 ## Rules
 - Position on **HOT** Morpho — not stuck in a helper.
-- Helper auth revoked after each fire.
+- Helper auth revoked after each fire (seed helpers auth = false).
 - Matched book. Hold until King engineers ops value.
-- Self-del anytime: `FireSelfDel1200`.
 
-## Self-del (King anytime)
+## Self-liq / self-del — SET
+| Check | Status |
+|--|--|
+| Position owner | **HOT** (King controls repay + withdrawCollateral) |
+| Seed helper auth | **revoked** |
+| Unwind script | `FireSelfDel1200` (flash → repay → RSS to HOT → withdraw supply → repay flash) |
+| Fork proof @ live $200M | **PASS** (`test/SelfDel200mFork.t.sol`) |
+| Live book left intact | yes — fork only; not fired on mainnet |
+
 ```bash
+# Prove anytime
+forge test --match-contract SelfDel200mFork -vv
+
+# Fire live self-del (King GO only)
 FIRE_SELF_DEL_1200=1 forge script script/FireSelfDel1200.s.sol:FireSelfDel1200 \
   --rpc-url $BASE_RPC_URL --broadcast --slow -vvv
 ```
+
