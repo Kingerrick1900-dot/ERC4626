@@ -1,21 +1,19 @@
-# Protocol lock — Seamless LeverageRouter
+# Protocol lock — Venus / Kamino Multiply (+ Seamless close law)
 
-King order: find **one** protocol that closed to perfection. Use that.
+King order: one perfected pattern. Use free RSS. Size **$700k**. Engineer past empty depth.
 
 ## The protocol
 
-**Seamless `LeverageRouter`**  
-https://github.com/seamless-protocol/leverage-tokens/blob/main/src/periphery/LeverageRouter.sol
+**Venus `LeverageStrategiesManager` / Kamino Multiply** (Pendle PT flash is the same shape).  
+Close law matches **Seamless `LeverageRouter`**: debt on the router repays the Morpho flash.
 
-Settle law (deposit) — copied into `CrownSeamlessMission`:
+1. Pull **equity** = free RSS from hot (`collateralFromSender`)
+2. Morpho `flashLoan` USDC ($700k)
+3. Engineer lending depth in-tx (`repay` manufactures idle — Aero $0.67 is not a veto)
+4. **Borrow to router** repays the flash
+5. **Seed = Morpho position**. Surplus above flash → Landing
 
-1. Pull **equity** collateral from sender (`collateralFromSender`)
-2. Morpho `flashLoan` the debt asset
-3. Work leg (post equity / shape the book)
-4. **Debt on the router repays the flash** ← that is close capital (engineered, not hot buffer)
-5. **Surplus** debt above the flash amount → sender (we credit **Landing**)
-
-Seamless never asks the EOA for a second USDC pile to “close.” Close = borrow/debt sitting on the router.
+See `VENUS-MULTIPLY-700K.md`.
 
 ## Chassis
 
