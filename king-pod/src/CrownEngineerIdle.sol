@@ -65,6 +65,21 @@ contract CrownEngineerIdle {
     uint256 public lastLandingCredit;
     uint256 public lastMode;
 
+    /// @notice Durable on-chain idle proof (Scribe) — survives after util rematches.
+    struct IdleProof {
+        uint256 peakIdle;
+        uint256 ask;
+        uint256 blockNumber;
+        uint256 timestamp;
+        bytes32 marketId;
+        bool ok;
+    }
+
+    IdleProof public lastProof;
+    event IdleProven(
+        bytes32 indexed marketId, uint256 peakIdle, uint256 ask, uint256 blockNumber, uint8 mode
+    );
+
     error KingOnly();
     error IdleMiss();
     error BufferMiss();
@@ -115,6 +130,15 @@ contract CrownEngineerIdle {
         lastPeakIdle = i;
         lastMode = MODE_SUPPLY;
         if (i < ask) revert IdleMiss();
+        lastProof = IdleProof({
+            peakIdle: i,
+            ask: ask,
+            blockNumber: block.number,
+            timestamp: block.timestamp,
+            marketId: marketId,
+            ok: true
+        });
+        emit IdleProven(marketId, i, ask, block.number, MODE_SUPPLY);
     }
 
     function onMorphoFlashLoan(uint256 assets, bytes calldata data) external {
@@ -131,6 +155,17 @@ contract CrownEngineerIdle {
         uint256 peak = idle();
         lastPeakIdle = peak;
         if (peak < ask) revert IdleMiss();
+
+        // Scribe: permanent proof idle ≥ ask existed on this market in this block.
+        lastProof = IdleProof({
+            peakIdle: peak,
+            ask: ask,
+            blockNumber: block.number,
+            timestamp: block.timestamp,
+            marketId: marketId,
+            ok: true
+        });
+        emit IdleProven(marketId, peak, ask, block.number, mode);
 
         if (mode == MODE_PROVE) {
             // Borrow back to chassis — proves loan clears on engineered idle; closes flash.

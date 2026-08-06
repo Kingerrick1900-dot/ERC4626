@@ -47,6 +47,15 @@ contract EngineerIdleFork is Test {
         assertGe(eng.lastPeakIdle(), ASK, "peak idle miss");
         // Flash closed matched — lasting idle back near 0
         assertLt(_idle(), 1e6, "should rematch after prove");
+
+        (uint256 peak, uint256 ask,, uint256 ts, bytes32 mid, bool ok) = eng.lastProof();
+        console2.log("scribe peak", peak);
+        console2.log("scribe ok", ok);
+        assertTrue(ok, "scribe miss");
+        assertGe(peak, ASK, "scribe peak");
+        assertEq(ask, ASK, "scribe ask");
+        assertEq(mid, MID, "scribe market");
+        assertGt(ts, 0, "scribe ts");
     }
 
     function test_idle_then_loan_landing_700k() public {
