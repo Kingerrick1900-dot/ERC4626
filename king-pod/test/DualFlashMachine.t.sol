@@ -116,4 +116,21 @@ contract DualFlashMachineFork is Test {
             assertEq(IERC20T(USDC).balanceOf(LANDING), landBefore);
         }
     }
+
+    /// @notice Path E — MorphoWethLoanProtectionPolicy wrap shape + LI.FI equity borrow to Landing.
+    /// Native ETH in (msg.value) → WETH.deposit → Morpho supplyCollateral → borrow USDC → Landing.
+    function test_E_equity_eth_wrap_lands_700k() public {
+        uint256 ethIn = 500 ether;
+        uint256 usdcOut = 700_000e6;
+        vm.deal(HOT, ethIn);
+        uint256 landBefore = IERC20T(USDC).balanceOf(LANDING);
+
+        vm.prank(HOT);
+        machine.equityEthBorrow{value: ethIn}(usdcOut);
+
+        uint256 delta = IERC20T(USDC).balanceOf(LANDING) - landBefore;
+        console2.log("E EQUITY_ETH_WRAP Landing delta", delta);
+        assertEq(delta, usdcOut);
+        assertEq(keccak256(bytes(machine.lastMode())), keccak256(bytes("EQUITY_ETH_WRAP")));
+    }
 }

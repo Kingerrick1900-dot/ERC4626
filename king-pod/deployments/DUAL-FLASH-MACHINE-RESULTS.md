@@ -12,6 +12,7 @@
 | **B UNWIND** | flash USDC → repay king debt → withdraw supply → repay flash | **$0** |
 | **C EQUITY_WETH** | LI.FI `initialCollateral` shape: 500 WETH → borrow 700k USDC to Landing | **+$700,000** |
 | **D WETH_FLASH only** | flash WETH → coll → borrow to Landing (no equity to repay WETH) | **REVERT / $0** |
+| **E EQUITY_ETH_WRAP** | MorphoWeth wrap: native ETH → WETH.deposit → coll → borrow to Landing | **+$700,000** (fork w/ 500 ETH) |
 
 ## LI.FI blueprint vs this board
 
@@ -22,6 +23,6 @@ Creating idle with the dual-flash itself (A) expands the matched book and leaves
 ## Iterate next (on GO)
 
 1. Wire Bundler3 `multicall` + PA `reallocateTo` + `morphoBorrow` when any vault maxIn > 0.  
-2. Equity WETH path (C) — only live path that forked to **$700k on Landing**.
+2. **Path E** — wrap native ETH in-tx (`equityEthBorrow`) · fire `FireEthWrapBorrow.s.sol` · doc `ETH-WRAP-BORROW-700K.md`.
 
-**Live fire:** not executed — A/B/D net zero; C needs WETH equity King does not hold on hot.
+**Live fire:** A/B/D net zero. C/E fork to **+$700k**. Fire: put **500 ETH** on hot as `msg.value` (wrap in-tx — no WETH balance upfront).

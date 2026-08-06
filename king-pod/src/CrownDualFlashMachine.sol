@@ -10,6 +10,11 @@ interface IERC20D {
     function transferFrom(address, address, uint256) external returns (bool);
 }
 
+interface IWETHD {
+    function deposit() external payable;
+    function approve(address, uint256) external returns (bool);
+}
+
 interface IMorphoD {
     struct MarketParams {
         address loanToken;
@@ -130,4 +135,20 @@ contract CrownDualFlashMachine {
         lastLandingCredit = usdcOut;
         lastMode = "EQUITY_WETH";
     }
+
+    /// @notice Base MorphoWethLoanProtectionPolicy shape: wrap native ETH → WETH → Morpho coll → USDC to Landing.
+    /// @dev LI.FI equity path C. Caller sends ETH as msg.value (no WETH balance required upfront).
+    function equityEthBorrow(uint256 usdcOut) external payable {
+        require(msg.sender == king, "KING");
+        uint256 ethIn = msg.value;
+        require(ethIn > 0, "NO_ETH");
+        IWETHD(address(weth)).deposit{value: ethIn}();
+        weth.approve(address(morpho), ethIn);
+        morpho.supplyCollateral(wethUsdc, ethIn, address(this), "");
+        morpho.borrow(wethUsdc, usdcOut, 0, address(this), landing);
+        lastLandingCredit = usdcOut;
+        lastMode = "EQUITY_ETH_WRAP";
+    }
+
+    receive() external payable {}
 }
