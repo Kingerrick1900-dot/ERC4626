@@ -1,12 +1,24 @@
 # Liquity-pattern RSS Trove → eUSD mint
 
-**Status:** chassis ready · Morpho untouched · live on King GO / Fire
+**Status: LIVE on Base.** Morpho untouched. Landing eUSD ~**$700k**.
 
 ## Doctrine
 
 1. Morpho RSS market = demand signal, not ops cash. Book stays.
-2. Free RSS on hot (~9.76M) is CDP collateral.
+2. Free RSS on hot is CDP collateral.
 3. Mint Kingdom eUSD to Landing — no pooled lenders, no idle USDC wait.
+
+## Live
+
+| Item | Value |
+|--|--|
+| **Trove** | `0xC499bbD936Ba012fd77e8494a955D62e95503fFD` |
+| Deploy tx | `0xe0f1feba5e3553a6512507d2e480a8fef32757c42b6a84abbc8b714bbfd39d34` |
+| Open/mint tx | `0x7e6765a7378080512ec6e315d0f0c232cf6ca5b402c5580b55bd29771f6e6621` |
+| Coll locked | ~519.48 RSS |
+| Minted | **400,000 eUSD** → Landing |
+| Landing eUSD | **~700,027** |
+| Morpho RSS coll (hot) | **220,000** (unchanged) |
 
 ## Chassis
 
