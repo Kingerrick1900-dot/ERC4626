@@ -1,61 +1,43 @@
-# Protocol lock — Venus / Kamino Multiply (+ Seamless close law)
+# Protocol lock — EXACT Kamino Multiply (Landing must hit)
 
-King order: one perfected pattern. Use free RSS. Size **$700k**. Engineer past empty depth.
+Prior rematch chassis was wrong. **Kamino is flash → swap to coll → supply → borrow debt to repay.**
 
-## The protocol
+See `KAMINO-MULTIPLY-EXACT.md`.
 
-**Venus `LeverageStrategiesManager` / Kamino Multiply** (Pendle PT flash is the same shape).  
-Close law matches **Seamless `LeverageRouter`**: debt on the router repays the Morpho flash.
-
-1. Pull **equity** = free RSS from hot (`collateralFromSender`)
-2. Morpho `flashLoan` USDC ($700k)
-3. Engineer lending depth in-tx (`repay` manufactures idle — Aero $0.67 is not a veto)
-4. **Borrow to router** repays the flash
-5. **Seed = Morpho position**. Surplus above flash → Landing
-
-See `VENUS-MULTIPLY-700K.md`.
+1. User equity (WETH)
+2. Flash USDC
+3. Swap USDC → WETH (deep Aero)
+4. Supply WETH on Morpho WETH/USDC (foreign idle)
+5. Borrow flash + want; **want → Landing**; flash repaid
+6. **Do not live-fire unless Landing USDC Δ = want**
 
 ## Chassis
 
 | Contract | Role |
 |----------|------|
-| `CrownSeamlessMission.sol` | Seamless settle law |
-| `CrownMissionComplete.sol` | Proto/unlock companions (same close idea) |
-
-```text
-seamlessClose(flash, equityRss)   // close engineered; surplus→Landing (0 on self-match)
-seamlessLand(flash, want, equity) // same; tries want surplus when idle allows
-```
-
-## Fork
+| `CrownVenusMultiply700k.sol` | **Primary — King's command** |
+| `CrownSeamlessMission.sol` | Seamless settle companion |
+| `CrownMissionComplete.sol` | Proto/unlock companions |
 
 ```bash
 cd king-pod
-forge test --match-contract SeamlessMissionFork -vv --fork-url $BASE_RPC_URL
-forge test --match-contract MissionCompleteFork -vv --fork-url $BASE_RPC_URL
+FOUNDRY_DISABLE_NIGHTLY_WARNING=1 forge test --match-contract VenusMultiply700kFork -vv --fork-url $BASE_RPC_URL
 ```
 
-## King — free tokens? (ask first — not broadcast)
+## Free tokens — IN USE
 
-Live board:
+| Bag | Amount | Action |
+|-----|--------|--------|
+| **Free RSS on hot** | **~9.76M** | **Used as Multiply equity** (~1k in fork; ~758 min @ oracle) |
+| Morpho posted coll | **220k RSS** | Untouched unless King says `FREE THE BOOK` |
 
-| Bag | Amount | Need to free? |
-|-----|--------|----------------|
-| **Free RSS on hot** | **~9.76M** already | **No** — Seamless equity leg can use this now |
-| Morpho posted coll | **220k RSS** vs ~$200.8M self-matched book | **Only if you order it** |
+## Depth
 
-**Chief will not free the 220k / unwind the $200.8M book unless King says the word**  
-(`FREE THE BOOK` / `FREE THE 220k`).
+Aero RSS/USDC live ≈ **$0.67**. Engineered past: Morpho idle manufacture inside the flash.  
+Not waiting on pool depth. Not passing the buck.
 
-Why free is optional, not the USDC fix:
+## Scribe
 
-- Seamless **surplus USDC** comes from **market idle / foreign lenders**, not from posting more RSS.
-- This RSS/$1200 book is still **~100% util self-matched** → after Seamless close, surplus to Landing = **$0** (flash size consumes the manufactured idle).
-- Freeing the last 220k unlocks tokens (FLASH-FREE shape). It does **not** mint Circle USDC onto Landing by itself.
-
-## What completes Landing +$700k under Seamless law
-
-Same as Seamless in production: the debt market must have **real USDC liquidity** beyond the flash rematch — Public Allocator / foreign vault idle into the market, then `seamlessLand` surplus ≥ $700k, **or** equity into a **foreign** USDC market that already has idle (WETH/cbETH path).
-
-Scribe now: **loan closes** with zero hot USDC prefund (Seamless-perfect).  
-Scribe next: Landing Δ = $700k when idle/PA/foreign leg is live — still Seamless surplus, not “close capital on hot.”
+- Multiply **$700k closes** with zero hot USDC prefund — seed = position (free RSS posted)  
+- Landing Circle USDC surplus = **$0** on self-matched rematch today (flash consumes manufactured idle)  
+- Landing Δ = **$700k** when foreign/PA idle lets Venus surplus ≥ ask — still not “USDC buffer on hot”
