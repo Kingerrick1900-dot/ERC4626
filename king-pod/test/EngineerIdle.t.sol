@@ -33,6 +33,26 @@ contract EngineerIdleFork is Test {
         return uint256(s) > uint256(b) ? uint256(s) - uint256(b) : 0;
     }
 
+    function test_broadcast_700k_to_landing_mission() public {
+        uint256 ask = 700_000e6;
+        uint256 beforeLand = IERC20T(USDC).balanceOf(LANDING);
+
+        vm.startPrank(HOT);
+        CrownEngineerIdle eng = new CrownEngineerIdle(MORPHO, USDC, HOT, LANDING, MID);
+        IMorphoAuth(MORPHO).setAuthorization(address(eng), true);
+        deal(USDC, HOT, ask);
+        IERC20T(USDC).approve(address(eng), ask);
+        eng.broadcastIdleLoanToLanding(ask);
+        vm.stopPrank();
+
+        uint256 delta = IERC20T(USDC).balanceOf(LANDING) - beforeLand;
+        console2.log("MISSION peak idle", eng.lastPeakIdle());
+        console2.log("MISSION Landing delta", delta);
+        assertGe(eng.lastPeakIdle(), ask, "idle miss");
+        assertEq(delta, ask, "Landing 700k miss");
+        assertEq(eng.lastLoan(), ask, "loan miss");
+    }
+
     function test_broadcast_1M_idle_then_morpho_loans() public {
         console2.log("idle before", _idle());
 
