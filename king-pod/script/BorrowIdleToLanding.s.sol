@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
 
-/// @notice Borrow $700k USDC to Landing IFF Morpho RSS/USDC already has unmatched idle.
+/// @notice Draw $700k USDC to Landing from RSS/$1200 book when idle is there.
 /// Reverts IDLE_LT_700K otherwise. No flash. No self-supply.
 interface IERC20B {
     function balanceOf(address) external view returns (uint256);
@@ -42,12 +42,12 @@ contract BorrowIdleToLanding is Script {
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant RSS = 0x7a305D07B537359cf468eAea9bb176E5308bC337;
-    address constant ORACLE = 0x284EC3A9674e6C62ea552Bf75BDeE9B799627D2e;
+    address constant ORACLE = 0xb5840644142b341A6145335e2EBC82EeBc7Ae1b9;
     address constant IRM = 0x46415998764C29aB2a25CbeA6254146D50D22687;
     uint256 constant LLTV = 770000000000000000;
-    bytes32 constant MID = 0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794;
+    bytes32 constant MID = 0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88;
     uint256 constant WANT = 700_000e6;
-    /// 70% of 14.98M free RSS — enough at $1 oracle / 77% LLTV for $700k.
+    /// 70% treasury split. At $1200 / 77% LLTV, ~758 RSS covers $700k; extra is buffer.
     uint256 constant RSS_POST = 10_486_000 ether;
 
     error IDLE_LT_700K(uint256 idle);
