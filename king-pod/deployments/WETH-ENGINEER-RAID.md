@@ -1,46 +1,38 @@
-# WETH engineer → idle raid (no guesswork)
+# WETH engineer → idle raid (LIVE)
 
-**Freeze path:** Engineer **WETH equity**, then Morpho WETH/USDC borrow → Landing.  
-Elite shape: Kamino/Venus/LI.FI path C — seed first, then loan against a book that already has idle.
+**Status:** seed + raid **FIRED on Base**. Protocol life: open WETH equity door armed.
 
-## Why this works
-
-| Fact | Live |
+| Piece | Address |
 |--|--|
-| WETH/USDC idle | ~$10M |
-| Hot WETH | ~0 — so we **engineer** it |
-| Free RSS | ~14.6M — bait for open fill / desk |
-| Rematch RSS/$1200 alone | Landing Δ $0 (fork-proven) |
+| WETH seed | `0x60C452855eaedCD6917c2A3dDbd21678Ba390679` |
+| Idle raid | `0x0d1861b59cc613CC09C8E9b1Ab419a98Bd30fD25` |
+| Escrow RSS | **5,000,000** (+20% sweetener) |
+| WETH sink | hot `0x6708…a7d1` |
+| Morpho auth | **true** |
+| WETH/USDC idle | ~**$9.87M** |
 
-## Two ways we engineer ≥351 WETH
+## Secure / maintain
 
-1. **Permissionless WETH seed** — anyone `fill(weth)` → WETH to hot, RSS+20% to filler (oracle-priced).  
-2. **RSS/WETH desk** — lender `fund(weth)` → king `draw` locks RSS, pulls WETH (loan, not sale).
+1. Fillers bring WETH → hot (seed life).
+2. When hot WETH ≥ ~360: `raid(wethIn, 700_000e6)` → Landing.
+3. Do not rematch RSS/$1200 for payroll. Do not burn gas on optics.
 
-Then **`CrownWethIdleRaid.raid`** posts WETH on Morpho and sends USDC to Landing.
+## Filler
 
-## Fire
+```text
+weth.approve(0x60C452855eaedCD6917c2A3dDbd21678Ba390679, amt)
+seed.fill(amt)   // WETH → hot, RSS+20% → filler
+```
+
+Quote: 360 WETH → ~833.8 RSS (sweetener included).
+
+## Raid (after WETH on hot)
 
 ```bash
-# 1) Deploy raid + seed + desk; escrow 5M RSS into open WETH seed
-KING_OK=1 FIRE=1 ESCROW_RSS=5000000000000000000000000 \
-  forge script script/FireWethEngineerRaid.s.sol:FireWethEngineerRaid \
-  --rpc-url https://mainnet.base.org --broadcast --slow -vvv
-
-# 2) Filler (any wallet with WETH):
-#    weth.approve(SEED, amt); seed.fill(amt);
-
-# 3) When hot WETH ≥ 360:
-KING_OK=1 FIRE=1 RAID=1 ESCROW_RSS=0 SEED=0x… RAID_MACHINE=0x… \
+FIRE=1 RAID=1 ESCROW_RSS=0 \
+  SEED=0x60C452855eaedCD6917c2A3dDbd21678Ba390679 \
+  RAID_MACHINE=0x0d1861b59cc613CC09C8E9b1Ab419a98Bd30fD25 \
   WETH_IN=360000000000000000000 USDC_OUT=700000000000 \
   forge script script/FireWethEngineerRaid.s.sol:FireWethEngineerRaid \
-  --rpc-url https://mainnet.base.org --broadcast --slow -vvv
+  --rpc-url https://mainnet.base.org --broadcast --slow
 ```
-
-## Fork
-
-```bash
-forge test --match-contract WethEngineerRaidFork -vv --fork-url https://mainnet.base.org
-```
-
-Hard law: Landing Δ must equal ask or full revert.
