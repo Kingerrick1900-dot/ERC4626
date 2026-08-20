@@ -2,8 +2,11 @@
   "protocol": "morpho",
   "chainId": 8453,
   "campaignType": "MORPHO_MARKET_SUPPLY",
-  "rewardStyle": "FIXED_REWARD_RATE",
-  "doctrine": "Follow-up after Peapods scream — NOT first move. Fixed rate protects early USDC suppliers (no variable dilution).",
+  "campaignTypeIdHint": 18,
+  "rewardStyle": "FIXED_RATE",
+  "rewardToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "rewardTokenNote": "USDC — Merkl-whitelisted. ELE minAmount=0 (not whitelisted). Fund hot USDC before fire.",
+  "doctrine": "Follow-up after Peapods scream — NOT first move. Fixed rate protects early USDC suppliers.",
   "marketId": "0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88",
   "loanToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   "collateralToken": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
@@ -12,12 +15,8 @@
   "vault": "0xF80C0529bD94C773844E459853CD91B9263dD525",
   "publicAllocator": "0xA090dD1a701408Df1d4d0B85b716c87565f90467",
   "targetIdleUsdc": 700000,
-  "suggestedFixedAprBps": 800,
-  "notes": [
-    "Market-level Merkl: incentivize USDC supply on RSS/$1200 directly (Gauntlet/Steakhouse pattern).",
-    "Fixed Reward Rate only — variable dilutes early suppliers.",
-    "Fire AFTER Peapods 100% util scream is live.",
-    "When idle >= target: BorrowIdleToLanding (KING_OK=1). Arm yRSS first: ArmYrss1200."
-  ],
-  "order": "Peapods scream → this Merkl → Liquity mint rail → Vault V2 0% exit → tax extract"
+  "defaultBudgetUsdc": 50000,
+  "encode": "./script/merkl/encode_rss1200_fixed.sh",
+  "fire": "FireMerklRss1200Fixed.s.sol",
+  "order": "ArmYrss1200 → fund USDC → encode → FIRE_MERKL → idle ≥ ask → BorrowIdleToLanding"
 }
