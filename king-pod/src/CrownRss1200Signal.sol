@@ -61,7 +61,8 @@ contract CrownRss1200Signal is Ownable, ReentrancyGuard {
     uint256 public constant MAX_COLL_RSS = 500_000 ether;
     /// @dev HF 1.50 in 1e18 (collValue / debt).
     uint256 public constant MIN_HF_WAD = 1.5e18;
-    uint256 public constant DUST_USDC = 2_000e6;
+    /// @dev Matched book: king is both sides — interest washes. No USDC buffer required.
+    ///      Flash size = exact debt assets (ceil). Optional 1-wei cover via _cover if hot has dust.
 
     IMorphoSignal public immutable morpho;
     IERC20 public immutable usdc;
@@ -165,8 +166,8 @@ contract CrownRss1200Signal is Ownable, ReentrancyGuard {
 
         if (borShares > 0) {
             (,, uint128 tba, uint128 tbs,,) = morpho.market(marketId);
+            // Exact debt ceil — no $2k pad. Matched supply interest offsets borrow interest.
             uint256 flashAmt = (uint256(tba) * uint256(borShares) + uint256(tbs) - 1) / uint256(tbs);
-            flashAmt += DUST_USDC;
             _locking = true;
             morpho.flashLoan(
                 address(usdc),

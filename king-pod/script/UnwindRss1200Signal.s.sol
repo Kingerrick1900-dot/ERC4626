@@ -55,10 +55,12 @@ contract UnwindRss1200Signal is Script {
             console2.log("unwindDeployed", address(z));
         }
 
-        IERC20U(USDC).approve(address(z), 2_000e6);
+        // Matched book washes — no $2k buffer. Approve whatever dust hot holds for 1-wei cover.
+        uint256 dust = IERC20U(USDC).balanceOf(HOT);
+        if (dust > 0) IERC20U(USDC).approve(address(z), dust);
         z.unwind();
         IMorphoU(MORPHO).setAuthorization(address(z), false);
-        IERC20U(USDC).approve(address(z), 0);
+        if (dust > 0) IERC20U(USDC).approve(address(z), 0);
 
         vm.stopBroadcast();
 

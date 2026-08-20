@@ -42,8 +42,9 @@ contract Rss1200SignalForkTest is Test {
         z = new CrownRss1200Signal(MORPHO, USDC, RSS, HOT, MID, ORACLE, IRM, LLTV);
         IMorphoT(MORPHO).setAuthorization(address(z), true);
         IERC20T(RSS).approve(address(z), COLL);
-        IERC20T(USDC).approve(address(z), 2_000e6);
-        deal(USDC, HOT, IERC20T(USDC).balanceOf(HOT) + 2_000e6);
+        // No $2k USDC buffer — matched book washes. Leave hot USDC as-is.
+        uint256 dust = IERC20T(USDC).balanceOf(HOT);
+        if (dust > 0) IERC20T(USDC).approve(address(z), dust);
         vm.stopPrank();
     }
 

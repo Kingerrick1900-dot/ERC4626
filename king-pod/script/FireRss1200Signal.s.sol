@@ -32,7 +32,6 @@ contract FireRss1200Signal is Script {
     error NO_GO();
     error FLASH();
     error HEADROOM();
-    error DUST();
 
     function run() external {
         if (vm.envOr("KING_OK", uint256(0)) != 1) revert NO_GO();
@@ -44,15 +43,13 @@ contract FireRss1200Signal is Script {
         address existing = vm.envOr("SIGNAL", address(0));
 
         uint256 rssFree = IERC20S(RSS).balanceOf(HOT);
-        uint256 hotUsdc = IERC20S(USDC).balanceOf(HOT);
         console2.log("rssFreeBefore", rssFree);
-        console2.log("hotUsdc", hotUsdc);
+        console2.log("hotUsdc", IERC20S(USDC).balanceOf(HOT));
         console2.log("ask", ask);
         console2.log("collRss", coll);
         if (rssFree < coll + 1_000_000 ether) revert HEADROOM();
         if (IERC20S(USDC).balanceOf(MORPHO) < ask) revert FLASH();
-        // $2k dust covers Morpho share/interest gap on seed close + unwind.
-        if (hotUsdc < 2_000e6) revert DUST();
+        // Matched book: interest washes (king is both sides). Gas = ETH only. No USDC buffer.
 
         vm.startBroadcast(pk);
 
@@ -69,7 +66,9 @@ contract FireRss1200Signal is Script {
         }
 
         IERC20S(RSS).approve(address(z), coll);
-        IERC20S(USDC).approve(address(z), 2_000e6);
+        // Optional wei cover only — matched book needs no $2k USDC buffer.
+        uint256 dust = IERC20S(USDC).balanceOf(HOT);
+        if (dust > 0) IERC20S(USDC).approve(address(z), dust);
 
         if (vm.envOr("FIRE_SIGNAL", uint256(0)) == 1) {
             z.seed(ask, coll);
