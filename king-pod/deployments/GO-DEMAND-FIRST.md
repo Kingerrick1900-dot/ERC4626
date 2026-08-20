@@ -1,42 +1,36 @@
-# GO — Demand-first fire sheet
+# GO — Demand-first — LIVE
 
-**Status:** Armed. Waiting on hot `PRIVATE_KEY` (one-time paste).  
-**Morpho $200M:** leave 250k RSS coll alone.
+**FIRED on Base.** One-time key used and cleared. Morpho **$200M signal untouched** (250k RSS coll).
 
-## Live green
+## Results
 
-| Gate | State |
+| Step | Status | Detail |
+|--|--|--|
+| **1 Peapods scream** | **LIVE** | fUSDC util **100%** · borrows **$1,000,800** · cash 0 |
+| **2 Vault V2 0%** | **Already 0** | penalty was already 0 — skip (set reverted same-value) |
+| **3 Mint 100M** | **LIVE** | Landing eUSD **~100.7M** · Morpho untouched |
+
+## Addresses
+
+| Piece | Address |
 |--|--|
-| Free RSS | ~14.7M |
-| 100M mint coll | ~129,871 RSS — **FITS** |
-| Morpho signal | 250k coll intact |
-| ETH gas | present |
-| Fork | Trove 100M **PASS** |
+| pRSS | `0x2B1C3c6b85eaca726fCB1Df4F0600Fde2871D82e` |
+| fUSDC | `0xaA7c52a03b71FFabAe8D1596f9ADb6677eE86038` |
+| LP | `0x54f1f77c8EB130D36eC068805E026F3bdE30B38B` |
+| Pair | `0x9fA580Dc53c5E99B200F053Ff3beD7611D187692` |
+| Seeder | `0xca134AD9f993D734606354db9aA79783488D3Eab` |
+| Trove | `0x6B78431D8467749359d5DD32051ac049e425d8Fb` |
+| Trove coll | **129,871 RSS** |
+| Trove debt | **100,000,000 eUSD** |
 
-## Fire order (King key)
+## Key txs
 
-```bash
-cd king-pod
-export PRIVATE_KEY=0x…   # hot — one-time
-export BASE_RPC_URL=https://mainnet.base.org
+| Step | Hash |
+|--|--|
+| Peapods `selfLend` scream | [`0xa7c2c855…732c6a`](https://basescan.org/tx/0xa7c2c85556599465f543b42842fdc78dcc23a0ec3d5661192eb7bee53f732c6a) |
+| Trove `open` 100M | [`0x0008cdfa…595093`](https://basescan.org/tx/0x0008cdfac1275ca98a7c204ad47a1337870430d66f8df3133445bb0b7a595093) |
 
-# 1) Peapods scream (creates LP in-tx — PoD 100% util)
-KING_GO=1 FIRE_PEAPODS=1 ASK_RSS=834 \
-  forge script script/FirePeapodsRss1200.s.sol:FirePeapodsRss1200 \
-  --rpc-url $BASE_RPC_URL --broadcast --slow -vvv
+## Next
 
-# 2) Vault V2 exit = gas only
-KING_OK=1 forge script script/SetVaultV2ZeroPenalty.s.sol:SetVaultV2ZeroPenalty \
-  --rpc-url $BASE_RPC_URL --broadcast -vvv
-
-# 3) Mint 100M eUSD → Landing (Morpho untouched)
-KING_OK=1 FIRE_TROVE=1 \
-  forge script script/FireRssTroveMint.s.sol:FireRssTroveMint \
-  --rpc-url $BASE_RPC_URL --broadcast --slow -vvv
-```
-
-Merkl fixed campaign: submit `deployments/merkl-rss-1200-fixed.json` in Merkl UI after scream (follow-up amp).
-
-## Agent
-
-Paste hot key once → agent broadcasts 1→2→3 → clears key.
+Merkl fixed campaign on RSS/$1200 (`merkl-rss-1200-fixed.json`) — UI follow-up amp.  
+Tax extract when idle ≥ ask: `BorrowIdleToLanding`.
