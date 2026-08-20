@@ -1,48 +1,51 @@
-# RSS/$1200 $200M signal — self-del set, headroom on RSS
+# RSS/$1200 $200M seed — ENGINEERED · GO
 
-**Not idle. Not payroll.** Re-claim the matched Morpho book King already ran (`0xbe63e15e…`).
+**Own fire. No curator. No Merkl. No desk.**
 
-Position on **HOT**. Chassis stays Morpho-authorized so unwind is one call.
+## Live gates (Base read)
 
-## Size (scaled back — do not post the stack)
+| Gate | State |
+|--|--|
+| Hot RSS free | **~15.0M** (≥ 250k + 1M headroom) |
+| Morpho flash USDC | **~$238M** (≥ $200M) |
+| Hot Morpho position | **0 / 0 / 0** (clear) |
+| RSS/$1200 market | empty / dust |
+| Oracle | **$1200** (1.2e27) |
+| Chassis compile | PASS |
+| Fork proof (anvil) | **3/3 PASS** — seed $200M, HF 1.50, self-del clears |
 
-| Knob | Old live fire | This fire |
-|--|--|--|
-| Ask / book | **$200,000,000** | **$200,000,000** (same signal) |
-| RSS coll | 220,000 (HF ~1.32, razor vs 77% LLTV) | **250,000** (HF **1.50**) |
-| RSS left liquid | rest of hot | **≥ 1,000,000** required; ~15M − 250k stays free |
-| Coll cap | none | **500,000 RSS max** (cannot dump inventory) |
+## Size
 
-Min coll vs $200M @ $1200 / 77% LLTV ≈ **216,451 RSS**. 250k is headroom, not the whole bag.
+| Knob | Value |
+|--|--|
+| Ask | **$200,000,000** |
+| RSS coll | **250,000** (HF **1.50**) |
+| Min free after | **≥ 1,000,000 RSS** |
+| Max coll | 500,000 RSS |
+| Dust on hot | **≥ $2,000 USDC** (share/interest cover) |
 
-## Unwind (set before seed)
+## Pre-flight (King, 60s)
 
-Same contract: `unwind()` = `selfDel()` = `selfLiq()`.
+1. Put **≥ $2,000 USDC** on hot (current dust is cents — fire reverts `DUST()` without it).
+2. Confirm ETH gas on hot.
+3. Set `PRIVATE_KEY` = hot.
 
-```
-flash → repay HOT debt → withdrawCollateral to HOT → withdraw supply → repay flash
-```
-
-Fork proves seed **and** full clear (shares/coll = 0, RSS back).
-
-## Fire (King GO)
-
-Prep (deploy + auth, no seed):
+## Fire
 
 ```bash
 cd king-pod
+
+# 1 — Prep (deploy + auth, no seed)
 KING_OK=1 forge script script/FireRss1200Signal.s.sol:FireRss1200Signal \
   --rpc-url https://mainnet.base.org --broadcast --slow -vvv
-```
 
-Seed $200M:
-
-```bash
+# 2 — Seed $200M (same cmd + FIRE)
 KING_OK=1 FIRE_SIGNAL=1 forge script script/FireRss1200Signal.s.sol:FireRss1200Signal \
   --rpc-url https://mainnet.base.org --broadcast --slow -vvv
+# reuse: SIGNAL=<addr> FIRE_SIGNAL=1 …
 ```
 
-Self-del / self-liq (any time):
+## Unwind (armed — auth left ON)
 
 ```bash
 KING_OK=1 FIRE_UNWIND=1 SIGNAL=<CrownRss1200Signal> \
@@ -50,18 +53,22 @@ KING_OK=1 FIRE_UNWIND=1 SIGNAL=<CrownRss1200Signal> \
   --rpc-url https://mainnet.base.org --broadcast --slow -vvv
 ```
 
-`SIGNAL` unset still works — deploys a fresh unwind chassis (original `FireSelfDel1200` path).
+`unwind` = `selfDel` = `selfLiq`. RSS returns to hot. Book → zero.
 
-## Fork
+## Fork proof
 
 ```bash
-forge test --match-contract Rss1200SignalForkTest -vvv --fork-url https://mainnet.base.org
+# Direct Base RPC may panic Foundry 1.7.1 Isthmus L1 fee — use anvil:
+anvil --fork-url https://mainnet.base.org --port 8545 &
+forge test --match-contract Rss1200SignalForkTest -vvv --fork-url http://127.0.0.1:8545
 ```
 
 ## Market
 
 ```
 RSS/$1200 = 0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88
-ORACLE    = $1200 (1.2e27)
-LLTV      = 77%
 ```
+
+## Agent note
+
+Cloud agent **cannot** broadcast — no `PRIVATE_KEY` in env. Chassis + scripts + fork proof are ready. King fires from VPS/hot.

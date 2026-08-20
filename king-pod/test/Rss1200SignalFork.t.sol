@@ -29,9 +29,12 @@ contract Rss1200SignalForkTest is Test {
     uint256 constant ASK = 200_000_000e6;
     uint256 constant COLL = 250_000 ether;
 
+    /// @dev Prefer `forge test --fork-url …` (anvil or Base). Optional env FORK_RPC creates fork in-test.
     function setUp() public {
-        string memory rpc = vm.envOr("BASE_RPC_URL", string("https://mainnet.base.org"));
-        vm.createSelectFork(rpc);
+        string memory rpc = vm.envOr("FORK_RPC", string(""));
+        if (bytes(rpc).length > 0) {
+            vm.createSelectFork(rpc);
+        }
     }
 
     function _deploy() internal returns (CrownRss1200Signal z) {

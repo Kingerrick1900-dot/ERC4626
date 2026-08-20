@@ -32,6 +32,7 @@ contract FireRss1200Signal is Script {
     error NO_GO();
     error FLASH();
     error HEADROOM();
+    error DUST();
 
     function run() external {
         if (vm.envOr("KING_OK", uint256(0)) != 1) revert NO_GO();
@@ -43,11 +44,15 @@ contract FireRss1200Signal is Script {
         address existing = vm.envOr("SIGNAL", address(0));
 
         uint256 rssFree = IERC20S(RSS).balanceOf(HOT);
+        uint256 hotUsdc = IERC20S(USDC).balanceOf(HOT);
         console2.log("rssFreeBefore", rssFree);
+        console2.log("hotUsdc", hotUsdc);
         console2.log("ask", ask);
         console2.log("collRss", coll);
         if (rssFree < coll + 1_000_000 ether) revert HEADROOM();
         if (IERC20S(USDC).balanceOf(MORPHO) < ask) revert FLASH();
+        // $2k dust covers Morpho share/interest gap on seed close + unwind.
+        if (hotUsdc < 2_000e6) revert DUST();
 
         vm.startBroadcast(pk);
 
