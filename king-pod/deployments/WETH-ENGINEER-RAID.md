@@ -1,58 +1,52 @@
-# WETH engineer → idle raid / permissionless TAKE (LIVE seed+raid)
+# ZK-layered Landing + WETH idle (NOT “we have 380 WETH”)
 
-**Doctrine:** Raid WETH/USDC idle. No rematch theater. Equity → borrow → Landing.
+**Correction:** Kingdom does **not** hold ~380 WETH. That number is Morpho **86% LLTV math** for a $700k borrow — an engineering target, not inventory. Primary stack is **ZK layering**.
 
-| Piece | Address | State |
+## Layers
+
+| Layer | What | LIVE |
 |--|--|--|
-| WETH seed | `0x60C452855eaedCD6917c2A3dDbd21678Ba390679` | **LIVE** — 5M RSS escrowed, +20% sweetener, sink=hot |
-| Idle raid | `0x0d1861b59cc613CC09C8E9b1Ab419a98Bd30fD25` | **LIVE** — Morpho `isAuthorized(hot,raid)=true` |
-| TAKE (`CrownTakeWethIdle`) | *deploy with hot key* | Permissionless `poke()` when equity + idle ready |
-| WETH sink | hot `0x6708…a7d1` | Needs ≥ ~380 WETH for $700k @ 86% LLTV |
-| WETH/USDC idle | Morpho market | ~**$10M+** (reallocatable larger) |
+| **Z — Pack** | Flash-bound `isProven(hot)` ticket (Morpho flash → attest → repay, net-zero pocket) | Gate `0xab2856…427F` · Flash `0x22C07d…34F4` · **TTL 7d — currently expired** |
+| **C — Credit** | Matcher/LP supplies `CrownZkCredit` → autodraw/borrowTo Landing | Credit `0x20B151…7D1A` · AutoDraw `0x364bEF…13ba` · **USDC = 0** |
+| **W — WETH idle** | Engineered WETH equity → Morpho WETH/USDC idle → Landing | Seed `0x60C452…0679` · Raid `0x0d1861…fD25` · TAKE (deploy) · idle ~$10M |
+
+`isProven ≠ cash.` Caps ≠ cash. Flash-bound unlocks the **ticket**; lasting Landing USDC needs a **named source** (credit supply against pack, or engineered blue-chip coll).
+
+## Secure / maintain (ZK first)
+
+1. **Refresh pack** (TTL expired ~18d):
+   ```bash
+   KING_OK=1 FIRE_BOUND_WIRE=1 REFRESH=1 \
+     GATE=0xab2856626BBd8E6fba9dB93783029eB973E8427F \
+     CREDIT=0x20B1513a137b9CB166E2cC15c405e842278E7D1A \
+     FLASH=0x22C07d684ca8D5963A94e17C8e78B9e6105f34F4 \
+     forge script script/FireBoundWireAndFlash.s.sol \
+     --rpc-url https://mainnet.base.org --broadcast --slow
+   ```
+   Or via layered hub: `FIRE=1 REFRESH=1 forge script script/FireZkLayeredLanding.s.sol …`
+
+2. **Named USDC into credit** (desk/matcher against Groth16 / live pack) → anyone `layer.poke()` (Layer C). No WETH required.
+
+3. **Engineer WETH equity** (Layer W) only as parallel rail — seed fill / wrap / flash+buffer. Do not recruit “someone with 380 WETH” as the mission. When equity exists: TAKE/raid → Landing.
+
+## Chassis on this branch
+
+| Piece | Role |
+|--|--|
+| `CrownZkLayeredLanding` | Pack + credit + optional WETH TAKE, permissionless `poke` |
+| `CrownTakeWethIdle` | Layer W idle seizure |
+| `CrownPermissionlessWethSeed` | LIVE — open door to engineer WETH onto hot |
+| `CrownWethIdleRaid` | LIVE — king raid when equity engineered |
 
 ## Physics (frozen)
 
-- Matched RSS/$1200 book ≠ idle cash. Collateral capacity ≠ withdrawable USDC.
-- 14% LLTV law: flash WETH → borrow → buyback needs ~14% equity buffer. Signal-slice alone cannot fund Landing while closing flash.
-- **Working path:** WETH equity on hot → Morpho WETH/USDC borrow → Landing.
+- Matched RSS/$1200 ≠ idle cash.
+- Flash USDC→buy WETH→borrow→repay **worsens** the 14% buffer need for lasting Landing.
+- ZK pack does not mint Morpho idle; it underwrites the counterparty ticket.
 
-## Secure / maintain
+## Filler (optional Layer W door only)
 
-1. Fillers (or wrap) put WETH on hot via seed:
-   ```text
-   weth.approve(0x60C452855eaedCD6917c2A3dDbd21678Ba390679, amt)
-   seed.fill(amt)   // WETH → hot, RSS+20% → filler
-   ```
-2. Live-deploy TAKE (one-time, hot key):
-   ```bash
-   FIRE=1 forge script script/FireTakeWethIdle.s.sol:FireTakeWethIdle \
-     --rpc-url https://mainnet.base.org --broadcast --slow
-   ```
-   Script deploys TAKE, Morpho-auths it, `WETH.approve(take, max)` from hot.
-3. Anyone when `ready()==true`: `take.poke()` → Landing **+$700,000** (hard gate).
-
-## Anvil prove (done)
-
-Permissionless keeper `poke()` → Landing delta **700_000e6**. Fixed: poke pulls full equity (Morpho double-truncation made exact-ceil under-borrow by ~0.39 WETH).
-
-```bash
-# Fork anvil, then cast-create TAKE + wrap equity + poke from second key
-# Or: forge script script/ProveTakeWethIdle.s.sol --rpc-url http://127.0.0.1:8545 --broadcast
+```text
+weth.approve(0x60C452855eaedCD6917c2A3dDbd21678Ba390679, amt)
+seed.fill(amt)   // engineers WETH onto hot — not the primary ZK path
 ```
-
-## Raid (manual king path, already LIVE)
-
-```bash
-FIRE=1 RAID=1 ESCROW_RSS=0 \
-  SEED=0x60C452855eaedCD6917c2A3dDbd21678Ba390679 \
-  RAID_MACHINE=0x0d1861b59cc613CC09C8E9b1Ab419a98Bd30fD25 \
-  WETH_IN=380000000000000000000 USDC_OUT=700000000000 \
-  forge script script/FireWethEngineerRaid.s.sol:FireWethEngineerRaid \
-  --rpc-url https://mainnet.base.org --broadcast --slow
-```
-
-## Do not
-
-- Rematch RSS/$1200 for payroll / Merkl waits / empty-vault realloc bots
-- Burn gas without WETH equity path to Landing
-- Store hot keys in repo

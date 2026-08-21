@@ -2,14 +2,15 @@
 pragma solidity ^0.8.20;
 
 /// @title CrownTakeWethIdle
-/// @notice a16z/Morpho production TAKE — seize WETH/USDC idle the moment equity exists.
-/// @dev Battle-tested shape (Bundler3 / LI.FI / Morpho snippets):
-///      supplyCollateral(WETH) → (optional PA depth) → borrow(USDC → Landing).
-///      Permissionless `poke` replaces the human filler trigger. Equity comes from
-///      the live WETH seed (or wrap). Hard law: Landing Δ == ask or full revert.
+/// @notice Morpho WETH/USDC idle TAKE — Layer W in ZK-layered Landing stack.
+/// @dev supplyCollateral(WETH) → borrow(USDC → Landing). Permissionless `poke`.
+///      Hard law: Landing Δ == ask or full revert.
 ///
-/// Signal-slice note: unwind→swap→WETH cannot alone fund Landing while closing flash
-/// (14% LLTV law). Slice is for composition elsewhere; THIS chassis TAKES idle.
+/// Equity is ENGINEERED — hot does not hold ~380 WETH inventory. That figure is the
+/// 86% LLTV ask for $700k, not a balance. Primary unlock is ZK pack (flash-bound
+/// BoundReservesGate) + named credit; this contract is the blue-chip idle layer when
+/// WETH equity has been engineered (desk/seed/wrap/flash+buffer). See
+/// CrownZkLayeredLanding.
 
 interface IERC20T {
     function balanceOf(address) external view returns (uint256);
