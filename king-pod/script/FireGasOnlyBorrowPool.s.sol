@@ -42,7 +42,9 @@ contract FireGasOnlyBorrowPool is Script {
         CrownGasOnlyBorrowPool pool = CrownGasOnlyBorrowPool(existing);
 
         if (fire) {
-            vm.startBroadcast();
+            uint256 pk = vm.envUint("PRIVATE_KEY");
+            require(vm.addr(pk) == HOT, "NOT_HOT");
+            vm.startBroadcast(pk);
             if (address(pool) == address(0)) {
                 pool = new CrownGasOnlyBorrowPool(
                     MORPHO, USDC, RSS, YRSS, ORACLE, FLASH_PACK, GATE, PA, HOT, LANDING, MID, IRM, LLTV, HOT
