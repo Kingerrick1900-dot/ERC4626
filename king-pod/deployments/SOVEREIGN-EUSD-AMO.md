@@ -25,11 +25,26 @@ FIRE=1 AMO=<amo> SCRIBE=<scribe> SKIP_GATE=1 POST_COLL=1 \
 - `SKIP_GATE=1` → disable pack gate for fire (re-enable after refresh)
 - `BORROW_AMT` → eUSD to hot (size to HF / LLTV)
 
+## Exit — full unwind
+
+```bash
+EXIT=<exit> MARKET_ID=<mid> ORACLE=<oracle> \
+  LANDING_PRIVATE_KEY=<landing key> \
+  forge script script/FireSovereignExit.s.sol:FireSovereignExit \
+  --rpc-url $BASE_RPC_URL --broadcast --slow
+```
+
+`exitFull()`: repay king eUSD debt → withdraw all RSS → recall all Landing supply. Reverts if any leg fails.
+
+King must hold borrowed eUSD for repay. Landing + hot must `setAuthorization(exit, true)` on Morpho.
+
 ## Fork proof
 
 ```bash
 forge test --match-contract SovereignAmoForkTest -vv
 ```
+
+Includes `test_exit_full_roundtrip` — 100M supply, borrow, full exit, zero dust positions.
 
 ## Physics
 

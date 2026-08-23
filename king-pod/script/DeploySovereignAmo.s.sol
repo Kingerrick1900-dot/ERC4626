@@ -5,6 +5,7 @@ import {Script, console2} from "forge-std/Script.sol";
 import {MorphoRssEusdOracle} from "../src/MorphoRssEusdOracle.sol";
 import {CrownSovereignAmo} from "../src/CrownSovereignAmo.sol";
 import {CrownDepthAttest} from "../src/CrownDepthAttest.sol";
+import {CrownSovereignExit} from "../src/CrownSovereignExit.sol";
 
 interface IMorphoDeploy {
     struct MarketParams {
@@ -62,6 +63,11 @@ contract DeploySovereignAmo is Script {
 
         CrownDepthAttest scribe = new CrownDepthAttest(MORPHO, mid, USDC_MID, HOT);
         console2.log("scribe", address(scribe));
+
+        CrownSovereignExit exiter = new CrownSovereignExit(
+            MORPHO, EUSD, RSS, HOT, LANDING, mid, address(oracle), IRM, LLTV, HOT
+        );
+        console2.log("exit", address(exiter));
 
         vm.stopBroadcast();
 

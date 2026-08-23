@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {Test, console2} from "forge-std/Test.sol";
 import {MorphoRssEusdOracle} from "../src/MorphoRssEusdOracle.sol";
 import {CrownSovereignAmo} from "../src/CrownSovereignAmo.sol";
+import {CrownSovereignExit} from "../src/CrownSovereignExit.sol";
 
 interface IERC20T {
     function balanceOf(address) external view returns (uint256);
@@ -111,4 +112,64 @@ contract SovereignAmoForkTest is Test {
         console2.log("hot eUSD", IERC20T(EUSD).balanceOf(HOT));
         console2.log("idle after borrow", amo.idle());
     }
+
+    function test_exit_full_roundtrip() public {
+        uint256 supply = 100_000_000e18;
+        uint256 rssAmt = 100_000 ether;
+        uint256 borrowAsk = 1_000_000e18;
+
+        vm.startPrank(HOT);
+        MorphoRssEusdOracle oracle = new MorphoRssEusdOracle();
+        IMorphoT.MarketParams memory mp = IMorphoT.MarketParams({
+            loanToken: EUSD,
+            collateralToken: RSS,
+            oracle: address(oracle),
+            irm: IRM,
+            lltv: LLTV
+        });
+        IMorphoT(MORPHO).createMarket(mp);
+        bytes32 mid = keccak256(abi.encode(mp));
+
+        CrownSovereignAmo amo = new CrownSovereignAmo(
+            MORPHO, EUSD, RSS, address(0), HOT, LANDING, mid, address(oracle), IRM, LLTV, HOT
+        );
+        amo.setRequireGate(false);
+        CrownSovereignExit exiter = new CrownSovereignExit(
+            MORPHO, EUSD, RSS, HOT, LANDING, mid, address(oracle), IRM, LLTV, HOT
+        );
+        IMorphoT(MORPHO).setAuthorization(address(amo), true);
+        IMorphoT(MORPHO).setAuthorization(address(exiter), true);
+        vm.stopPrank();
+        vm.prank(LANDING);
+        IMorphoT(MORPHO).setAuthorization(address(exiter), true);
+
+        uint256 land0 = IERC20T(EUSD).balanceOf(LANDING);
+        uint256 rss0 = IERC20T(RSS).balanceOf(HOT);
+
+        vm.prank(LANDING);
+        IERC20T(EUSD).approve(address(amo), supply);
+        vm.prank(HOT);
+        amo.supplyAmo(LANDING, supply);
+
+        vm.startPrank(HOT);
+        IERC20T(RSS).approve(address(amo), rssAmt);
+        amo.postCollateral(rssAmt);
+        amo.borrowEusd(borrowAsk, HOT);
+        IERC20T(EUSD).approve(address(exiter), type(uint256).max);
+        exiter.exitFull();
+        vm.stopPrank();
+
+        assertGe(IERC20T(EUSD).balanceOf(LANDING), land0 - 1e18, "landing recall");
+        assertGe(IERC20T(RSS).balanceOf(HOT), rss0, "rss back");
+        (, uint128 bor, uint128 coll) = IMorphoPosT(MORPHO).position(mid, HOT);
+        (uint256 sup,,) = IMorphoPosT(MORPHO).position(mid, LANDING);
+        assertEq(bor, 0);
+        assertEq(coll, 0);
+        assertEq(sup, 0);
+        console2.log("landing eUSD after exit", IERC20T(EUSD).balanceOf(LANDING));
+    }
+}
+
+interface IMorphoPosT {
+    function position(bytes32, address) external view returns (uint256, uint128, uint128);
 }
