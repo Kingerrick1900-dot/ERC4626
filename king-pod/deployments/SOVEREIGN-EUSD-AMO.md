@@ -2,48 +2,48 @@
 
 Frax-style AMO: Landing supplies **minted eUSD** unmatched on Morpho; borrow eUSD vs RSS at **$1200** oracle.
 
-## Predicted deploy (Landing nonce 31, sim 2026-08-23)
+## LIVE (Base mainnet — fired 2026-08-23)
 
-| Contract | Address |
+| | |
 |--|--|
-| Oracle | `0x620260cA89f2b1558fdF7F3BC3E9ff2068345575` |
-| Market ID | `0xecac60bed651edf8322c9e437e2b4d68b165d09fe82904bd8ef645bbf2bd0d87` |
-| AMO | `0x6755D1Eb196B4C2510a3Ca053662304baE6f24c8` |
-| Scribe | `0xD6A6e0eedf244db47f72294fD33DC1Db36463004` |
-| Exit | `0x539efCDa0c18b494Ae9Be3E874776cd7149D7D1D` |
+| Oracle | `0x4153669Cc3671B6b8b68D47Fd852Ad1a48b950e0` |
+| Market ID | `0xc61adc055891c4edd3050480465aed2062d0480783f97604c63f8d1ccd8d0599` |
+| AMO | `0x151C947B813400fE78EE176843F2d666c07422eA` |
+| Scribe | `0xFAE5a8065d81c308395E050d737fA7a5b2b23160` |
+| Exit | `0x937Ba9eA3288781851E19Df50D33b800b10F064b` |
 
-**Gas gate:** Landing needs **≥ 0.003 ETH** on Base for deploy + fire (had ~0.00027 ETH at attempt). HOT key still required for RSS collateral + borrow legs.
+| Leg | Amount |
+|--|--|
+| Landing eUSD supply | **100,700,027 eUSD** |
+| HOT RSS collateral | **~9.60M RSS** (all free) |
+| HOT eUSD borrow | **8,850,000 eUSD** |
+| Unmatched idle | **~91.85M eUSD** |
+
+Exit authorized on Morpho for HOT + Landing.
 
 ## Deploy (Base)
 
 ```bash
 AMO_OWNER=0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357 \
-PRIVATE_KEY=<landing_key> \
+PRIVATE_KEY=<hot_key> \
 forge script script/DeploySovereignAmo.s.sol:DeploySovereignAmo \
-  --rpc-url $BASE_RPC_URL --broadcast --slow
+  --rpc-url $BASE_RPC_URL --broadcast --slow --with-gas-price 6000000
 ```
 
-Saves: `oracle`, `amo`, `scribe`, `marketId` from logs.
-
-## Fire — full 100M supply
+## Fire — full supply + collateral + borrow
 
 ```bash
-AMO=0x6755D1Eb196B4C2510a3Ca053662304baE6f24c8 \
-SCRIBE=0xD6A6e0eedf244db47f72294fD33DC1Db36463004 \
-SKIP_GATE=1 POST_COLL=1 \
+AMO=0x151C947B813400fE78EE176843F2d666c07422eA \
+SCRIBE=0xFAE5a8065d81c308395E050d737fA7a5b2b23160 \
+SKIP_GATE=0 POST_COLL=1 \
 SUPPLY_AMT=0 RSS_AMT=0 BORROW_AMT=8850000000000000000000000 \
 LANDING_PRIVATE_KEY=<landing_key> \
 PRIVATE_KEY=<hot_key> \
 forge script script/FireSovereignAmo.s.sol:FireSovereignAmo \
-  --rpc-url $BASE_RPC_URL --broadcast --slow
+  --rpc-url $BASE_RPC_URL --broadcast --slow --with-gas-price 6000000
 ```
 
-- `SUPPLY_AMT=0` → full Landing eUSD balance (~100.7M) — **Landing key only**
-- `POST_COLL=1` → post all free RSS from hot — **requires HOT key**
-- `SKIP_GATE=1` → disable pack gate for fire (re-enable after refresh)
-- `BORROW_AMT` → ~8.85M eUSD to hot at 77% LLTV — **requires HOT key**
-
-Supply-only fire (Landing key alone): omit `POST_COLL` and `BORROW_AMT`.
+Landing owner must call `setRequireGate(false)` first if gate still on.
 
 ## Exit — full unwind
 
