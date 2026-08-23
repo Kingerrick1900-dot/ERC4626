@@ -61,7 +61,7 @@ contract CrownSovereignAmo is Ownable, ReentrancyGuard {
     error Ltv();
 
     modifier onlyKing() {
-        if (msg.sender != king && msg.sender != owner) revert OnlyKing();
+        if (msg.sender != king && msg.sender != owner && msg.sender != landing) revert OnlyKing();
         _;
     }
 

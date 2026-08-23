@@ -37,6 +37,8 @@ contract DeploySovereignAmo is Script {
 
     function run() external {
         uint256 pk = vm.envUint("PRIVATE_KEY");
+        address amoOwner = vm.envOr("AMO_OWNER", HOT);
+        address exitOwner = vm.envOr("EXIT_OWNER", HOT);
 
         vm.startBroadcast(pk);
 
@@ -57,7 +59,7 @@ contract DeploySovereignAmo is Script {
         console2.logBytes32(mid);
 
         CrownSovereignAmo amo = new CrownSovereignAmo(
-            MORPHO, EUSD, RSS, GATE, HOT, LANDING, mid, address(oracle), IRM, LLTV, HOT
+            MORPHO, EUSD, RSS, GATE, HOT, LANDING, mid, address(oracle), IRM, LLTV, amoOwner
         );
         console2.log("amo", address(amo));
 
@@ -65,7 +67,7 @@ contract DeploySovereignAmo is Script {
         console2.log("scribe", address(scribe));
 
         CrownSovereignExit exiter = new CrownSovereignExit(
-            MORPHO, EUSD, RSS, HOT, LANDING, mid, address(oracle), IRM, LLTV, HOT
+            MORPHO, EUSD, RSS, HOT, LANDING, mid, address(oracle), IRM, LLTV, exitOwner
         );
         console2.log("exit", address(exiter));
 
