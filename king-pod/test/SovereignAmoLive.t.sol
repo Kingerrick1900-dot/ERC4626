@@ -66,31 +66,25 @@ contract SovereignAmoLiveForkTest is Test {
         console2.log("landing eUSD after live exit", IERC20L(EUSD).balanceOf(LANDING));
     }
 
-    function test_live_gate_ttl_expired() public {
+    function test_live_gate_armed_and_proven() public view {
         IBoundGateL g = IBoundGateL(GATE);
-        (,, bool valid) = g.attestations(HOT);
-        uint256 ttl = g.proofTtl();
-        assertFalse(g.isProven(HOT), "pack TTL should be expired on live");
-        assertTrue(valid, "attestation record exists");
-        assertEq(ttl, 7 days, "expected 7d proof TTL");
-        console2.log("proofTtl", ttl);
+        assertTrue(g.isProven(HOT), "pack should be proven after refresh");
+        assertTrue(amo.requireGate(), "gate should be re-armed");
+        assertTrue(amo.packReady(), "packReady with fresh proof");
+        assertEq(g.proofTtl(), 7 days, "expected 7d proof TTL");
     }
 
-    function test_live_rearm_gate_blocks_borrow() public {
-        assertFalse(amo.requireGate(), "bootstrap: gate off");
-        assertTrue(amo.packReady(), "gate off => packReady true");
-
-        vm.prank(LANDING);
-        amo.setRequireGate(true);
-        assertFalse(amo.packReady(), "expired pack => not ready");
+    function test_live_gate_blocks_borrow_without_proof() public {
+        // Simulate expired proof: re-arm stays on, borrow must revert.
+        IBoundGateL g = IBoundGateL(GATE);
+        (, uint256 attestedAt,) = g.attestations(HOT);
+        vm.warp(attestedAt + g.proofTtl() + 1);
+        assertFalse(g.isProven(HOT), "warp past TTL");
+        assertFalse(amo.packReady(), "expired => not ready");
 
         vm.startPrank(HOT);
         vm.expectRevert(CrownSovereignAmo.GateMiss.selector);
         amo.borrowEusd(1e18, HOT);
         vm.stopPrank();
-
-        vm.prank(LANDING);
-        amo.setRequireGate(false);
-        assertTrue(amo.packReady(), "gate off again");
     }
 }
