@@ -13,7 +13,7 @@
 | Scribe snap | **DONE** |
 | Gated borrow proof (+500 eUSD buffer) | **DONE** — gates enforced |
 
-**Remaining (not Base fire):** Scroll ZK proof pipeline, yRSS equity recap, PSM seed — separate phases.
+**Remaining (not Base fire):** Scroll micro-seed (`SCROLL_PRIVATE_KEY`) — see `ZK-PHASE-COMPLETE.md`. Base ZK gates **complete**.
 
 ---
 
