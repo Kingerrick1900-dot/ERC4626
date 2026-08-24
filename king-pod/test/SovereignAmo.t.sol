@@ -37,6 +37,9 @@ contract SovereignAmoForkTest is Test {
 
     function setUp() public {
         vm.createSelectFork(vm.envString("BASE_RPC_URL"));
+        // Live AMO fire drained Landing eUSD / hot RSS; re-seed for isolated fork proofs.
+        deal(EUSD, LANDING, 200_000_000e18);
+        deal(RSS, HOT, 20_000_000 ether);
     }
 
     function test_100m_eusd_supply_creates_idle() public {
