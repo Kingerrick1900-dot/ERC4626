@@ -4,6 +4,19 @@
 
 ---
 
+## Status: ACTIVATION COMPLETE (2026-08-24)
+
+| Step | Status |
+|--|--|
+| Pack refresh (`fireLive` from HOT) | **DONE** — `isProven(hot)=true` |
+| Gate re-arm (`requireGate=true`) | **DONE** |
+| Scribe snap | **DONE** |
+| Gated borrow proof (+500 eUSD buffer) | **DONE** — gates enforced |
+
+**Remaining (not Base fire):** Scroll ZK proof pipeline, yRSS equity recap, PSM seed — separate phases.
+
+---
+
 ## Live stack
 
 **Base = execution**
