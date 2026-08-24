@@ -40,24 +40,24 @@ Proof artifacts: `zk/proofs/elepan_proof_solidity.json`, `zk/proofs/settlement_p
 
 ---
 
-## Scroll stack — DEPLOYED ✅ · MICRO-FIRE pending
+## Scroll stack — COMPLETE ✅
 
-| Layer | Address |
-|--|--|
-| ERC-7540 vault | `0x846E34c0c83FC3DA7Df953A628CC2FD4E66C434D` |
-| ERC-7683 settler | `0x44F92261C9Bf9d6B1798b8756B9135650C615A83` |
-| Gold PoR | `0xFE0874449f3eb50C1BBe62D8BA38db346cACBf59` |
-| XChain | `0x102c7249fd2C2d8Fe0ec4aea65c4880047E9f8B0` |
+| Layer | Address | Status |
+|--|--|--|
+| ERC-7540 vault | `0x846E34c0c83FC3DA7Df953A628CC2FD4E66C434D` | **1 eUSD queued** (requestId `2`) |
+| ERC-7683 settler | `0x44F92261C9Bf9d6B1798b8756B9135650C615A83` | `publicFillEnabled=true` |
+| Gold PoR | `0xFE0874449f3eb50C1BBe62D8BA38db346cACBf59` | bumped (~$1M backing) |
+| PSM reserve | `0x064489A287448674AA1dC6fb740d2F518CBA75dA` | ~660k USDC (6dp) |
 
-### Remaining (needs `SCROLL_PRIVATE_KEY`)
+### Fired (2026-08-24)
 
 ```bash
-KING_GO=1 FIRE_MICRO_SCROLL=1 SCROLL_PRIVATE_KEY=… SCROLL_RPC=https://rpc.scroll.io \
+KING_GO=1 FIRE_MICRO_SCROLL=1 QUEUE_EUSD=1000000000000000000 \
   forge script script/FireMicroSeedCapitalize.s.sol \
   --rpc-url $SCROLL_RPC --broadcast --slow
 ```
 
-Seeds PSM USDC reserve + queues 1 eUSD into 7540 (solver-visible).
+Gold PoR heartbeat + 7540 `requestRedeem(1 eUSD)` live. Settlement ZK proof on Base gates 7683 fill path.
 
 ---
 
