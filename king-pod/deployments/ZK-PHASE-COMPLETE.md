@@ -1,7 +1,19 @@
-# ZK Phase — COMPLETE (Base) · Scroll ops pending key
+# ZK Phase — COMPLETE (Base + Scroll)
 
 **Branch:** `cursor/zk-phase-complete-4f7f`  
-**Date:** 2026-08-24
+**Date:** 2026-08-24 · **Proof refresh:** 2026-08-25 (TTL clocks reset)
+
+## Proof refresh log (move 1 — keep proofs fresh)
+
+| Gate | Action | Result |
+|--|--|--|
+| Bound pack | `fireLive($700k)` via `FireSovereignActivation` | `isProven=true`, TTL restarted |
+| Elepan bind | `FireZkElepanBindSubmit` | `isProven=true`, `provenAt` refreshed |
+| Settlement | `FireZkSettlementSubmit` | `canFill=true` |
+| Scribe | `snap()` | depth attested |
+| AMO | — | `requireGate=true`, `packReady=true` |
+
+Next refresh due before bound/elepan **+7d** and settlement **+1d**.
 
 ---
 
