@@ -77,9 +77,12 @@ contract FireCrownFleetBase is Script {
         console2.log("seeder", address(seeder));
         console2.log("seederCanSeed", seeder.canSeed());
 
-        NoteIssuerAuto notes = new NoteIssuerAuto(RSS, PSM, HOT, HOT);
+        NoteIssuerAuto notes = new NoteIssuerAuto(
+            RSS, PSM, HOT, MORPHO, bytes32(0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88), HOT
+        );
         notes.setArmed(true);
         console2.log("notes", address(notes));
+        console2.log("borrowCapacity", notes.borrowCapacity());
         console2.log("notesCanIssue", notes.canIssue());
 
         if (openExtra > 0) {

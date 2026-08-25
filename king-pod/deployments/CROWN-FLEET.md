@@ -11,7 +11,8 @@
 | `CrownSovereignAmoFleet` | supplyAmo / borrowLoan + **operator** slot for bot |
 | `SupplyAmoBot` | Keeper tick: mint eUSD → supply → borrow → wrap gUSD (not free mint) |
 | `TollBoothAutoSeeder` | HOT ≥ 250M → swap buffer → real USDC → PSM (NeedFx if no adapter) |
-| `NoteIssuerAuto` | PSM ≥ 10M → 20×$1M notes vs **borrower** RSS |
+| `NoteIssuerAuto` | Morpho **borrow capacity ≥ 10M** → 20×$1M notes (not PSM dust) |
+| `CrownSyncRedeem8020` | `maxRedeemSync` = borrow capacity × 1e12 when wired |
 | `CrownScrollRss` | Scroll RSS genesis 21B |
 
 ## Parallel fire

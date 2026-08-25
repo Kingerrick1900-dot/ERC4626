@@ -11,6 +11,7 @@ import {
 import {TollBoothAutoSeeder, NoteIssuerAuto, CrownScrollRss} from "../src/fleet/CrownFleetRails.sol";
 import {CrownGoldUsd} from "../src/CrownGoldUsd.sol";
 import {CrownSovereignAmo} from "../src/CrownSovereignAmo.sol";
+import {CrownSyncRedeem8020} from "../src/stack/CrownSyncRedeem8020.sol";
 
 interface IERC20T {
     function balanceOf(address) external view returns (uint256);
@@ -117,9 +118,27 @@ contract CrownFleetFork is Test {
         vm.expectRevert(TollBoothAutoSeeder.NeedFx.selector);
         seeder.execSeed();
 
-        NoteIssuerAuto notes = new NoteIssuerAuto(RSS, PSM, HOT, HOT);
+        bytes32 midUsdc = 0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88;
+        NoteIssuerAuto notes = new NoteIssuerAuto(RSS, PSM, HOT, MORPHO, midUsdc, HOT);
         notes.setArmed(true);
-        assertFalse(notes.canIssue()); // PSM depth < 10M
+        uint256 cap = notes.borrowCapacity();
+        console2.log("borrowCapacity", cap);
+        // Capacity-backed: canIssue when Morpho headroom ≥ 10M USDC (not PSM dust)
+        assertTrue(cap >= 10_000_000e6, "capacity < 10M");
+        assertTrue(notes.canIssue(), "canIssue should be true on capacity");
+        vm.stopPrank();
+    }
+
+    function test_8020_maxRedeem_uses_borrow_capacity() public {
+        vm.startPrank(HOT);
+        CrownSyncRedeem8020 sync = new CrownSyncRedeem8020(EUSD, GUSD, PSM, USDC, HOT);
+        bytes32 midUsdc = 0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88;
+        sync.wireCapacity(MORPHO, midUsdc, HOT);
+        uint256 cap = sync.borrowCapacityUsdc();
+        uint256 maxE = sync.maxRedeemSync(HOT);
+        assertEq(maxE, cap * 1e12, "maxRedeem != capacity");
+        assertGe(cap, 10_000_000e6, "cap");
+        console2.log("maxRedeemSync", maxE);
         vm.stopPrank();
     }
 

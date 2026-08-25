@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {IERC20, SafeTransfer, Ownable, ReentrancyGuard} from "../lib/Core.sol";
+import {CrownBorrowCapacity} from "./CrownBorrowCapacity.sol";
 
 interface IPsmSeedFleet {
     function seedUsdc(uint256 amt) external;
@@ -115,8 +116,9 @@ contract TollBoothAutoSeeder is Ownable, ReentrancyGuard {
     }
 }
 
-/// @notice Auto-issue Kingdom Gold Notes when PSM depth hits threshold.
-/// Borrower posts RSS; King RSS never moves. Notes = debt receipts at fixed APR.
+/// @notice Auto-issue Kingdom Gold Notes when Morpho **borrow capacity** ≥ trigger.
+/// @dev Gate = coll × oracle × LLTV − debt (loan units). NOT psm.usdcReserve / wallet dust.
+/// Borrower posts RSS; King RSS never sold. Notes = debt receipts at fixed APR.
 contract NoteIssuerAuto is Ownable, ReentrancyGuard {
     using SafeTransfer for IERC20;
 
@@ -125,14 +127,16 @@ contract NoteIssuerAuto is Ownable, ReentrancyGuard {
     uint8 public constant decimals = 18;
 
     IERC20 public immutable rss;
-    IPsmSeedFleet public immutable psm;
+    IPsmSeedFleet public immutable psm; // retained for FX settlement surface; not the issue gate
     address public immutable king;
+    address public immutable morpho;
+    bytes32 public immutable capacityMarketId; // RSS/USDC Morpho book
 
-    uint256 public depthTrigger; // 10M USDC
+    uint256 public capacityTrigger; // 10M USDC (6dp) borrow headroom
     uint256 public noteSize; // 1M (18dp face)
     uint256 public maxNotes; // 20
     uint256 public aprBps; // 500 = 5%
-    uint256 public collPerNote; // borrower RSS lock per note (e.g. ~1k RSS notion)
+    uint256 public collPerNote; // borrower RSS lock per note
     uint256 public notesIssued;
     bool public armed;
 
@@ -144,21 +148,32 @@ contract NoteIssuerAuto is Ownable, ReentrancyGuard {
     event Armed(bool on);
     event NoteIssued(uint256 indexed id, address indexed borrower, uint256 face, uint256 rssLocked);
     event NoteRepaid(uint256 indexed id, address indexed borrower);
+    event CapacityTriggerSet(uint256 trigger);
 
     error NotArmed();
-    error DepthMiss();
+    error CapacityMiss();
     error Cap();
     error BadAmt();
 
-    constructor(address rss_, address psm_, address king_, address owner_) Ownable(owner_) {
+    constructor(
+        address rss_,
+        address psm_,
+        address king_,
+        address morpho_,
+        bytes32 capacityMarketId_,
+        address owner_
+    ) Ownable(owner_) {
+        require(morpho_ != address(0) && capacityMarketId_ != bytes32(0), "ZERO");
         rss = IERC20(rss_);
         psm = IPsmSeedFleet(psm_);
         king = king_;
-        depthTrigger = 10_000_000e6;
+        morpho = morpho_;
+        capacityMarketId = capacityMarketId_;
+        capacityTrigger = 10_000_000e6;
         noteSize = 1_000_000e18;
         maxNotes = 20;
         aprBps = 500;
-        collPerNote = 1_000 ether; // borrower RSS — King bag untouched
+        collPerNote = 1_000 ether;
     }
 
     function setArmed(bool on) external onlyOwner {
@@ -166,25 +181,34 @@ contract NoteIssuerAuto is Ownable, ReentrancyGuard {
         emit Armed(on);
     }
 
-    function setParams(uint256 depthTrigger_, uint256 noteSize_, uint256 maxNotes_, uint256 aprBps_, uint256 collPerNote_)
-        external
-        onlyOwner
-    {
-        depthTrigger = depthTrigger_;
+    function setParams(
+        uint256 capacityTrigger_,
+        uint256 noteSize_,
+        uint256 maxNotes_,
+        uint256 aprBps_,
+        uint256 collPerNote_
+    ) external onlyOwner {
+        capacityTrigger = capacityTrigger_;
         noteSize = noteSize_;
         maxNotes = maxNotes_;
         aprBps = aprBps_;
         collPerNote = collPerNote_;
+        emit CapacityTriggerSet(capacityTrigger_);
+    }
+
+    /// @notice King Morpho additional borrowable USDC (6dp) on capacity market.
+    function borrowCapacity() public view returns (uint256) {
+        return CrownBorrowCapacity.borrowCapacity(morpho, capacityMarketId, king);
     }
 
     function canIssue() public view returns (bool) {
-        return armed && psm.usdcReserve() >= depthTrigger && notesIssued < maxNotes;
+        return armed && borrowCapacity() >= capacityTrigger && notesIssued < maxNotes;
     }
 
-    /// @notice Borrower locks their RSS; receives note face receipt. King 9.597M never sold.
+    /// @notice Borrower locks their RSS; receives note face receipt. King bag untouched.
     function issueNote(address borrower) external onlyOwner nonReentrant returns (uint256 id) {
         if (!armed) revert NotArmed();
-        if (psm.usdcReserve() < depthTrigger) revert DepthMiss();
+        if (borrowCapacity() < capacityTrigger) revert CapacityMiss();
         if (notesIssued >= maxNotes) revert Cap();
         if (borrower == address(0)) revert BadAmt();
 
