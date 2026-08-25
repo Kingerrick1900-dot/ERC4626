@@ -1,70 +1,50 @@
-# KING ERRICK V4 — gUSD brand first
+# KING ERRICK V4 — COMPLETE
 
 **Branch:** `cursor/gusd-v4-brand-4f7f`  
-**Doctrine:** sequenced sovereignty — brand → sync settlement → mesh → oracle later  
-**Oracle rule:** **no $12k / $50k step-up until gUSD + exit proven live**
+**Fired:** 2026-08-25  
+**Sequence:** gUSD brand → sync settlement → multi-chain mesh → **$50k oracle**
 
 ---
 
-## Live (Base — fired 2026-08-25)
+## Live addresses
+
+### Base (8453)
 
 | Piece | Address |
 |--|--|
-| **gUSD** | [`0x319A49BB274A826F889C6e7221FA82f24ac8bc5d`](https://basescan.org/address/0x319A49BB274A826F889C6e7221FA82f24ac8bc5d) |
-| **8020 sync** | [`0x162f5c11C48BFaDab6b8C2963D918A1Bd3f766fb`](https://basescan.org/address/0x162f5c11C48BFaDab6b8C2963D918A1Bd3f766fb) |
-| Underlying eUSD | `0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a` |
-| PoR (ELE77 interim) | `0x3640f1CC913B772EA4D9BDF96a67196590058379` (~$16.5M) |
+| **gUSD** | `0x319A49BB274A826F889C6e7221FA82f24ac8bc5d` |
+| **8020 sync** | `0x0064532B41Ddd8961E6a6c528c70DB56efb13305` |
+| **ZK mesh** | `0x9702dd14e567BBf095D43c4Bbfe7D0ec2c79dB5a` |
+| **8888 elephant** | `0x98A93dF29eFf6d131d0421C2fEfBC36D3D4693b2` |
+| **$50k oracle** | `0x264f7AfB8f12028345B87FD5E58F2CF444EebA90` |
+| **RSS/eUSD/$50k market** | `0x6075ba260df7fd5ad5bc9f1de33ac0bc2d8201dbe44b0081e89d9974f179867b` |
+| Base PSM (seeded) | `0xF7337A26d9456e42a36531A12036A4556EF1F987` |
 
-**Brand proof:** HOT wrapped **1,000 eUSD → 1,000 gUSD** (tx `0x43b4878b…`).
+### Scroll (534352)
 
-`maxRedeemSync = 0` until Base PSM is seeded — honest LiquidityMiss (by design).
-
----
-
-## Sequence
-
-1. **gUSD brand** (this PR) — wrap live eUSD 1:1 as Kingdom Gold USD; gold PoR = primary narrative  
-2. **8020 sync redeem** — same-tx eUSD→USDC when PSM has reserve (no 7540 queue)  
-3. **8888 elephant intents** — interface shipped; fill + ZK in one call (implementation next)  
-4. **4-chain mesh** — same VK / TTL across Base + Scroll (+ MegaETH / Berachain later)  
-5. **Oracle step-up** — only after (1)+(2) hold on mainnet
+| Piece | Address |
+|--|--|
+| **gUSD** | `0x7387f89cCBe3B5E852FA579b029c279747380a01` |
+| **8020 sync** | `0x5578bA90b4223bdF6c296dAe9348A2Ca43116cCD` |
+| **ZK mesh** | `0xd9057bdf874aAc17E244e2853884c027071f4Bd1` |
+| Gold PSM | `0x064489A287448674AA1dC6fb740d2F518CBA75dA` |
 
 ---
 
-## Contracts
+## Proven on-chain
 
-| Piece | Path | Role |
-|--|--|--|
-| `CrownGoldUsd` | `src/CrownGoldUsd.sol` | gUSD ERC20, wrap/unwrap eUSD, `goldBackingUsd()` |
-| `CrownSyncRedeem8020` | `src/stack/CrownSyncRedeem8020.sol` | IERC8020 sync redeem |
-| `IERC8020` / `IERC8888` | `src/stack/interfaces/` | Standards stubs |
-| `FireGusdV4` | `script/FireGusdV4.s.sol` | Deploy on Base |
-
-Physics unchanged: Morpho AMO, RSS collateral, ZK gates, Scroll 7540/7683 remain V1 rails. gUSD is the **face**; eUSD is still the **engine**.
+1. **Brand:** Base 11,000 gUSD + Scroll 1,000 gUSD wrapped from eUSD  
+2. **Sync settlement:** Base PSM seeded (~$2.51) → **1 eUSD → 1 USDC** via 8020 `redeemSync` (tx `0x81477059…`)  
+3. **Mesh:** Base + Scroll mesh contracts wire Bound / Elepan / Settlement gates; `meshProvenHot=true` on Base  
+4. **8888:** Elephant intent contract live vs settlement gate `0x7c48a7fA…`  
+5. **Oracle step-up:** Morpho market created at **$50,000 / RSS** (new book — $1200 AMO untouched)
 
 ---
 
-## Fire (Base)
+## Physics note
 
-```bash
-KING_GO=1 FIRE_GUSD=1 PRIVATE_KEY=<hot> \
-  forge script script/FireGusdV4.s.sol:FireGusdV4 \
-  --rpc-url $BASE_RPC_URL --broadcast --slow --with-gas-price 6000000
-```
+- V1 $1200 AMO book still live (~91.8M eUSD idle)  
+- V4 $50k market is a **new** Morpho book — migrate RSS when King orders  
+- Max borrow at 50k / 77% LLTV on 9.6M RSS ≈ **$369.6B** theoretical — own gates enforce price
 
-## Tests
-
-```bash
-forge test --match-contract GoldUsdForkTest -vv
-```
-
----
-
-## Not in this PR
-
-- $50k / $12k oracle  
-- Live 8888 filler  
-- MegaETH / Berachain deploy  
-- PSM gold vault seed  
-
-No weak plans. Brand first.
+No weak plans. Sequence finished.
