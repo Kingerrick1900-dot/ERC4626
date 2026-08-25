@@ -35,3 +35,16 @@
 7. Re-armed gate  
 
 Collateral USD notion at $50k: ~**$479.9B**; LLTV headroom far above borrowed ~$90.6M.
+
+## Hot float → gUSD face (2026-08-25)
+
+Wrapped **90%** of HOT borrowed eUSD → gUSD. Morpho idle untouched.
+
+| | Amount |
+|--|--|
+| HOT gUSD | **~81.57M** |
+| HOT eUSD buffer | **~9.06M** (10%) |
+| Morpho idle (eUSD) | **~10.07M** (unchanged) |
+| Scroll gUSD | **1,000** |
+
+Tx: `0xae9e7deb…7229`
