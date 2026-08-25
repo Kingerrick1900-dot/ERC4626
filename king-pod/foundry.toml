@@ -7,3 +7,8 @@ optimizer = true
 optimizer_runs = 200
 via_ir = true
 remappings = ["forge-std/=lib/forge-std/src/"]
+
+fs_permissions = [
+  { access = "read", path = "./zk/proofs" },
+  { access = "read", path = "./broadcast" }
+]
