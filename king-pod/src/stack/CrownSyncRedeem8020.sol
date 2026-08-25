@@ -10,9 +10,15 @@ interface IPsmRedeem2 {
     function usdcReserve() external view returns (uint256);
 }
 
+interface IFxEngine8020 {
+    function canFill(uint256 usdcAmt) external view returns (bool);
+    function fillRedeem(uint256 eusdAmt, address from, address to) external returns (uint256 usdcOut);
+    function armed() external view returns (bool);
+}
+
 /// @title CrownSyncRedeem8020
-/// @notice Sync redeem eUSD→USDC. maxRedeemSync = Morpho **borrow capacity** (not PSM dust).
-/// @dev Fill still pulls PSM inventory when present; capacity gate unblocks notes/8020 signaling.
+/// @notice Sync redeem eUSD→USDC. maxRedeemSync = Morpho borrow capacity.
+/// @dev Fill: PSM inventory first; else FxEngine (flash→pay→borrow→repay) when armed.
 contract CrownSyncRedeem8020 is IERC8020, Ownable, ReentrancyGuard {
     using SafeTransfer for IERC20;
 
@@ -22,10 +28,12 @@ contract CrownSyncRedeem8020 is IERC8020, Ownable, ReentrancyGuard {
     IERC20 public immutable usdc;
     address public morpho;
     bytes32 public capacityMarketId;
-    address public capacityUser; // King hot — RSS coll owner
+    address public capacityUser;
+    IFxEngine8020 public fxEngine;
 
     event SyncRedeemed(address indexed owner, address indexed receiver, uint256 eusdIn, uint256 usdcOut);
     event CapacityWired(address morpho, bytes32 marketId, address user);
+    event FxEngineSet(address indexed engine);
 
     error BadAmt();
     error LiquidityMiss();
@@ -38,7 +46,6 @@ contract CrownSyncRedeem8020 is IERC8020, Ownable, ReentrancyGuard {
         usdc = IERC20(usdc_);
     }
 
-    /// @notice Wire capacity-backed depth (RSS/USDC Morpho). Replaces inventory-only maxRedeem.
     function wireCapacity(address morpho_, bytes32 marketId_, address user_) external onlyOwner {
         require(morpho_ != address(0) && user_ != address(0) && marketId_ != bytes32(0), "ZERO");
         morpho = morpho_;
@@ -47,20 +54,20 @@ contract CrownSyncRedeem8020 is IERC8020, Ownable, ReentrancyGuard {
         emit CapacityWired(morpho_, marketId_, user_);
     }
 
-    /// @notice USDC (6dp) Morpho borrow headroom for capacity user.
+    function setFxEngine(address engine_) external onlyOwner {
+        fxEngine = IFxEngine8020(engine_);
+        emit FxEngineSet(engine_);
+    }
+
     function borrowCapacityUsdc() public view returns (uint256) {
         if (morpho == address(0)) return 0;
         return CrownBorrowCapacity.borrowCapacity(morpho, capacityMarketId, capacityUser);
     }
 
-    /// @notice Max eUSD redeemable under capacity gate (18dp). Capacity-backed, not wallet dust.
     function maxRedeemSync(address) public view returns (uint256) {
         uint256 cap = borrowCapacityUsdc();
-        if (cap == 0) {
-            // fallback: inventory-only if capacity unwired
-            return psm.usdcReserve() * 1e12;
-        }
-        return cap * 1e12; // USDC 6dp → eUSD 18dp 1:1
+        if (cap == 0) return psm.usdcReserve() * 1e12;
+        return cap * 1e12;
     }
 
     function previewRedeemSync(uint256 assets) public view returns (uint256) {
@@ -77,16 +84,27 @@ contract CrownSyncRedeem8020 is IERC8020, Ownable, ReentrancyGuard {
         if (receiver == address(0)) receiver = msg.sender;
         if (owner_ == address(0)) owner_ = msg.sender;
         if (assets > maxRedeemSync(owner_)) revert LiquidityMiss();
-        // Fill requires real PSM USDC until FxEngine borrow-on-demand lands
-        uint256 needUsdc = assets / 1e12;
-        if (psm.usdcReserve() < needUsdc) revert LiquidityMiss();
 
+        uint256 needUsdc = assets / 1e12;
+
+        // Path A: PSM inventory
+        if (psm.usdcReserve() >= needUsdc) {
+            eusd.safeTransferFrom(owner_, address(this), assets);
+            eusd.safeApprove(address(psm), 0);
+            eusd.safeApprove(address(psm), assets);
+            usdcOut = psm.redeemUsdc(assets, address(this));
+            if (usdcOut == 0) revert LiquidityMiss();
+            usdc.safeTransfer(receiver, usdcOut);
+            emit SyncRedeemed(owner_, receiver, assets, usdcOut);
+            return usdcOut;
+        }
+
+        // Path B: FxEngine capacity fill (must be armed — King controls loan fire)
+        if (address(fxEngine) == address(0) || !fxEngine.canFill(needUsdc)) revert LiquidityMiss();
         eusd.safeTransferFrom(owner_, address(this), assets);
-        eusd.safeApprove(address(psm), 0);
-        eusd.safeApprove(address(psm), assets);
-        usdcOut = psm.redeemUsdc(assets, address(this));
+        eusd.safeApprove(address(fxEngine), assets);
+        usdcOut = fxEngine.fillRedeem(assets, address(this), receiver);
         if (usdcOut == 0) revert LiquidityMiss();
-        usdc.safeTransfer(receiver, usdcOut);
         emit SyncRedeemed(owner_, receiver, assets, usdcOut);
     }
 }
