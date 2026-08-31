@@ -1,3 +1,5 @@
-lib/
+lib/*
+!lib/forge-std/
+!lib/forge-std/**
 out/
 cache/
