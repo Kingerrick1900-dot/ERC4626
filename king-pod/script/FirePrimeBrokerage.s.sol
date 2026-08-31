@@ -35,13 +35,15 @@ contract FirePrimeBrokerage is Script {
         USDCBorrowRouter router = new USDCBorrowRouter(address(coll), address(credit), USDC, HOT, HOT);
 
         coll.setDebtOperator(address(credit), true);
-        coll.setLltv(30e16);
+        // 1B Mansa Lite safe defaults: paper $22M mark, 50% LLTV → $11M debt max
+        coll.setFloatUsd8(2.2e6);
+        coll.setLltv(50e16);
         credit.setOperator(address(router), true);
         psm.setCredit(address(credit), true);
         treasury.setCredit(address(credit));
         fill7683.setConfig(address(psm), address(credit), address(treasury));
         router.setTargets(address(psm), LANDING);
-        // router stays disarmed until King
+        // router stays disarmed until King; kingEmergencyDraw available once cash lands
 
         vm.stopBroadcast();
 

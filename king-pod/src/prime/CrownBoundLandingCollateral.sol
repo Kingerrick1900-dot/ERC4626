@@ -16,9 +16,9 @@ contract CrownBoundLandingCollateral is Ownable, ReentrancyGuard {
     IERC20 public immutable gusd; // optional; address(0) = eUSD-only
     address public immutable king;
 
-    /// @notice Conservative LLTV on locked float (e.g. 30e16 = 30%).
-    uint256 public lltv = 30e16;
-    /// @notice USD value per 1e18 float token, 8dp (default $1.00 = 1e8).
+    /// @notice Conservative LLTV on locked float (50e16 = 50% safe Mansa default).
+    uint256 public lltv = 50e16;
+    /// @notice USD value per 1e18 float token, 8dp (default $1.00 = 1e8; paper mode 2.2e6).
     uint256 public floatUsd8 = 1e8;
 
     uint256 public eusdLocked;

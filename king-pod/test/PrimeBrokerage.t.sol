@@ -116,7 +116,7 @@ contract PrimeBrokerageTest is Test {
         vm.startPrank(HOT);
         eusd.approve(address(coll), 22_000_000e18);
         coll.lockEusd(22_000_000e18);
-        vm.expectRevert(CrownPrimeCredit.IdleMiss.selector);
+        vm.expectRevert(USDCBorrowRouter.IdleMiss.selector);
         router.draw(1_000_000e6, LANDING);
         vm.stopPrank();
     }
