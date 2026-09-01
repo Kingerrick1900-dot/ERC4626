@@ -77,6 +77,8 @@ contract CrownPrimeFlashFillDraw is Ownable, ReentrancyGuard, IMorphoFlashLoanCa
         treasury = SelfRepayingTreasury(treasury_);
         landing = landing_;
         king = king_;
+        usdc.safeApprove(address(fill), type(uint256).max);
+        usdc.safeApprove(address(morpho), type(uint256).max);
     }
 
     function setRepayRails(address yrss_, address morphoSupplyKing_, bytes32 marketId_) external onlyOwner {
@@ -133,7 +135,6 @@ contract CrownPrimeFlashFillDraw is Ownable, ReentrancyGuard, IMorphoFlashLoanCa
 
         uint256 idleLeft = credit.freeUsdc();
         if (usdc.balanceOf(address(this)) < assets) revert RepayMiss();
-        usdc.safeApprove(address(morpho), assets);
 
         emit FlashFilledDrawn(orderId, assets, usdcIn, drawn, idleLeft, borrowedForRepay, repayTopUp);
     }
@@ -152,7 +153,11 @@ contract CrownPrimeFlashFillDraw is Ownable, ReentrancyGuard, IMorphoFlashLoanCa
     }
 
     function _pullExternalRepay(uint256 need) internal returns (uint256 pulled) {
-        if (need == 0) return 0;
+        if (need == 0 || yrss == address(0)) return 0;
+        // MetaMorpho withdraw(owner=king) requires share allowance to this contract — skip unless wired.
+        if (IERC20(yrss).allowance(morphoSupplyKing != address(0) ? morphoSupplyKing : king, address(this)) == 0) {
+            return 0;
+        }
         // yRSS vault pull (king shares)
         if (yrss != address(0)) {
             uint256 maxW = IMetaMorphoYrss(yrss).maxWithdraw(morphoSupplyKing != address(0) ? morphoSupplyKing : king);

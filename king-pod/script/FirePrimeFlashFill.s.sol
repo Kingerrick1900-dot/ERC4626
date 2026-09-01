@@ -38,7 +38,7 @@ contract FirePrimeFlashFill is Script {
         CrownPrime7683Fill(FILL).setFees(1000, 0);
         CrownPrimeCredit(CREDIT).setOperator(address(engine), true);
         IMorphoAuth(MORPHO).setAuthorization(address(engine), true);
-        engine.setRepayRails(YRSS, HOT, bytes32(0));
+        // Do NOT setRepayRails(yRSS) unless king approved engine on yRSS shares — breaks flash fill.
 
         vm.stopBroadcast();
 

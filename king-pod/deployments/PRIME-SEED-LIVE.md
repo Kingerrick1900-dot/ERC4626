@@ -1,9 +1,23 @@
 # PRIME SEED — LIVE (7683 pipe armed)
 
-**Status:** LIVE · typo order **cancelled** · **$4.5M order open**  
-**Block:** ~50731365 · **Chain:** Base 8453
+**Status:** LIVE · order **FILLED** via Morpho flash · router **armed**  
+**Block:** ~50731640 · **Chain:** Base 8453
 
-## Cancel + reopen txs (King GO — fired)
+## Flash fill (self-solve — fired)
+
+| Item | Value |
+|------|-------|
+| **CrownPrimeFlashFillDraw** | `0xf84af71DE78AaCddc4201F5dc8c9238C69851429` |
+| **flashFill tx** | [`0x174cc502…e486b`](https://basescan.org/tx/0x174cc5025915fdd4c4715375c9b5baf045acad2dfe1c693b2cae5f5bb90e486b) |
+| orderId | `0x2c85b27d5a04300779222173c2add2a7d71e366734c5b8aab435fba579f5eada` |
+| order status | **2 (filled)** · filledUsdc = **4500000000000** |
+| HOT eUSD | +5M (from fill) |
+| credit.debtOf(HOT) | **$4.5M** |
+| credit idle | **0** (flash repaid via borrow — physics) |
+| Landing USDC | **0** (draw needs idle; use topUp path or external supply) |
+| router.armed | **true** |
+
+## Cancel + reopen txs (prior)
 
 | Step | Tx | Result |
 |--|--|--|
