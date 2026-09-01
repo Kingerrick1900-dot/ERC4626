@@ -32,8 +32,10 @@ echo "=== 4) seed Fill buffer 5M ==="
 send "seedFillBuffer" "$FILL" "seedFillBuffer(uint256)" 5000000000000000000000000
 
 DEADLINE=$(($(date +%s) + 604800))
-echo "=== 5) openOrder 5M @ 4.5M USDC max, deadline $DEADLINE ==="
-ORDER_TX=$(cast send "$FILL" "openOrder(address,uint256,uint256,uint32)(bytes32)" "$HOT" 5000000000000000000000000 4500000000 "$DEADLINE" --rpc-url "$RPC" --private-key "$PK" --gas-limit "$GAS" --slow --json)
+# 4_500_000e6 = $4.5M USDC (6dp). Do NOT use 4500000000 (= $4,500 typo).
+MAX_USDC_IN=4500000000000
+echo "=== 5) openOrder 5M @ $4.5M USDC max, deadline $DEADLINE ==="
+ORDER_TX=$(cast send "$FILL" "openOrder(address,uint256,uint256,uint32)(bytes32)" "$HOT" 5000000000000000000000000 "$MAX_USDC_IN" "$DEADLINE" --rpc-url "$RPC" --private-key "$PK" --gas-limit "$GAS" --slow --json)
 echo "$ORDER_TX" | head -c 500
 
 echo "=== 6) approve + lock 1B gUSD ==="
