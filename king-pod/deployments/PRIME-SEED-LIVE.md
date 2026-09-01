@@ -1,36 +1,33 @@
 # PRIME SEED — LIVE (7683 pipe armed)
 
-**Status:** SEEDED · **broken order cancelled** · reopen @ **$4.5M** required  
-**Chain:** Base 8453
+**Status:** LIVE · typo order **cancelled** · **$4.5M order open**  
+**Block:** ~50731365 · **Chain:** Base 8453
 
-## Order typo (fixed in scripts)
+## Cancel + reopen txs (King GO — fired)
 
-Live `openOrder` used `4500000000` (= **$4,500** USDC). Correct max for 5M eUSD @ 10% discount:
+| Step | Tx | Result |
+|--|--|--|
+| **cancel** broken $4,500 order | [`0x9b37757b…c79c`](https://basescan.org/tx/0x9b37757beefe3ff60e19f660f8076e02ece80fe1a57727461bff42f1ee44c79c) | status=3 cancelled |
+| `setFees(1000,0)` | [`0xc8e217b4…5396`](https://basescan.org/tx/0xc8e217b41aaca375107fe3c34a61c691b4ea0a3299a19b7bdbefb9650c945396) | protocolFeeBps=0 |
+| **openOrder** 5M @ **$4.5M** | [`0x57495f3b…34b7`](https://basescan.org/tx/0x57495f3b6f11205ff59ade720cecbb80ad6cfec8149d69a4cf74bbfc732434b7) | status=open |
+
+## Order (solver fill this)
 
 ```text
-4500000 * 1e6 = 4500000000000   ($4.5M USDC, 6dp)
+orderId = 0x2c85b27d5a04300779222173c2add2a7d71e366734c5b8aab435fba579f5eada
+eusdOut = 5,000,000 eUSD
+maxUsdcIn = 4500000000000  (= 4500000 * 1e6 = $4.5M USDC)
+Fill:    0x4C021c77633e9441be218d2A27a4B40c1Bd720Ab
+Pay:     ≥ $4,050,000 USDC (10% discount floor) · ≤ $4,500,000 max
+Gets:    5,000,000 eUSD → HOT
+USDC →  CrownPrimeCredit idle (then draw)
 ```
 
-Broken order (cancel this — unfillable, wastes solver gas):
+## Cancelled typo order (do not fill)
 
 ```text
-orderId = 0x2b75086050a42e49192593ad9d97cec9a7f0e829cbf514fce982bf0940a9b88c
-maxUsdcIn = 4500000000  ($4,500 — typo)
-```
-
-## Cancel + reopen (King GO)
-
-```bash
-PRIVATE_KEY=0x… BASE_RPC_URL=https://mainnet.base.org \
-  bash king-pod/script/FireCancelReopen7683Cast.sh
-```
-
-Or forge:
-
-```bash
-KING_GO=1 FIRE_FIX_ORDER=1 OLD_ORDER_ID=0x2b750860… \
-  PRIVATE_KEY=0x… forge script script/FireFix7683Order.s.sol:FireFix7683Order \
-  --rpc-url $BASE_RPC_URL --broadcast --slow
+orderId = 0x2b75086050a42e49192593ad9d97cec9a7f0e829cbf514fce982bf0940a9b88c  (status=3)
+maxUsdcIn was 4500000000 = $4,500 only — 1000× typo
 ```
 
 ## Live stack
