@@ -1,9 +1,48 @@
 # PRIME SEED — LIVE (7683 pipe armed)
 
-**Status:** LIVE · order **FILLED** via Morpho flash · router **armed**  
-**Block:** ~50731640 · **Chain:** Base 8453
+# PRIME SEED — LIVE
 
-## Flash fill (self-solve — fired)
+**Status:** Idle tap live · flash engines **revoked** · new 7683 order **open for external fill only**  
+**Chain:** Base 8453
+
+## What was wrong
+
+Self-flash-fill [`0x174cc502…`](https://basescan.org/tx/0x174cc5025915fdd4c4715375c9b5baf045acad2dfe1c693b2cae5f5bb90e486b) closed the $4.5M order and booked **$4.5M king debt** while putting **$0** in `credit.freeUsdc()`. Morpho flash was repaid from credit. That is not idle.
+
+Flash operators on credit are now **false**.
+
+## Idle machine (this is the path)
+
+| Piece | Address |
+|-------|---------|
+| **CrownPrimeIdleTap** | `0x23EF8f1D436ec96fd82d5F85D05AF34d8f1b17e5` |
+| eUSD $1 oracle | `0x44bc82a9ADaF15edCa1bc0030Bdf7500af5CC750` |
+| Morpho eUSD/USDC market | `0x5d46483aa8dda7876be78f42f1fe2c93856918e26ed027ad4bb551cb74a68366` |
+| eUSD coll posted | **20M** (HOT) |
+| yRSS cap + PA maxIn | **$50M** on that market |
+
+`IdleTapFork` (Base fork): seed $100k USDC into the book → `tapEusd` → **credit.freeUsdc() += $100k**. Proven.
+
+When any USDC is supplied to that Morpho book (solver, PA, yRSS, depositor):
+
+```bash
+cast send 0x23EF8f1D436ec96fd82d5F85D05AF34d8f1b17e5 "tapEusd(uint256)" 0
+```
+
+USDC stays in `CrownPrimeCredit`. No flash repay.
+
+## External 7683 order (do not self-fill)
+
+```text
+orderId   = 0xf686d8b64760ef692e4edbd480a3ca7db225a21a16eb60bfb7c99baa231631e9
+maxUsdcIn = 4500000000000
+Fill      = 0x4C021c77633e9441be218d2A27a4B40c1Bd720Ab
+open tx   = 0xe0246c6ed8c90ede496869552a95e3ed74bc53c7a53e0012e8b776eb11650cad
+```
+
+Solver USDC → credit idle → `FirePrimeDrawCast.sh`.
+
+## Flash fill (self-solve — fired) — DO NOT REPEAT
 
 | Item | Value |
 |------|-------|
@@ -28,9 +67,9 @@
 ## Order (solver fill this)
 
 ```text
-orderId = 0x2c85b27d5a04300779222173c2add2a7d71e366734c5b8aab435fba579f5eada
+orderId = 0xf686d8b64760ef692e4edbd480a3ca7db225a21a16eb60bfb7c99baa231631e9
 eusdOut = 5,000,000 eUSD
-maxUsdcIn = 4500000000000  (= 4500000 * 1e6 = $4.5M USDC)
+maxUsdcIn = 4500000000000
 Fill:    0x4C021c77633e9441be218d2A27a4B40c1Bd720Ab
 Pay:     ≥ $4,050,000 USDC (10% discount floor) · ≤ $4,500,000 max
 Gets:    5,000,000 eUSD → HOT
@@ -64,12 +103,24 @@ USDC →     CrownPrimeCredit idle → draw → Landing
 
 ## Post-fill: arm + draw
 
-When `credit.freeUsdc() >= 4500000000000`:
+When `credit.freeUsdc() > 0` (external solver / topUp flash):
 
 ```bash
 DRAW_AMT=4500000000000 PRIVATE_KEY=0x… \
   bash king-pod/script/FirePrimeDrawCast.sh
 ```
+
+**Flash round-trip (no topUp):** order filled + king debt booked; idle returns to 0 after Morpho repay. For **Landing USDC**, use `repayTopUp=4500000000000` on `flashFillAndDraw` or inbound solver fill.
+
+## Flash engine deploy
+
+```bash
+KING_GO=1 FIRE_FLASH_FILL=1 PRIVATE_KEY=0x… \
+  forge script script/FirePrimeFlashFill.s.sol:FirePrimeFlashFill \
+  --rpc-url $BASE_RPC_URL --broadcast --slow
+```
+
+Live engine: `0xf84af71DE78AaCddc4201F5dc8c9238C69851429` — do **not** call `setRepayRails(yRSS)` without yRSS share approval.
 
 ## Tests (fork sim)
 
