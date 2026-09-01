@@ -27,6 +27,10 @@ contract FirePrimeFlashFill is Script {
     function run() external {
         require(vm.envOr("KING_GO", uint256(0)) == 1, "NO_GO");
         require(vm.envOr("FIRE_FLASH_FILL", uint256(0)) == 1, "NO_FIRE");
+        require(
+            vm.envOr("I_ACCEPT_FLASH_DEBT", uint256(0)) == 1,
+            "DEPRECATED: self-flash books king debt with zero idle — set I_ACCEPT_FLASH_DEBT=1 to override"
+        );
 
         uint256 pk = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(pk);
@@ -57,6 +61,10 @@ contract FirePrimeFlashLive is Script {
     function run() external {
         require(vm.envOr("KING_GO", uint256(0)) == 1, "NO_GO");
         require(vm.envOr("FIRE_FLASH_LIVE", uint256(0)) == 1, "NO_LIVE");
+        require(
+            vm.envOr("I_ACCEPT_FLASH_DEBT", uint256(0)) == 1,
+            "DEPRECATED: self-flash books king debt with zero idle — set I_ACCEPT_FLASH_DEBT=1 to override"
+        );
 
         address engine = vm.envOr("FLASH_ENGINE", ENGINE_DEFAULT);
         require(engine != address(0), "FLASH_ENGINE");
