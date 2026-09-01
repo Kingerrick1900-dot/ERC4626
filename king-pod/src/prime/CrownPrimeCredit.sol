@@ -28,6 +28,7 @@ contract CrownPrimeCredit is Ownable, ReentrancyGuard {
     event Withdrawn(address indexed user, uint256 amt);
     event BorrowedTo(address indexed to, uint256 amt);
     event Repaid(address indexed payer, uint256 amt);
+    event PhantomDebtForgiven(uint256 amt);
 
     error BadAmt();
     error Insolvent();
@@ -121,6 +122,17 @@ contract CrownPrimeCredit is Ownable, ReentrancyGuard {
         totalDebt -= amt;
         coll.setReservedDebtUsd6(debtOf[king]);
         emit Repaid(msg.sender, amt);
+    }
+
+    /// @notice Owner wipe of king debt with no USDC. Only for phantom flash accounting (cash never landed).
+    function forgivePhantomDebt() external onlyOwner {
+        uint256 d = debtOf[king];
+        if (d == 0) revert BadAmt();
+        debtOf[king] = 0;
+        if (totalDebt >= d) totalDebt -= d;
+        else totalDebt = 0;
+        coll.setReservedDebtUsd6(0);
+        emit PhantomDebtForgiven(d);
     }
 
     /// @notice Treasury convenience: pull from payer already approved.

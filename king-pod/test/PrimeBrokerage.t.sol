@@ -217,4 +217,32 @@ contract PrimeBrokerageTest is Test {
         coll.unlockEusd(22_000_000e18, HOT);
         assertEq(coll.eusdLocked(), 0);
     }
+
+    function test_forgive_phantom_debt_zeros_without_usdc() public {
+        vm.startPrank(HOT);
+        eusd.approve(address(coll), 22_000_000e18);
+        coll.lockEusd(22_000_000e18);
+        eusd.approve(address(psm), 2_000_000e18);
+        psm.seedEusd(2_000_000e18);
+        vm.stopPrank();
+
+        vm.startPrank(solver);
+        usdc.approve(address(psm), 1_000_000e6);
+        psm.sellGem(1_000_000e6, solver);
+        vm.stopPrank();
+
+        vm.prank(HOT);
+        router.draw(1_000_000e6, LANDING);
+        assertEq(credit.debtOf(HOT), 1_000_000e6);
+        assertEq(coll.reservedDebtUsd6(), 1_000_000e6);
+        assertEq(usdc.balanceOf(LANDING), 1_000_000e6);
+
+        vm.prank(HOT);
+        credit.forgivePhantomDebt();
+        assertEq(credit.debtOf(HOT), 0);
+        assertEq(credit.totalDebt(), 0);
+        assertEq(coll.reservedDebtUsd6(), 0);
+        // Forgive does not pull USDC back — phantom wipe only
+        assertEq(usdc.balanceOf(LANDING), 1_000_000e6);
+    }
 }
