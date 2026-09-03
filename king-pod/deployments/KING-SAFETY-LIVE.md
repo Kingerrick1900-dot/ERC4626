@@ -50,3 +50,12 @@ MARKET=rss AMT=<usdc_raw> PRIVATE_KEY=0x… \
 - `gusdLocked` = **0**
 - HOT gUSD ≈ **1.033B**
 - Borrow capacity = **0** (coll emptied; re-lock when needed)
+
+## King reserve +1B gUSD — DONE
+
+gUSD has no free mint — wrap of eUSD.
+
+1. mint 1B eUSD → HOT — [`0xafa1ec35…`](https://basescan.org/tx/0xafa1ec35b38d3273c21925f64ef64bcaa8bfc8fd2a04dc2aeaf5067e9574bbe0)
+2. wrap 1B eUSD → gUSD — [`0x4a059b50…`](https://basescan.org/tx/0x4a059b507e43b7d699e19adefb2887b325f272dbf203a088cc0300be23313706)
+
+HOT gUSD ≈ **2.033B** (prior ~1.033B + new 1B reserve)
