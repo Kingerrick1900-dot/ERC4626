@@ -1,83 +1,68 @@
-# CROWN VAULT SOLVER — willFromZero
+# CROWN VAULT SOLVER — LIVE
 
+**Status:** DEPLOYED + FIRED on Base  
 **Branch:** `cursor/crown-vault-solver-4f7f`  
-**Law:** No flash. Own vault + exclusive solver. Keep 80% / peel 20%.
+**Law:** No flash. Keep 80% / peel 20%.
 
 ---
 
-## What it is
+## Live addresses
 
-`CrownVaultSolver` — one contract that is **lender, borrower, and bank**.
-
-| Step | Action |
+| Piece | Address |
 |--|--|
-| 1 | King seeds USDC → vault |
-| 2 | Vault supplies USDC into **owned** eUSD/USDC Morpho book |
-| 3 | Posts **dual coll** (eUSD + optional gUSD) on behalf of king |
-| 4 | Borrows against that coll |
-| 5 | **80% keep** → re-supply book (fat) |
-| 6 | **20% peel** → Landing (or CrownPrimeCredit if wired) |
-
-`willLoop` repeats on remaining idle (Fibonacci peels) without new seed.
+| **CrownVaultSolver** | `0x4DFfb070323e509dd4B87E5EB39492B6452c2337` |
+| Landing | `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
+| eUSD Morpho market | `0x5d46483aa8dda7876be78f42f1fe2c93856918e26ed027ad4bb551cb74a68366` |
+| eUSD oracle | `0x44bc82a9ADaF15edCa1bc0030Bdf7500af5CC750` |
+| HOT | `0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1` |
 
 ---
 
-## Base constants
+## First fire (dust proof)
 
 | | |
 |--|--|
-| HOT | `0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1` |
-| Landing | `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
-| Morpho | `0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb` |
-| USDC | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
-| eUSD | `0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a` |
-| gUSD | `0x319A49BB274A826F889C6e7221FA82f24ac8bc5d` |
-| eUSD market (live) | `0x5d46483aa8dda7876be78f42f1fe2c93856918e26ed027ad4bb551cb74a68366` |
-| Optional credit | `0x5568fE662363d7F3fa52349A99C9e19C6616B60d` |
+| Seed | **$1.000070** USDC (all HOT dust) |
+| Borrow | **$1.000070** |
+| **Peel → Landing** | **$0.200014** |
+| Keep → book | **$0.800056** |
+| Morpho idle left | **$0.800056** |
+| HOT Morpho coll | **40M eUSD** (unchanged) |
+| `willFromZero` tx | `0xdb57e8cb012d43efc59e6eb1c436a62cf5767878e576bd351b63d099ad54fe0e` |
+
+Physics: supply $1.80 / borrow $1.00 / Landing cash real. Not ghost debt.
 
 ---
 
-## Deploy (no fire)
+## Deploy
 
 ```bash
-cd king-pod
-KING_GO=1 CREDIT=0x5568fE662363d7F3fa52349A99C9e19C6616B60d \
+KING_GO=1 CREATE_GUSD_MKT=0 \
   forge script script/FireCrownVaultSolver.s.sol:FireCrownVaultSolverDeploy \
   --rpc-url $BASE_RPC_URL --broadcast --slow
 ```
 
-HOT must `setAuthorization(solver, true)` on Morpho (script does this). Approve USDC/eUSD/gUSD to solver before fire.
-
----
-
-## Fire willFromZero
+## Next Fibonacci peels
 
 ```bash
-KING_GO=1 FIRE_WILL=1 \
-  VAULT_SOLVER=0x… \
-  SEED_USDC=1000000000000 \
-  EUSD_COLL=40000000000000000000000000 \
-  GUSD_COLL=100000000000000000000000000 \
-  forge script script/FireCrownVaultSolver.s.sol:FireWillFromZero \
-  --rpc-url $BASE_RPC_URL --broadcast --slow
+# willLoop on remaining idle (~$0.80 → peel ~$0.16)
+cast send 0x4DFfb070323e509dd4B87E5EB39492B6452c2337 \
+  "willLoop(uint256)" 0 \
+  --private-key $PRIVATE_KEY --rpc-url $BASE_RPC_URL
 ```
 
-`$1M seed` → peel **$200k** Landing · keep **$800k** book.  
-Next `willLoop`: peel **$160k** · keep **$640k**. Books fatter, payroll real.
+Larger seeds: fund HOT USDC → `FireWillFromZero` with `SEED_USDC` + optional `EUSD_COLL` / `GUSD_COLL`.
 
 ---
 
 ## Safety
 
-- `armed=false` freezes willFromZero / willLoop  
-- peelBps locked **5%–50%** (default 20%) — no 100% recycle ghost path  
-- `repayEusd` — king self-repay anytime  
-- No flash loan code path  
-
----
+- `armed=true` · peelBps=2000 · Morpho `isAuthorized(HOT, solver)=true`
+- credit unset (peel → Landing direct)
+- **Rotate HOT key** — was used in chat
 
 ## Tests
 
 ```bash
-forge test --match-contract CrownVaultSolverTest -vv
+forge test --match-contract CrownVaultSolverTest -vv   # 6/6
 ```
