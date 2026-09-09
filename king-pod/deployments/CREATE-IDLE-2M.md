@@ -64,8 +64,13 @@ King must `yRSS.approve(CREATE_IDLE, max)` before pull (script does this when `P
 - HOT ETH ~0.00013 — enough for deploy at Base fees; top up if needed
 - Old helper lacks `createIdle` / `pull100ToLanding` — this new contract is the rail
 
+## Sibling: StayIdle + Liberator (use shares)
+
+See `STAY-IDLE-SHARES.md` — supply-only buffer + `CrownYrssLiberator` for the locked ~$1M yRSS claim. Prefer that path when the job is “use shares the instant idle exists.”
+
 ## Tests
 
 ```bash
 forge test --match-contract CrownCreateIdleTest -vv
+forge test --match-contract CrownStayIdlePullerTest -vv
 ```
