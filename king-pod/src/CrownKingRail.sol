@@ -35,6 +35,8 @@ interface IMorphoKing {
 
     function market(bytes32 id) external view returns (uint128, uint128, uint128, uint128, uint128, uint128);
 
+    function position(bytes32 id, address user) external view returns (uint256, uint128, uint128);
+
     function accrueInterest(MarketParams memory marketParams) external;
 }
 
@@ -203,8 +205,11 @@ contract CrownKingRail is Ownable, ReentrancyGuard {
         uint256 before = idleEusd();
         morpho.supply(mpEusd, amt, 0, address(this), "");
         if (idleEusd() < before + amt - 1) revert IdleMiss();
-        (toLanding,) = morpho.withdraw(mpEusd, amt, 0, address(this), landing);
-        if (toLanding < amt) revert WithdrawMiss();
+        // Withdraw by shares to avoid Morpho asset-round underflow on same-tx supply/withdraw
+        (uint256 shares,,) = morpho.position(eusdMarketId, address(this));
+        if (shares == 0) revert WithdrawMiss();
+        (toLanding,) = morpho.withdraw(mpEusd, 0, shares, address(this), landing);
+        if (toLanding == 0) revert WithdrawMiss();
         totalEusdPiped += toLanding;
         emit EusdPiped(toLanding, idleEusd());
     }

@@ -47,22 +47,30 @@ contract MockMorphoK {
 
     mapping(bytes32 => uint128) public supplyAssets;
     mapping(bytes32 => uint128) public borrowAssets;
+    mapping(bytes32 => mapping(address => uint256)) public supplySharesOf;
 
-    function supply(MarketParams memory mp, uint256 assets, uint256, address, bytes memory)
+    function supply(MarketParams memory mp, uint256 assets, uint256, address onBehalf, bytes memory)
         external
         returns (uint256, uint256)
     {
         bytes32 id = keccak256(abi.encode(mp));
         IERC20(mp.loanToken).transferFrom(msg.sender, address(this), assets);
         supplyAssets[id] += uint128(assets);
+        supplySharesOf[id][onBehalf] += assets;
         return (assets, assets);
     }
 
-    function withdraw(MarketParams memory mp, uint256 assets, uint256, address, address receiver)
+    function withdraw(MarketParams memory mp, uint256 assets, uint256 shares, address onBehalf, address receiver)
         external
         returns (uint256, uint256)
     {
         bytes32 id = keccak256(abi.encode(mp));
+        if (shares > 0) {
+            assets = shares; // 1:1 mock
+            supplySharesOf[id][onBehalf] -= shares;
+        } else {
+            supplySharesOf[id][onBehalf] -= assets;
+        }
         require(supplyAssets[id] >= assets, "S");
         supplyAssets[id] -= uint128(assets);
         IERC20(mp.loanToken).transfer(receiver, assets);
@@ -92,6 +100,10 @@ contract MockMorphoK {
 
     function market(bytes32 id) external view returns (uint128, uint128, uint128, uint128, uint128, uint128) {
         return (supplyAssets[id], 0, borrowAssets[id], 0, 0, 0);
+    }
+
+    function position(bytes32 id, address user) external view returns (uint256, uint128, uint128) {
+        return (supplySharesOf[id][user], 0, 0);
     }
 }
 
