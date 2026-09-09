@@ -1,8 +1,9 @@
 # FREEZE PLAN — King 5-step idle → payroll → ocean
 
+**Superseded by canonical:** `FREEZE-ALL-5-STEPS.md` (King ALL sequence).  
 **Mode:** FREEZE · plan only · **no broadcast · no mint · no flash** until King lifts freeze  
 **Branch:** `cursor/morpho-create-idle-2m-4f7f`  
-**Refs:** `FREEZE-2M-IDLE-LOOPHOLES.md` · `FLASH-POLICY.md` · `UNLATCH-IDLE-LIVE.md`
+**Refs:** `FREEZE-ALL-5-STEPS.md` · `FREEZE-2M-IDLE-LOOPHOLES.md` · `FLASH-POLICY.md` · `UNLATCH-IDLE-LIVE.md`
 
 ---
 
