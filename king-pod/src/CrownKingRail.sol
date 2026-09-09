@@ -179,6 +179,10 @@ contract CrownKingRail is Ownable, ReentrancyGuard {
         return _idle(parkMarketId);
     }
 
+    function idleCbbtcBook() public view returns (uint256) {
+        return _idle(cbbtcMarketId);
+    }
+
     function _idle(bytes32 id) internal view returns (uint256) {
         if (id == bytes32(0)) return 0;
         (uint128 s,, uint128 b,,,) = morpho.market(id);

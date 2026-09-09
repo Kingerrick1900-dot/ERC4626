@@ -70,5 +70,6 @@ Kill: do not borrow park to repay.
 ```
 OCEAN LIVE 1.021B/1.021B Aero eUSD/gUSD
 P4 COLL = cbBTC (market 0x9103c3b4…) source=PENDING
-NEXT = fund cbBTC → L2 1.5M lasting USDC idle | OR P3 payroll | OR ocean→5B
+PULLER LIVE = 0xE55f6Ac1a5Fb7337AD82886E82c549A00F0B6F3B (ARMED)
+NEXT = fund ~23.2 cbBTC → puller.pullMillions() | OR rail p3/p4 | OR ocean done 5B
 ```
