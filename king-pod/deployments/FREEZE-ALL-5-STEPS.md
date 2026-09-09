@@ -1,7 +1,8 @@
 # FREEZE — ALL 5 STEPS (canonical)
 
-**Mode:** FREEZE · plan only · **no broadcast**  
-**Lift freeze when King says:** `Build All` + **P4 coll** (cbBTC or WETH) + **P5 mint size** (e.g. 1B→5B ocean)  
+**Mode:** PARTIAL LIFT · ocean + P4 name live · L2 waits on cbBTC **source**  
+**P4 coll NAMED:** **cbBTC** · **P5 SIDE FIRED:** **1B/side** → pool ~**1.021B/1.021B** (see `FIRE-OCEAN-1B-P4-CBBTC.md`)  
+**Still need before L2:** P4 coll **source** (OTC/treasury/payroll slice)  
 **PR:** #131 · Branch `cursor/morpho-create-idle-2m-4f7f`
 
 ---
