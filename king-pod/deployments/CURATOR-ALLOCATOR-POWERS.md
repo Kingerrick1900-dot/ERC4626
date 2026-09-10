@@ -1,8 +1,15 @@
 # CURATOR / ALLOCATOR — full power check (customize in our favor)
 
-**Mode:** FREEZE · audit first · no broadcast  
+**Mode:** FIRED (see `CURATOR-FAVOR-FIRED.md`) · was freeze audit  
 **Vault:** yRSS `0xF80C0529bD94C773844E459853CD91B9263dD525`  
 **Signer:** HOT owns **owner + curator + allocator + PA admin** · **timelock = 0** (instant)
+
+### Live after FireCuratorFavor
+- Supply queue: **eUSD/USDC → idle → park → …**
+- Idle market `0x38c846…` enabled **$50M**
+- Park / cbBTC / WETH PA **$2M** in/out
+- Landing allocator **true**
+
 
 ---
 
