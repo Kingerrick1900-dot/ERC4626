@@ -1,0 +1,122 @@
+{
+  "title": "Elite One-Tx — King keeps USDC, Morpho made whole",
+  "status": "IMPLEMENTED — unit tests green; broadcast LOCKED until King Go",
+  "implemented": {
+    "CrownEliteClose": "king-pod/src/CrownEliteClose.sol",
+    "CrownSeedFill": "KingSeedDesk.fillSellRss + isFiller",
+    "tests": "king-pod/test/CrownEliteClose.t.sol — King USDC +B, Morpho debt 0"
+  },
+  "chainId": 8453,
+  "goal": {
+    "kingWalletUsdc": "free and clear (borrow proceeds stay with King)",
+    "morphoLenders": "repaid in same tx via collateral fill (not King's cash)",
+    "atomic": true
+  },
+  "addresses": {
+    "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+    "rss": "0x7a305D07B537359cf468eAea9bb176E5308bC337",
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "morpho": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+    "marketId": "0x40ac09f34c5bc0b0b6d9b5f1ec1b97a6a149ff6278104797c9cb740453a2b794",
+    "bundler3": "0x6BFd8137e702540E7A42B74178A4a49Ba43920C4",
+    "generalAdapter1": "0xb98c948CFA24072e58935BC004a8A7b376AE746A",
+    "paraswapAdapter": "0x6abE8ABd0275E5564ed1336F0243A52C32562F71",
+    "morphoKingDesk": "0x831b86E9AA185088CB095748bFBeF53F0D312472"
+  },
+  "step2_fillRail": {
+    "name": "CrownSeedFill",
+    "contract": "KingSeedDesk (deployed/wired under Go)",
+    "function": "kingSellRss(rssAmount, minUsdcOut) — adapted so USDC out hits EliteClose adapter for Morpho repay (not raw treasury dump mid-bundle)",
+    "why": "RSS has no Uni/Aero/Paraswap route. Morpho ParaswapAdapter is the industry repay-with-collateral pattern when a DEX exists; CrownSeedFill is the Kingdom equivalent — fixed $0.05 inventory fill that settles inside the same tx.",
+    "fallbackNamed": "AtomicOTCFill — counterparty USDC already in the call, swaps for RSS slice, USDC to repay leg"
+  },
+  "step1_bundlerCalldata": {
+    "entry": "Bundler3.multicall(Call[])",
+    "preflight": [
+      "King setAuthorization(generalAdapter1, true) — once",
+      "King approve RSS to GA1 / EliteClose as required",
+      "CrownSeedFill inventoryUsdc >= repayAmount B",
+      "Morpho market liquidity >= borrowAmount B (direct supply or PA reallocateTo in-bundle)"
+    ],
+    "bundle": [
+      {
+        "i": 0,
+        "via": "generalAdapter1",
+        "op": "optional publicAllocator.reallocateTo → RSS/USDC market",
+        "note": "only if vault PA path is live with maxIn"
+      },
+      {
+        "i": 1,
+        "via": "generalAdapter1",
+        "op": "morphoSupplyCollateral(marketParams, rssCollateral, onBehalf=King)"
+      },
+      {
+        "i": 2,
+        "via": "generalAdapter1",
+        "op": "morphoBorrow(marketParams, B, 0, receiver=King)",
+        "note": "USDC lands in King wallet — stays there"
+      },
+      {
+        "i": 3,
+        "via": "CrownSeedFill / EliteClose adapter",
+        "op": "sell RSS slice sized to B @ priceUsdcPerRss → USDC to adapter",
+        "rail": "CrownSeedFill"
+      },
+      {
+        "i": 4,
+        "via": "generalAdapter1",
+        "op": "morphoRepay(marketParams, B or full borrowShares, onBehalf=King)",
+        "note": "Morpho lenders made whole from fill proceeds"
+      },
+      {
+        "i": 5,
+        "via": "generalAdapter1",
+        "op": "morphoWithdrawCollateral(remainder RSS → King)",
+        "note": "optional; full close path"
+      }
+    ],
+    "endState": {
+      "kingUsdc": "+B (borrow proceeds untouched)",
+      "morphoDebt": "0",
+      "kingRss": "reduced by fill slice; remainder free or still posted per params"
+    }
+  },
+  "safetyGate": {
+    "priority": "Loan repaid + King USDC landed BEFORE any privacy move",
+    "atomicRule": "CrownEliteClose reverts whole tx if fill/repay fails — King is never left with open Morpho debt and no cash from a half-run close",
+    "preBroadcast": ["eth_call must show kingUsdc +B AND borrowShares==0", "owner-only closer", "King Morpho auth only to CrownEliteClose"],
+    "noPublicFireWithoutDryRun": true
+  },
+  "privacyLayer": {
+    "note": "Runs ONLY after safetyGate green. Do not fold ZEC swap into Morpho close tx.",
+    "steps": [
+      {
+        "i": 1,
+        "action": "Submit CrownEliteClose via private RPC",
+        "detail": "Flashbots Protect (rpc.flashbots.net) is Ethereum mainnet. On Base use a private/sequencer submission path (MEV-aware private relay or trusted Base RPC) so the close is not sitting in a public mempool sandwich window."
+      },
+      {
+        "i": 2,
+        "action": "CrownEliteClose executes",
+        "detail": "Borrow → repay Morpho via CrownSeedFill → King keeps USDC. Confirm receipt + debt 0 on-chain."
+      },
+      {
+        "i": 3,
+        "action": "Swap USDC → ZEC",
+        "detail": "Privacy rail only after Step 2 confirmed. Separate tx(s)."
+      },
+      {
+        "i": 4,
+        "action": "Send ZEC to Cake shielded wallet",
+        "detail": "Off-chain sovereign custody. Kingdom funds leave the hot Base surface."
+      }
+    ]
+  },
+  "buildOnGo": [
+    "Deploy CrownEliteClose + KingSeedDesk filler wiring on Base",
+    "eth_call dry-run: kingUsdc +B, borrowShares==0",
+    "Broadcast close via Base private submission path",
+    "Only then: USDC→ZEC→Cake shielded"
+  ],
+  "execute": "LOCKED until King says Go"
+}
