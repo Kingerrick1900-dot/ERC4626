@@ -1,0 +1,18 @@
+{
+  "chainId": 8453,
+  "king": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "sale": "0xE9dA6F6ac49d42d82efD11BEE8946003bf22026e",
+  "priceUsdcPerRss": 50000,
+  "priceHuman": "$0.05/RSS",
+  "rssLoaded": "227261096879999999999999",
+  "rssLoadedHuman": "227261",
+  "raiseableUsdc": "11363054843",
+  "raiseableUsdcHuman": "11363.05",
+  "treasury": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+  "withdrawMorphoTx": "0x20ef0bc4d6a5bb3eb3ba9681b53b7c7667ccdf2c5cae1ae68409d73a860ba556",
+  "deploySaleTx": "0x55e2b938369c1810c44bec249ab93656bba9284d8994f5ef3e2f45f61587037c",
+  "morphoCollateralRemaining": "18272738903120000000000000",
+  "morphoHfAfter": "~1.005",
+  "blocked": "KingPair $170k LP locked in V1 market (no releaseCollateral on deployed 0x50A61cA6...). LP exit requires Market V2 redeploy.",
+  "note": "Buyers call buy(rssAmount) or buyWithUsdc(usdcAmount). USDC lands in King treasury."
+}
