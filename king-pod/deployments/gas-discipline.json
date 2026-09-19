@@ -1,0 +1,15 @@
+{
+  "date": "2026-07-15",
+  "finding": "Failed openSelfLend cost ~0.0000075 ETH. King ETH drop caused by king-vault-sweep sweeping excess ETH to EOA vault 0xD42A... leaving KING_GAS_RESERVE (was 0.002), plus bot spend.",
+  "actions": {
+    "KING_GAS_RESERVE_ETH": "0.05",
+    "preflightHelper": "/opt/morpho-desk/gas-safe-send.sh",
+    "floorsNow": "1.005 / 1.05",
+    "openSelfLend": "not executed - awaiting King execute; prior fail was RSS amount 1 wei over balance"
+  },
+  "balancesAtFixWei": {
+    "king": "432276285267591",
+    "vaultEoa": "2732178239507723",
+    "fleetEoa": "3845635733048034"
+  }
+}
