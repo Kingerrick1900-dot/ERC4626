@@ -90,7 +90,7 @@ contract FireDeedPeel is Script {
                 console2.log("peeled", peeled);
             }
         } else if (doUnmatch) {
-            console2.log("UNMATCH_SKIP", "HOT USDC=0 — find/engineer wedge then UNMATCH_PEEL=1");
+            console2.log("UNMATCH_SKIP", "HOT USDC=0 - find wedge then UNMATCH_PEEL=1");
         }
 
         vm.stopBroadcast();
