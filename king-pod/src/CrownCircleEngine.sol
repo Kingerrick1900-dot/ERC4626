@@ -137,21 +137,28 @@ contract CrownCircleEngine is Ownable, ReentrancyGuard, IMorphoFlashCb {
         emit LandingSet(landing_);
     }
 
-    /// @notice Preview flash size = king's park debt (assets up) + buffer.
+    /// @notice Preview flash size = king's park debt (assets up) + 1 wei.
+    /// @dev Call after accrueInterest for tip-accurate debt.
     function previewFlash() public view returns (uint256 flashAmt, uint256 supplyShares, uint256 borShares, uint256 coll) {
-        (supplyShares, uint128 bor, uint128 c) = morpho.position(parkId, king);
+        uint128 bor;
+        uint128 c;
+        (supplyShares, bor, c) = morpho.position(parkId, king);
         borShares = uint256(bor);
         coll = uint256(c);
         if (bor == 0) return (0, supplyShares, 0, coll);
         (,, uint128 tba, uint128 tbs,,) = morpho.market(parkId);
         flashAmt = (uint256(tba) * uint256(bor) + uint256(tbs) - 1) / uint256(tbs);
-        flashAmt += 2_000e6; // buffer for accrue between eth_call and broadcast
+        unchecked {
+            flashAmt += 1;
+        }
     }
 
     /// @notice ENGINEER: unwind self-seed knot → USDC dust to Landing + RSS free to king.
     ///         Creates idle by repaying OUR borrow — no curator wait.
+    /// @dev Prefund this contract with shortfall USDC if debt > supply+yRSS (accrued IRM gap).
     function unwindKnot() external onlyKing nonReentrant {
         if (!armed) revert NotArmed();
+        morpho.accrueInterest(mpPark);
         (uint256 flashAmt, uint256 supShares, uint256 borShares, uint256 coll) = previewFlash();
         if (borShares == 0 && coll == 0 && supShares == 0) revert NoPos();
 
@@ -196,7 +203,9 @@ contract CrownCircleEngine is Ownable, ReentrancyGuard, IMorphoFlashCb {
         uint256 yrssUsed;
         uint256 maxW = yrss.maxWithdraw(king);
         if (maxW > 0) {
-            yrssUsed = yrss.withdraw(maxW, address(this), king);
+            uint256 usdcBefore = usdc.balanceOf(address(this));
+            yrss.withdraw(maxW, address(this), king);
+            yrssUsed = usdc.balanceOf(address(this)) - usdcBefore;
             lastYrssPulled = yrssUsed;
         }
 
