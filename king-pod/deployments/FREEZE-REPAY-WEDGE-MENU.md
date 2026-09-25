@@ -146,3 +146,5 @@ WEDGE=right machine · blocked on Circle
 ELSE=live-coll foreign borrow | PA maxIn | PSM buyer | OTC/ZK wire
 DO NOT BUILD — name FUEL+SIZE first
 ```
+
+**Note:** Minted eUSD/gUSD ocean is **real and traded** (`FREEZE-MINTED-BILLIONS-REAL.md`). That does not change the Circle repay identity above — different asset, different machine.
