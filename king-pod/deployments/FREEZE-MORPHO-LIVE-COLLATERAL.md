@@ -132,6 +132,7 @@ NEXT=King names coll fuel + market + size before any fire
 
 ## Cross-refs
 
+- `FREEZE-REPAY-WEDGE-MENU.md` — can we engineer repay wedge / alternatives (no builds)  
 - `SEED-200M-SELFDEL.md` / `RSS-1200-SIGNAL-200M.md` — matched $200M seat  
 - `STAY-IDLE-SHARES.md` / `DEED-PEEL.md` — $1M deed + unmatch physics  
 - `CBBTC-IDLE-PULLER.md` — foreign idle needs real cbBTC coll  
