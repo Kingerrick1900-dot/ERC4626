@@ -27,25 +27,19 @@
 | Polygon | [`0x1cb6498d…1f29`](https://polygonscan.com/tx/0x1cb6498df441a3b313cbbb5e75d99181706fdfd8dd810c8edff964e185751f29) | **604800** (7d) |
 | Scroll | [`0x42013cf0…0f26`](https://scrollscan.com/tx/0x42013cf0a2cd4d863a126ea75d0444313f6dc080344ce405a3d067e954750f26) | **604800** (7d) |
 
-Base `maxStale` remains **3600** (owner = HOT) — refresh hourly via `FireZkAttestRefreshCast.sh` until HOT extends it.
+Base `maxStale` now **604800** (7d) — HOT one-time fire.
 
 ---
 
-## Blocked — Phase 1 live disarm
+## Phase 1 live disarm — DONE
 
-| Need | Status |
-|--|--|
-| Live router `0xBb3C372D…A7aC` | **`armed=true`** · `freeUsdc=0` |
-| Owner | HOT `0x6708…a7d1` |
-| Env keys present | Scroll `0xca76…` · Poly passport `0x3151…` · **HOT missing** |
+| Action | Tx | Result |
+|--|--|--|
+| `setArmed(false)` live router `0xBb3C372D…A7aC` | [`0xceccfaf3…3459`](https://basescan.org/tx/0xceccfaf3ff8c712aa97e5e095eb1333956242aa9a52bf3abdfbe653d37943459) | **`armed=false`** |
+| Base `setThresholds(…, maxStale=7d)` | [`0x98f69593…01a0`](https://basescan.org/tx/0x98f69593746dea5ea7311ec9a5e309bc1af8d88c3bc46702a9e8abfca8ac01a0) | **604800** |
+| Base `attestLive` | [`0xdf2ecc45…b524`](https://basescan.org/tx/0xdf2ecc45ebc4a57d75f7608a0ef1741a2b2d92f2b04365304b43bd17a8b8b524) | epoch **4** · borders **true** |
 
-**King action:** set `HOT_KEY` for Base hot, then:
-
-```bash
-HOT_KEY=0x… bash king-pod/script/FirePrimeDisarmCast.sh
-```
-
-Script refuses wrong signer (will not fire Scroll key at Base router).
+**Issue that blocked earlier:** env only had Scroll (`0xca76…`) + Poly passport (`0x3151…`). Router/attest owner is HOT `0x6708…` — one-time HOT key supplied by King, used, **not stored in repo**. **Rotate HOT.**
 
 ---
 
@@ -66,10 +60,10 @@ Live contracts are the prior deploy — these patches arm the **next** router/tr
 
 | Phase | Status |
 |--|--|
-| 1 Hard Risk Locks | Code ready · **live disarm awaits HOT_KEY** |
+| 1 Hard Risk Locks | **Live disarm DONE** · patched sources for next upgrade |
 | 2 Recycler / $375M float | Not fired — needs ~$9M real USDC |
-| 3 ZK Blanket | **DONE** (all rails `bordersSecure=true`) |
-| 4 China / NFC | **FROZEN** until 1–2 complete |
+| 3 ZK Blanket | **DONE** (all rails `bordersSecure=true`, maxStale 7d) |
+| 4 China / NFC | **FROZEN** until Phase 2 complete |
 
 ---
 
@@ -77,8 +71,8 @@ Live contracts are the prior deploy — these patches arm the **next** router/tr
 
 ```
 FIRE=hard-locks-zk-rails
-ZK Base/Poly/Scroll bordersSecure=true (epochs 3/2/2)
-Poly+Scroll maxStale=7d
-LIVE_ROUTER armed=true ← HOT_KEY then FirePrimeDisarmCast.sh
-NO China · NO $9M recycler until Phase1 disarm + King GO
+ZK Base/Poly/Scroll bordersSecure=true · maxStale=7d
+LIVE_ROUTER 0xBb3C…A7aC armed=false ✓
+ROTATE HOT — one-time key was chat-pasted
+NO China · Phase2 recycler awaits ~$9M USDC + KING_GO
 ```

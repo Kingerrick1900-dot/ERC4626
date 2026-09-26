@@ -78,7 +78,7 @@ Clearing phantom / swapping credit ≠ USDC to spend. Payroll still needs **real
 
 | Rail | Attest | `bordersSecure()` | Note |
 |--|--|--|--|
-| Base | `0xe3Be837a…14E7` | **true** (epoch **3**) | refreshed FIRE; `maxStale` still 1h (HOT) |
+| Base | `0xe3Be837a…14E7` | **true** (epoch **4**) | `maxStale=7d` |
 | Polygon | `0x00cAe93d…7211` | **true** (epoch **2**) | `maxStale=7d` |
 | Scroll | `0x2ab17e3c…a257` | **true** (epoch **2**) | `maxStale=7d` |
 
