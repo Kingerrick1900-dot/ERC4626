@@ -136,10 +136,10 @@ CN overclaim cut: **flash ≠ free war chest.**
 
 ## Freeze rules
 
-1. **No fire** of flash recycler / hunt unfreeze / yRSS self-borrow until King names door **A–D** with size.  
-2. Update supersedes “must park $9M HOT cash” as the *only* story — cash park is **optional working capital**, not dogma.  
-3. Scripts: `FireRecyclerLoopCast.sh` remains gated on real USDC (honest cash path). Flash delever = separate future script under `DELEVER_GO`.  
-4. HOT key: keep for chosen door · rotate after that fire.
+1. **No fire** of flash recycler / hunt unfreeze / yRSS self-borrow as a war chest.  
+2. Door **A fired:** see `FIRE-PHASE2-INBOUND-7683.md` — 7683 order live (10M eUSD / $9M USDC). Await solver fill.  
+3. Scripts: `FireRecyclerLoopCast.sh` remains gated on real USDC after fill. Flash delever = only under `DELEVER_GO`.  
+4. HOT key: keep until fill + recycle confirm · then rotate.
 
 ---
 
