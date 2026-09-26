@@ -1,6 +1,6 @@
 # FIRE — Hard locks + ZK rails (above call of duty)
 
-**Mode:** FIRE · Phase 3 ZK executed · Phase 1 live disarm **blocked on HOT key**  
+**Mode:** FIRE · Phase 3 ZK **done** · Phase 1 live disarm **DONE**  
 **Decree:** Fire go — secure before China sequence, max effort.  
 **Branch:** `cursor/fire-hard-locks-zk-rails-4f7f`
 

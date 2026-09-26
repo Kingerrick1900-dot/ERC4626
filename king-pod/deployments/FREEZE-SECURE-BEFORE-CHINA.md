@@ -60,7 +60,7 @@ Phase 2 debt-recycling / recycler loop is **not executed**. Until it runs:
 |--|--|--|
 | BoundLandingCollateral | `0x99bE1Ec7…B6c3e8` | `lltv=50%` · `borrowCapacityUsd6=0` · `reservedDebtUsd6=0` |
 | **CrownPrimeCredit (LIVE)** | `0x5568fE66…B60d` | `freeUsdc=0` · HOT `debtOf=0` |
-| **USDCBorrowRouter (LIVE)** | `0xBb3C372D…A7aC` | **`armed=true`** · points at live credit · **Phase-1 risk** |
+| **USDCBorrowRouter (LIVE)** | `0xBb3C372D…A7aC` | **`armed=false`** · points at live credit · Phase-1 disarm **DONE** |
 | SelfRepayingTreasury | `0xA1215D21…ebd97` | `credit` → live credit |
 | CrownPrimeIdleTap | `0xC9Ec2fE1…BaB2` | live |
 | LitePSM / 7683 Fill | `0xC28E7faA…9F6B` / `0x4C021c77…720Ab` | rewired → live credit |
