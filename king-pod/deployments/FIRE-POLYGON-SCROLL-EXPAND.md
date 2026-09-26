@@ -33,18 +33,20 @@ Broadcast: `broadcast/FirePolygonExpand.s.sol/137/run-latest.json`
 
 ---
 
-## Scroll (privacy) — ARMED, not yet broadcast
+## Scroll (privacy) — LIVE
 
-L1 ETH on passport (~0.00089) **cannot** pay Ethereum gas to bridge at ~50 gwei (need ~0.01 ETH).  
-Script ready: `script/FireScrollAttest.s.sol`
+Fired from Scroll hot `0xca76AE9e29a5F01465D890dc30109cD58B78F864`.
 
-```bash
-# After Scroll L2 ETH tip ≥ 0.001 ETH to passport:
-FIRE=1 PRIVATE_KEY=… forge script script/FireScrollAttest.s.sol:FireScrollAttest \
-  --rpc-url https://rpc.scroll.io --broadcast --legacy --slow
-```
+| Module | Address |
+|--|--|
+| **CrownNavMirror** | `0x9cdF3B5811637885346237fd30416a7bECC750af` |
+| **CrownZkAttest** | `0x2ab17e3c00D783F58B106De2fB1723b4915Da257` |
+| **CrownRailShield** | `0x57326e4001F00adFd48Be6976653A694F64d26d0` |
 
-Deploys NavMirror + ZkAttest + RailShield; `attestLive` binds Base yRSS NAV ≥ $228M on Scroll.
+### Verified
+- `bordersSecure() = true` · epoch **1**
+- NavMirror `totalAssets` = **$228.9M** (Base yRSS mirror)
+- Broadcast: `broadcast/FireScrollAttest.s.sol/534352/run-latest.json`
 
 ---
 
@@ -53,7 +55,7 @@ Deploys NavMirror + ZkAttest + RailShield; `attestLive` binds Base yRSS NAV ≥ 
 ```
 Base (speed / gold rail yRSS) ✓
 Polygon (liquidity / Open Money / agent) ✓
-Scroll (privacy ZK attest) → spark L2 ETH then fire
+Scroll (privacy ZK attest) ✓
 ```
 
 ---
