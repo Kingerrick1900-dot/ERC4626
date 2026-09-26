@@ -4,6 +4,8 @@
 **Doctrine:** Freeze before fire. Scribe will not invent Circle.  
 **HOT key:** Keep for Phase 2 fire · **rotate only after** recycler txs confirm.
 
+> **CN correction:** Do **not** treat “park $9M King USDC” as mandatory. See `FREEZE-CN-ZERO-CAPITAL-RECYCLER.md` — flash peel ≠ war chest; prefer inbound USDC / IdleTap / eUSD capacity lock.
+
 ---
 
 ## Objective (King)

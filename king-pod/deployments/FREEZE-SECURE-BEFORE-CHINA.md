@@ -102,8 +102,8 @@ See `FIRE-HARD-LOCKS-ZK-RAILS.md` for txs. China still **Phase 4**.
 
 ## Phase 2 — Recycler Loop (~$9M → Morpho → ~$375M float)
 
-**Handoff:** `FREEZE-PHASE2-RECYCLER-LOOP.md` · script `FireRecyclerLoopCast.sh`  
-**Live gate (probed):** HOT USDC = **1 wei** — **FAIL**. No fire until USDC ≥ $9M.
+**Handoff:** `FREEZE-PHASE2-RECYCLER-LOOP.md` · CN alt: `FREEZE-CN-ZERO-CAPITAL-RECYCLER.md`  
+**Live:** HOT USDC = **1 wei**. Cash recycler gated. Flash-as-war-chest **REJECTED** (Δ≈0). Prefer zero-stockpile doors.
 
 1. Source **real ~$9M USDC** (7683 fill / LitePSM sell / named wire / IdleTap with coll — not ocean fantasy).  
 2. `Morpho.repay` **$9M** into PARK Book 1 → util &lt; 100%.  
