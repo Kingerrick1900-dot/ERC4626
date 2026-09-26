@@ -1,0 +1,10 @@
+{
+  "chainId": 137,
+  "vault": "0x31511861a519D6b814Eb20b4A0bcc391e76177dF",
+  "CrownKingAgent": "0x18a3cAd4b67F9Ee487743ce5C7943C0A57E012E1",
+  "CrownSovereignEusd": "0xd8A639BbD49e02eA590569D548d578e8345baf50",
+  "CrownOpenMoney": "0xe3e165C8823d35966C85353D5A4f257623417a7c",
+  "CrownZkAttest": "0x00cAe93dd7F8D3331fe697D8B636B550aD6D7211",
+  "CrownAllowlist": "0x02d4A11311536a0E1Da652640bc4E2b280E8cb17",
+  "rpcDefault": "https://polygon-bor-rpc.publicnode.com"
+}

@@ -1,0 +1,10 @@
+{
+  "chainId": 534352,
+  "vault": "0xca76AE9e29a5F01465D890dc30109cD58B78F864",
+  "CrownNavMirror": "0x9cdF3B5811637885346237fd30416a7bECC750af",
+  "CrownZkAttest": "0x2ab17e3c00D783F58B106De2fB1723b4915Da257",
+  "CrownRailShield": "0x57326e4001F00adFd48Be6976653A694F64d26d0",
+  "rpcDefault": "https://rpc.scroll.io",
+  "bordersSecure": true,
+  "epoch": 1
+}
