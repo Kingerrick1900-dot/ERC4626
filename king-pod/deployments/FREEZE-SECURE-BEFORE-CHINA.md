@@ -74,15 +74,15 @@ Phase 2 debt-recycling / recycler loop is **not executed**. Until it runs:
 
 Clearing phantom / swapping credit ≠ USDC to spend. Payroll still needs **real idle**.
 
-### ZK / borders (stale — Phase 3 gate)
+### ZK / borders
 
-| Rail | Attest | `bordersSecure()` |
-|--|--|--|
-| Base | `0xe3Be837a…14E7` (epoch **2**) | **false** |
-| Polygon | `0x00cAe93d…7211` | **false** |
-| Scroll | `0x2ab17e3c…a257` | **false** |
+| Rail | Attest | `bordersSecure()` | Note |
+|--|--|--|--|
+| Base | `0xe3Be837a…14E7` | **true** (epoch **3**) | refreshed FIRE; `maxStale` still 1h (HOT) |
+| Polygon | `0x00cAe93d…7211` | **true** (epoch **2**) | `maxStale=7d` |
+| Scroll | `0x2ab17e3c…a257` | **true** (epoch **2**) | `maxStale=7d` |
 
-Armor contracts exist; attestations are **stale**. Refresh before any China weld.
+See `FIRE-HARD-LOCKS-ZK-RAILS.md` for txs. China still **Phase 4**.
 
 ### Already live (do not re-litigate; do not expand)
 
