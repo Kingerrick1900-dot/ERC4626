@@ -102,10 +102,14 @@ See `FIRE-HARD-LOCKS-ZK-RAILS.md` for txs. China still **Phase 4**.
 
 ## Phase 2 — Recycler Loop (~$9M → Morpho → ~$375M float)
 
-1. Source **real ~$9M USDC** (7683 fill / LitePSM sell / named wire — not ocean fantasy).  
-2. Sweep into Morpho / PARK idle path per King-named recycler thesis.  
-3. Unlock **~$375M** float **capacity** (debt-recycling war chest). Capacity ≠ Landing cash until drawn under Phase-1 locks.  
-4. Gate: PARK util leaves 100% death spiral; idle exists; router stays disarmed until King arms.
+**Handoff:** `FREEZE-PHASE2-RECYCLER-LOOP.md` · script `FireRecyclerLoopCast.sh`  
+**Live gate (probed):** HOT USDC = **1 wei** — **FAIL**. No fire until USDC ≥ $9M.
+
+1. Source **real ~$9M USDC** (7683 fill / LitePSM sell / named wire / IdleTap with coll — not ocean fantasy).  
+2. `Morpho.repay` **$9M** into PARK Book 1 → util &lt; 100%.  
+3. `yRSS.withdraw` idle → `SelfRepayingTreasury.sweep`.  
+4. Unlock **~$375M** float **capacity** via BoundLanding lock math. Capacity ≠ Landing cash until drawn under Phase-1 locks.  
+5. Router stays **disarmed** until idle proof + King arms.
 
 ## Phase 3 — ZK Blanket
 
