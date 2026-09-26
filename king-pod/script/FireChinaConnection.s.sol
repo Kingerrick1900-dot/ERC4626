@@ -19,9 +19,9 @@ interface IOpenMoney {
 
 contract FireChinaConnection is Script {
     // Polygon live triangle
-    address constant POLY_EUSD = 0xd8a639bbd49e02ea590569d548d578e8345baf50;
-    address constant POLY_PAY = 0x2faed8d83f61d157419b33f7938adcd9f2c4f629;
-    address constant POLY_OPEN = 0xe3e165c8823d35966c85353d5a4f257623417a7c;
+    address constant POLY_EUSD = 0xd8A639BbD49e02eA590569D548d578e8345baf50;
+    address constant POLY_PAY = 0x2FAEd8D83f61d157419b33F7938aDCd9F2c4f629;
+    address constant POLY_OPEN = 0xe3e165C8823d35966C85353D5A4f257623417a7c;
     address constant POLY_ATTEST = 0x00cAe93dd7F8D3331fe697D8B636B550aD6D7211;
 
     function run() external {
