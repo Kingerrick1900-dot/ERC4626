@@ -111,11 +111,15 @@ See `FIRE-HARD-LOCKS-ZK-RAILS.md` for txs. China still **Phase 4**.
 4. Unlock **~$375M** float **capacity** via BoundLanding lock math. Capacity ≠ Landing cash until drawn under Phase-1 locks.  
 5. Router stays **disarmed** until idle proof + King arms.
 
-## Phase 3 — ZK Blanket
+## Phase 3 — ZK Blanket & Float Deploy
 
-1. `attestLive` (or SNARK path) on Base · Polygon · Scroll until `bordersSecure()=true` on all three.  
-2. Cold buffer path toward redeem law (not dust theater).  
-3. KAR `requireBorders` stays on for payroll / cap / migrate.
+**Handoff:** `FREEZE-PHASE3-ZK-FLOAT-DEPLOY.md`  
+**Trigger:** Phase-2 order fill · `credit.freeUsdc` ≥ ~$8.5M (`FILL_GO`).
+
+1. Fire recycler (`FireRecyclerLoopCast.sh`).  
+2. ZK keepalive all rails — `maxStale=7d` already live; refresh on FILL_GO.  
+3. Deploy **real** USDC `U` by King ratio (Cold ≥30%); eUSD locks chase **$375M capacity** (not fake $375M cash from $9M).  
+4. Hunt stays killed unless `HUNT_GO`.
 
 ## Phase 4 — China Connection (last)
 
