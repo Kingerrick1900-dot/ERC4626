@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kingdom — Sovereign NAV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0c1210;
+      --panel: #121a17;
+      --line: rgba(212, 175, 106, 0.22);
+      --gold: #d4af6a;
+      --gold-soft: #f0d9a6;
+      --sea: #6aa8a0;
+      --mist: #9aaca3;
+      --ok: #7dba8c;
+      --warn: #c4a35a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      color: var(--gold-soft);
+      background:
+        radial-gradient(1200px 700px at 50% -10%, rgba(106, 168, 160, 0.14), transparent 55%),
+        radial-gradient(900px 500px at 100% 100%, rgba(212, 175, 106, 0.08), transparent 50%),
+        linear-gradient(180deg, #0a0f0d 0%, var(--ink) 45%, #0e1613 100%);
+      min-height: 100vh;
+    }
+    .wrap {
+      width: min(1180px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2.5rem 0 3.5rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2.75rem;
+      animation: rise 900ms ease both;
+    }
+    .brand {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-weight: 700;
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      letter-spacing: 0.04em;
+      line-height: 0.95;
+      color: var(--gold);
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .tag {
+      margin: 0.85rem 0 0;
+      color: var(--mist);
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .meta {
+      margin-top: 1.25rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      color: var(--sea);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+    }
+    .dot {
+      width: 0.45rem; height: 0.45rem; border-radius: 50%;
+      background: var(--ok); display: inline-block;
+      box-shadow: 0 0 0 0 rgba(125, 186, 140, 0.55);
+      animation: pulse 2.4s ease-out infinite;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .rail {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(18, 26, 23, 0.95), rgba(10, 15, 13, 0.9));
+      padding: 1.4rem 1.35rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+      animation: rise 900ms ease both;
+    }
+    .rail:nth-child(2) { animation-delay: 120ms; }
+    .rail:nth-child(3) { animation-delay: 240ms; }
+    .rail::before {
+      content: "";
+      position: absolute; inset: 0 auto 0 0; width: 2px;
+      background: linear-gradient(180deg, transparent, var(--gold), transparent);
+      opacity: 0.7;
+    }
+    .rail h2 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-weight: 600;
+      font-size: 1.55rem;
+      margin: 0 0 1.1rem;
+      color: var(--gold);
+      letter-spacing: 0.03em;
+    }
+    .row {
+      display: grid;
+      gap: 0.15rem;
+      padding: 0.85rem 0;
+      border-top: 1px solid rgba(154, 172, 163, 0.12);
+      text-decoration: none;
+      color: inherit;
+      transition: background 180ms ease, transform 180ms ease;
+    }
+    .row:first-of-type { border-top: 0; }
+    .row:hover {
+      background: rgba(212, 175, 106, 0.05);
+      transform: translateX(2px);
+    }
+    .label {
+      color: var(--mist);
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .value {
+      font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+      font-weight: 500;
+      color: var(--gold-soft);
+      letter-spacing: -0.02em;
+    }
+    .value.sea { color: var(--sea); }
+    .hint {
+      margin-top: 0.35rem;
+      font-size: 0.62rem;
+      color: rgba(154, 172, 163, 0.75);
+      letter-spacing: 0.04em;
+    }
+    footer {
+      margin-top: 2.5rem;
+      text-align: center;
+      color: rgba(154, 172, 163, 0.7);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      animation: rise 1s ease both;
+      animation-delay: 320ms;
+    }
+    footer a { color: var(--sea); text-decoration: none; }
+    footer a:hover { color: var(--gold); }
+    .err { color: #d9897a; text-align: center; margin: 1rem 0; font-size: 0.8rem; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(125, 186, 140, 0.55); }
+      70% { box-shadow: 0 0 0 10px rgba(125, 186, 140, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(125, 186, 140, 0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1 class="brand">Kingdom</h1>
+      <p class="tag">Sovereign balance sheet · ZK-attested</p>
+      <div class="meta">
+        <span><span class="dot" id="liveDot"></span> <span id="borderLabel">loading</span></span>
+        <span id="epochLabel">epoch —</span>
+        <span id="timeLabel">updated —</span>
+      </div>
+    </header>
+
+    <div id="err" class="err" hidden></div>
+
+    <div class="grid" id="grid">
+      <section class="rail" data-rail="gold">
+        <h2>yRSS Gold</h2>
+        <a class="row" id="g-locked" href="#" target="_blank" rel="noreferrer">
+          <span class="label">Locked Gold</span>
+          <span class="value">—</span>
+          <span class="hint">proof → yRSS totalAssets</span>
+        </a>
+        <a class="row" id="g-idle" href="#" target="_blank" rel="noreferrer">
+          <span class="label">Idle Real</span>
+          <span class="value">—</span>
+          <span class="hint">proof → Landing eUSD</span>
+        </a>
+        <a class="row" id="g-minted" href="#" target="_blank" rel="noreferrer">
+          <span class="label">Minted Real</span>
+          <span class="value">—</span>
+          <span class="hint">proof → eUSD totalSupply</span>
+        </a>
+      </section>
+
+      <section class="rail" data-rail="ocean">
+        <h2>Ocean</h2>
+        <a class="row" id="o-eusd" href="#" target="_blank" rel="noreferrer">
+          <span class="label">eUSD Ocean</span>
+          <span class="value sea">—</span>
+          <span class="hint">proof → Aero pool eUSD</span>
+        </a>
+        <a class="row" id="o-gusd" href="#" target="_blank" rel="noreferrer">
+          <span class="label">gUSD Ocean</span>
+          <span class="value sea">—</span>
+          <span class="hint">proof → Aero pool gUSD</span>
+        </a>
+        <a class="row" id="o-depth" href="#" target="_blank" rel="noreferrer">
+          <span class="label">Total Depth</span>
+          <span class="value sea">—</span>
+          <span class="hint">proof → pool reserves sum</span>
+        </a>
+      </section>
+
+      <section class="rail" data-rail="landing">
+        <h2>Landing</h2>
+        <a class="row" id="l-idle" href="#" target="_blank" rel="noreferrer">
+          <span class="label">Idle eUSD</span>
+          <span class="value">—</span>
+          <span class="hint">proof → Landing balance</span>
+        </a>
+        <a class="row" id="l-pay" href="#" target="_blank" rel="noreferrer">
+          <span class="label">Payroll</span>
+          <span class="value">—</span>
+          <span class="hint">proof → ZkAttest payrollOk</span>
+        </a>
+        <a class="row" id="l-cold" href="#" target="_blank" rel="noreferrer">
+          <span class="label">Cold Buffer</span>
+          <span class="value">—</span>
+          <span class="hint">proof → ColdBuffer balance</span>
+        </a>
+      </section>
+    </div>
+
+    <footer>
+      <div>Root <a id="rootLink" href="#" target="_blank" rel="noreferrer">—</a></div>
+      <div style="margin-top:0.5rem">
+        Attest <a href="https://basescan.org/address/0xe3Be837a6Bc915bF8FB1676581E423dA03cC14E7" target="_blank" rel="noreferrer">0xe3Be837a…14E7</a>
+        · Board <a id="boardLink" href="#" target="_blank" rel="noreferrer">pending</a>
+        · No capacity · No potential
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const RPCS = [
+      "https://mainnet.base.org",
+      "https://base.llamarpc.com",
+      "https://base.meowrpc.com"
+    ];
+    const ADDR = {
+      yrss: "0xF80C0529bD94C773844E459853CD91B9263dD525",
+      eusd: "0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a",
+      gusd: "0x319A49BB274A826F889C6e7221FA82f24ac8bc5d",
+      landing: "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357",
+      ocean: "0x8C009d9654247Bc2B68DE98b3083B27aF8f2eFE7",
+      cold: "0xBb3c14bBacD639797cB5c537fde370d1b7195521",
+      attest: "0xe3Be837a6Bc915bF8FB1676581E423dA03cC14E7",
+      board: (new URLSearchParams(location.search)).get("board")
+        || localStorage.getItem("sovereignBoard")
+        || "0x4A8D5ac627D0fA1897DA3962a72EbE214Cba6E1F"
+    };
+
+    function padAddr(a) {
+      return a.toLowerCase().replace(/^0x/, "").padStart(64, "0");
+    }
+    function hexToBig(h) {
+      return BigInt(h);
+    }
+    async function ethCall(to, data) {
+      let lastErr;
+      for (const url of RPCS) {
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0", id: 1,
+              method: "eth_call",
+              params: [{ to, data }, "latest"]
+            })
+          });
+          const j = await res.json();
+          if (j.error) throw new Error(j.error.message || "rpc");
+          return j.result;
+        } catch (e) { lastErr = e; }
+      }
+      throw lastErr || new Error("rpc failed");
+    }
+
+    function fmtUsd18(v) {
+      const n = Number(v) / 1e18;
+      return fmtUsd(n);
+    }
+    function fmtUsd6(v) {
+      const n = Number(v) / 1e6;
+      return fmtUsd(n);
+    }
+    function fmtUsd(n) {
+      const abs = Math.abs(n);
+      if (abs >= 1e12) return "$" + (n / 1e12).toFixed(2) + "T";
+      if (abs >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
+      if (abs >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+      if (abs >= 1e3) return "$" + (n / 1e3).toFixed(2) + "K";
+      return "$" + n.toFixed(2);
+    }
+    function setRow(id, text, href) {
+      const el = document.getElementById(id);
+      el.querySelector(".value").textContent = text;
+      el.href = href;
+    }
+    function scan(addr) { return "https://basescan.org/address/" + addr; }
+    function scanRead(addr, fn) {
+      return "https://basescan.org/address/" + addr + "#readContract";
+    }
+
+    // selectors from cast sig
+    const S = {
+      totalAssets: "0x01e1d114",
+      balanceOf: "0x70a08231",
+      totalSupply: "0x18160ddd",
+      balance: "0xb69ef8a8",
+      bordersSecure: "0xae597d7a",
+      epoch: "0x900cf0cf",
+      attestations: "0x01daf26b"
+    };
+
+    async function load() {
+      try {
+        const balOf = (token, who) =>
+          ethCall(token, S.balanceOf + padAddr(who));
+        const [
+          goldRaw, idleRaw, mintedRaw, eOceanRaw, gOceanRaw, coldRaw, epochRaw
+        ] = await Promise.all([
+          ethCall(ADDR.yrss, S.totalAssets),
+          balOf(ADDR.eusd, ADDR.landing),
+          ethCall(ADDR.eusd, S.totalSupply),
+          balOf(ADDR.eusd, ADDR.ocean),
+          balOf(ADDR.gusd, ADDR.ocean),
+          ethCall(ADDR.cold, S.balance),
+          ethCall(ADDR.attest, S.epoch)
+        ]);
+
+        let borders = false;
+        let payroll = false;
+        let payload = "0x";
+        let epoch = Number(hexToBig(epochRaw));
+        try {
+          const b = await ethCall(ADDR.attest, S.bordersSecure);
+          borders = hexToBig(b) === 1n;
+        } catch (_) {}
+        if (epoch > 0) {
+          const att = await ethCall(
+            ADDR.attest,
+            S.attestations + epoch.toString(16).padStart(64, "0")
+          );
+          // decode tuple: 9 words
+          const words = att.slice(2).match(/.{64}/g) || [];
+          if (words.length >= 9) {
+            payroll = hexToBig("0x" + words[5]) === 1n;
+            payload = "0x" + words[6];
+            if (!borders) borders = hexToBig("0x" + words[3]) === 1n; // navMet as soft signal
+          }
+        }
+
+        const gold = hexToBig(goldRaw);
+        const idle = hexToBig(idleRaw);
+        const minted = hexToBig(mintedRaw);
+        const eO = hexToBig(eOceanRaw);
+        const gO = hexToBig(gOceanRaw);
+        const cold = hexToBig(coldRaw);
+        const depth = eO + gO;
+
+        setRow("g-locked", fmtUsd6(gold), scanRead(ADDR.yrss));
+        setRow("g-idle", fmtUsd18(idle), scan(ADDR.landing));
+        setRow("g-minted", fmtUsd18(minted), scanRead(ADDR.eusd));
+        setRow("o-eusd", fmtUsd18(eO), scan(ADDR.ocean));
+        setRow("o-gusd", fmtUsd18(gO), scan(ADDR.ocean));
+        setRow("o-depth", fmtUsd18(depth), scan(ADDR.ocean));
+        setRow("l-idle", fmtUsd18(idle), scan(ADDR.landing));
+        setRow("l-pay", payroll ? "Live" : "Unset", scan(ADDR.attest));
+        setRow(
+          "l-cold",
+          cold > 0n ? ("Seeded · " + fmtUsd6(cold)) : "Empty",
+          scan(ADDR.cold)
+        );
+
+        document.getElementById("borderLabel").textContent =
+          borders ? "bordersSecure" : "borders open";
+        document.getElementById("liveDot").style.background = borders ? "var(--ok)" : "var(--warn)";
+        document.getElementById("epochLabel").textContent = "epoch " + epoch;
+        document.getElementById("timeLabel").textContent =
+          "updated " + new Date().toISOString().replace(".000Z", "Z");
+
+        const rootEl = document.getElementById("rootLink");
+        if (payload && payload.length === 66) {
+          rootEl.textContent = payload.slice(0, 10) + "…" + payload.slice(-6);
+          rootEl.href = scan(ADDR.attest) + "#readContract";
+        } else {
+          rootEl.textContent = "attest payload";
+          rootEl.href = scan(ADDR.attest);
+        }
+
+        if (ADDR.board) {
+          const bl = document.getElementById("boardLink");
+          bl.textContent = ADDR.board.slice(0, 8) + "…" + ADDR.board.slice(-4);
+          bl.href = scan(ADDR.board);
+        }
+
+        document.getElementById("err").hidden = true;
+      } catch (e) {
+        const err = document.getElementById("err");
+        err.hidden = false;
+        err.textContent = "Chain read failed — retry. " + (e.message || e);
+      }
+    }
+
+    load();
+    setInterval(load, 45000);
+  </script>
+</body>
+</html>
