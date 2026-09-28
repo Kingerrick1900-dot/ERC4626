@@ -20,7 +20,8 @@ US M2 ∼$22T is a **ceiling narrative**, not today’s print job.
 | yRSS / PARK gold | **~$226.2M** `totalAssets` · util ~100% | Fort Knox — **collateral, not cash** |
 | Base eUSD `totalSupply` | **~$13.78B** (18dp) | Minted stock already large |
 | HOT USDC | **1 wei** | Optics problem — not the war chest |
-| SpendVault idle (CN claim) | **5B eUSD / 5B gUSD** attested narrative | Must re-probe + ZK-prove before “visible war chest” |
+| Landing idle eUSD | **~$1.524B REAL** (`0x5Adcea…2357`) | Visible war chest — not HOT dust |
+| Mint capacity (post-fire) | **100T** ceiling · unlocked **0** | Ability only — no print yet |
 | Scroll ZkAttest / NavMirror | Live rails (prior fires) | Public proof path |
 | USDCBorrowRouter | Prior: **disarmed** | Stays cold until idle proof |
 
