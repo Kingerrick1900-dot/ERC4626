@@ -15,7 +15,6 @@ interface IHuntAdmin {
 }
 
 interface IPayAdmin {
-    function setPuller(address p, bool ok) external;
     function setMerchant(address m, bool ok) external;
 }
 
