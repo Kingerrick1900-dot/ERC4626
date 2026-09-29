@@ -6,6 +6,23 @@
 
 ---
 
+## LIVE (Base 8453) — executed
+
+| Item | Value |
+|--|--|
+| **CrownRicardian** | [`0xe56D14583a736aD02943c69b19340A8475A7dF8a`](https://basescan.org/address/0xe56D14583a736aD02943c69b19340A8475A7dF8a) |
+| Deploy tx | [`0x446670e4…a1d7`](https://basescan.org/tx/0x446670e4e48c1666bbba0d924e2974a71c58cec1344936231c8015ad73d7a1d7) |
+| Settlement | Landing `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` |
+| Prose hash | `0xfb464c9b1b982e7a319b57242d0369397aeaac85d2202886e4915c587d986dca` |
+| KAR `openOffer` | **allowed** |
+| yRSS PA PARK/RSS maxIn | **$5,000,000** each |
+| Offers | **3 sent** (AnchorX · Conflux · SBI @ $700k) |
+| `incorporated` | **false** until King `markIncorporated(ein, bank)` |
+
+Broadcast: `broadcast/FireKeSovIncorporation.s.sol/8453/run-latest.json`
+
+---
+
 ## What this fire does
 
 | Step | On-chain / pack | Off-chain (King + counsel) |
