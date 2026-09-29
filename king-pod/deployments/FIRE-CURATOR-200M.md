@@ -5,13 +5,27 @@
 
 ---
 
-## Live targets (deposit assets)
+## LIVE chassis (Base) — executed
+
+| Item | Address |
+|--|--|
+| **CrownCuratorTranche** | [`0x8531F4DB622b982541A6715164d5A9dde58205b0`](https://basescan.org/address/0x8531F4DB622b982541A6715164d5A9dde58205b0) |
+| **CrownPendleSleeve** | [`0xF4e46fF104C5715f15A9be222Dd58916817b8E56`](https://basescan.org/address/0xF4e46fF104C5715f15A9be222Dd58916817b8E56) |
+| `totalDeployed` | **0** (no USDC on HOT — correct) |
+| Landing eUSD cold | **~$1.524B unchanged** |
+| Cap remaining | **$200M** |
+
+Weights armed: 45% Gauntlet / 45% Steak / 10% Pendle sleeve · borders on · KAR selectors allowed.
+
+---
+
+## Curator targets (deposit assets)
 
 | Curator | Address | Role |
 |--|--|--|
 | Gauntlet USDC Prime | `0xeE8F4eC5672F09119b96Ab6fB59C27E1b7e44b61` | ~45% |
 | Steakhouse Prime USDC | `0xBEEFE94c8aD530842bfE7d8B397938fFc1cb83b2` | ~45% |
-| Pendle PT sleeve | `CrownPendleSleeve` (parked USDC → PT when named) | ~10% ($20M at full cap) |
+| Pendle PT sleeve | `0xF4e46fF1…8E56` (parked USDC → PT when named) | ~10% ($20M at full cap) |
 
 **Hard cap:** `CrownCuratorTranche.CAP = 200_000_000e6`
 
