@@ -20,9 +20,24 @@
 
 | Fact | Implication |
 |--|--|
-| yRSS `maxWithdraw(HOT)=0` | Vault fully allocated — `seedFromYrss` waits on realloc/idle |
-| `seedFromUsdc` | Primary: Kingdom USDC (Morpho-borrow / dealloc) + mint eUSD → Uni LP |
-| Fork | **PASS** — pool USDC ↑, RSS unsold (`deal` = margin stand-in) |
+| yRSS `maxWithdraw(HOT)=0` | **Do not pull from yRSS** — flash loops are closed (no net USDC) |
+| PARK RSS coll on HOT | **LTV maxed live** (`insufficient collateral` on borrow) · **idle ≈ $0** → seed waits on **fill/PA liquidity + margin post** |
+| `seedFromUsdc` | USDC in (borrow / routed fill / credit) + mint eUSD → Uni LP · loan ≠ sell RSS |
+| Macro gap | **~$1.52B idle eUSD** → external USDC via **attest · KAR · Conflux/AnchorX/SBI** — see `SCRIBE-KINGDOM-STATE.md` |
+| Fork | **PASS** — engineer 2/2 · borrow-seed when idle injected (simulates PA/fill) |
+
+---
+
+## Fresh borrow seed (primary when idle ≥ ask)
+
+`CrownBorrowSeed.borrowAndSeed(amt)` → Morpho `borrow(onBehalf=HOT)` → `seedFromUsdc(amt, true)`.
+
+```bash
+# Live only when PARK idle ≥ SEED_USDC (check cast market first)
+SEED_USDC=500000000000 forge script script/FireBorrowSeed.s.sol:FireBorrowSeed --rpc-url $BASE_RPC_URL --broadcast
+```
+
+**Deprecated:** `CrownDeallocSeed` / yRSS flash-supply — physics block at 100% util.
 
 ---
 
@@ -32,15 +47,20 @@
 agent.exec(eng, USDC, amt, abi.encodeCall(CrownPoolEngineer.seedFromUsdc, (amt, true)))
 ```
 
+Or deploy `CrownBorrowSeed`, authorize on Morpho, `borrowAndSeed(amt)`.
+
 ---
 
 ## Tests
 
-`PoolEngineerTest` + `PoolEngineerForkTest` **2/2 PASS**
+| Suite | Result |
+|--|--|
+| `PoolEngineerTest` + fork | **2/2 PASS** |
+| `BorrowSeedForkTest` | **2/2 PASS** (no-idle revert + borrow seed) |
 
 ```
-FIRE=CrownPoolEngineer
-PATH=seedFromUsdc (margin) · seedFromYrss when maxWithdraw>0
-NO=outside-beg · RSS-sell
-NEXT=realloc yRSS idle OR Morpho-borrow USDC → seedFromUsdc size
+FIRE=CrownPoolEngineer + CrownBorrowSeed
+PATH=Morpho-borrow(HOT RSS coll) → seedFromUsdc · NOT yRSS flash
+GAP=idle eUSD → external USDC (attest · KAR · routed fills)
+NO=outside-beg · RSS-sell · closed-loop flash
 ```
