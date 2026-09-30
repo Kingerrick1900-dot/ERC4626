@@ -40,6 +40,17 @@ def sel(sig: str) -> str:
     return subprocess.check_output(["cast", "sig", sig], text=True).strip()
 
 
+def cmd_scoreboard(rpc: str) -> None:
+    """Yield ignition — HOT USDC is the only King number."""
+    script = ROOT.parent / "script" / "yield_ignition_scoreboard.sh"
+    if script.exists():
+        subprocess.check_call(["bash", str(script)], env={**os.environ, "BASE_RPC_URL": rpc})
+        return
+    usdc = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+    hot = "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1"
+    print("hotUsdc", cast("call", usdc, "balanceOf(address)(uint256)", hot, rpc=rpc))
+
+
 def cmd_status(policy: dict, rpc: str) -> None:
     print("KAR", policy["version"])
     print("bordersSecure", borders_secure(policy, rpc))
@@ -51,6 +62,11 @@ def cmd_status(policy: dict, rpc: str) -> None:
         print("observe", obs.replace("\n", " | "))
     except subprocess.CalledProcessError as e:
         print("observe_error", e)
+    print("--- scoreboard ---")
+    try:
+        cmd_scoreboard(rpc)
+    except Exception as e:
+        print("scoreboard_error", e)
 
 
 def cmd_attest(policy: dict, rpc: str, pk: str) -> None:
@@ -103,11 +119,18 @@ def cmd_check(policy: dict, rpc: str, target: str, sig: str) -> None:
     print("ALLOWED", target, sig, selector)
 
 
+def cmd_nfc(intent: str, sig: str) -> None:
+    subprocess.check_call(
+        [sys.executable, str(ROOT / "nfc_cosign.py"), "--intent", intent, "--sig", sig or "easyDeploy(uint256,bytes32)"]
+    )
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description="Kingdom Agent Runtime")
-    p.add_argument("command", choices=["status", "attest", "check"])
+    p.add_argument("command", choices=["status", "attest", "check", "scoreboard", "nfc"])
     p.add_argument("--target", default="")
     p.add_argument("--sig", default="")
+    p.add_argument("--intent", default="")
     p.add_argument("--fire", action="store_true", help="broadcast (attest)")
     args = p.parse_args()
 
@@ -115,10 +138,16 @@ def main() -> None:
     rpc = os.environ.get(
         policy["chains"]["base"]["rpcEnv"], policy["chains"]["base"]["rpcDefault"]
     )
-    pk = os.environ.get("PRIVATE_KEY", "")
+    pk = os.environ.get("PRIVATE_KEY", "") or os.environ.get("HOT_KEY", "")
 
     if args.command == "status":
         cmd_status(policy, rpc)
+    elif args.command == "scoreboard":
+        cmd_scoreboard(rpc)
+    elif args.command == "nfc":
+        if not args.intent:
+            raise SystemExit("--intent required")
+        cmd_nfc(args.intent, args.sig)
     elif args.command == "attest":
         if not args.fire:
             raise SystemExit("refuse: pass --fire to broadcast attest")
