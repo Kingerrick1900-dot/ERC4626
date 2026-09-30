@@ -48,6 +48,6 @@ AGENT37_KEY=sk_live_... INSTANCE_ID=hs1r8hko0l \
 | CHUNK_FREER | `0xcFEaEC4eD07559963b0dc21aD46517e3bb9B823A` |
 
 On box: `~/.king/SC-BOTS.md` · `BOTS_ARMED=0` (no hunt loops).  
-Live: HuntRouter `killSwitch=false` · HOT + MultiAssetHunter are hunters — **wired, not commanded to hunt**.
+Live: HuntRouter `killSwitch=false` · HOT + MultiAssetHunter are hunters — **FIRED** — see `FIRE-BOTS-LIVE.md` (smoke×3 + hunt pulse).
 
 **Do not commit keys.** Rotate any key that appeared in chat.
