@@ -44,9 +44,11 @@ ColdBuffer → Exit inventory → sleeve.pull eUSD → `ExitNative.exit` → HOT
 | Cold → Exit USDC seed | `2660969` USDC inventory on Exit |
 | sleeve.pull | [`0x653764b9…4254`](https://basescan.org/tx/0x653764b98e286e9cbf923127956a614acf6f031de7aa2f1141601966cb6b4254) |
 | eUSD approve | [`0x2c5831be…b5c0`](https://basescan.org/tx/0x2c5831be31a9e0db937bd5ea2e54116c02275c38da1c1f2808ec1ec78324b5c0) |
-| **exit → HOT** | [`0x25dbcab…3323`](https://basescan.org/tx/0x25dbcabbd20c5f212946527730fcc918152a4f1374e8bc10b878aef4431a3323) · **2,660,969 USDC** |
+| **exit → HOT** | [`0x25dbcab…3323`](https://basescan.org/tx/0x25dbcabbd20c5f212946527730fcc918152a4f1374e8bc10b878aef4431a3323) · raw `2660969` = **`$2.660969`** (USDC 6dp — not $2.66M) |
 | Aave sleeve deploy | [`0xf37d12f0…df66`](https://basescan.org/tx/0xf37d12f009a5d5055228a6c8e8a97ee64d4049a61631a39efe99e41a2a52df66) → `0x90ae…cb47` |
-| Aave supply | [`0xdbf3f2ec…dda7`](https://basescan.org/tx/0xdbf3f2ecc8590227a5c12a4d16ad7bc85478587c32c168a86d30be3e5f2fdda7) · **1,330,484** aUSDC |
+| Aave supply | [`0xdbf3f2ec…dda7`](https://basescan.org/tx/0xdbf3f2ecc8590227a5c12a4d16ad7bc85478587c32c168a86d30be3e5f2fdda7) · raw `1330484` = **`$1.330484`** aUSDC |
+
+**Custody reconcile:** see `EXIT-FUNDS-RECONCILE.md` — King-controlled · not compromised · HOT `$1.330485` + sleeve aUSDC `~$1.330488`.
 
 ```bash
 CURATOR_NATIVE=0x8Cb11A67F9734143195b24D179749534099b7558 bash script/yield_ignition_scoreboard.sh

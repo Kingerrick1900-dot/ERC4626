@@ -60,8 +60,9 @@ NFC tap → Dilithium receipt + Stark bind → mint ≤200M eUSD (gold-backed ca
 | Gate | Result |
 |--|--|
 | Mint | **200M eUSD** on `CrownCuratorNative` |
-| Exit | **2,660,969 USDC** → HOT via `CrownExitNative.exit` (`0x25dbcab…3323`) |
-| Real Aave | `CrownAaveSleeve` `0x90ae…cb47` supplied **1,330,484** USDC → aUSDC |
-| Scoreboard | `IGNITION=YES` · HOT keeps ~1.33 USDC · sleeve holds ~1.33 aUSDC |
+| Exit | **`$2.660969`** USDC → HOT via `CrownExitNative.exit` (`0x25dbcab…3323`) — raw `2660969` @ 6dp (**not** $2.66M) |
+| Real Aave | `CrownAaveSleeve` `0x90ae…cb47` supplied **`$1.330484`** → aUSDC (earning) |
+| Scoreboard | `IGNITION=YES` · HOT **`$1.330485`** · sleeve aUSDC **`~$1.330488`** |
+| Custody | King HOT owns Exit + Aave sleeve · see `EXIT-FUNDS-RECONCILE.md` |
 
 See `FIRE-NATIVE-LOOP.md` for tx hashes.
