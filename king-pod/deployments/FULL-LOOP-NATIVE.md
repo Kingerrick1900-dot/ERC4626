@@ -52,3 +52,16 @@ NFC tap → Dilithium receipt + Stark bind → mint ≤200M eUSD (gold-backed ca
 | Easy Trigger | `CrownEasyTrigger` NFC one-shot |
 | Capacity | `CrownAmericaCapacity` unlock tranche before mint |
 | Foreign USDC curator | `0x8531…05b0` opens **after** native loop proves yield |
+
+---
+
+## PROVED (Base mainnet)
+
+| Gate | Result |
+|--|--|
+| Mint | **200M eUSD** on `CrownCuratorNative` |
+| Exit | **2,660,969 USDC** → HOT via `CrownExitNative.exit` (`0x25dbcab…3323`) |
+| Real Aave | `CrownAaveSleeve` `0x90ae…cb47` supplied **1,330,484** USDC → aUSDC |
+| Scoreboard | `IGNITION=YES` · HOT keeps ~1.33 USDC · sleeve holds ~1.33 aUSDC |
+
+See `FIRE-NATIVE-LOOP.md` for tx hashes.
