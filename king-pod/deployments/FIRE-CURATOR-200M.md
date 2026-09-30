@@ -60,20 +60,29 @@ Do **not** bridge the cold **$1.32B eUSD**. Only harvest **USDC yield** from the
 
 ---
 
-## Scoreboard
+## Scoreboard (King watches ONE number)
+
+| Watch daily | Ignore for ignition |
+|--|--|
+| **`USDC.balanceOf(HOT)`** from harvest / fill staging | APY% · TVL optics · eUSD dashboard alone |
 
 | Metric | Target |
 |--|--|
+| HOT USDC | **↑** after fill and after harvest |
 | `totalDeployed` | ≤ $200M |
 | Landing eUSD | ≥ ~$1.32B cold (unchanged by this fire) |
 | Annual ops | ~$9M @ 4.5% once full tranche filled |
 | LLC / payroll | Funded from harvest — **after** USDC is in curators |
 
+**USDC path (explicit):** Conflux / AnchorX / SBI Ricardian → $700k→$5M; HK/CN MM alternate; merchant/hunt settlement into tranche. Full lock: `QUANTUM-YIELD-ENGINE.md` §4.
+
 ```
-FIRE=curator-200m-chassis
-CAP=200e6 USDC
+FIRE=curator-200m-chassis ✓
+TRANCHE=0x8531F4DB622b982541A6715164d5A9dde58205b0
+SLEEVE=0xF4e46fF104C5715f15A9be222Dd58916817b8E56
+CAP=200e6 USDC · deployed=0
 SPLIT=45/45/10 Gauntlet/Steak/PendleSleeve
-COLD=1.32B eUSD Landing
-BLOCK=no USDC on HOT → deploy(amt) skipped / NO_USDC
+COLD=1.52B eUSD Landing unchanged
+BLOCK=no USDC on HOT
 NEXT=external fill USDC → TRANCHE_USDC slices → harvest → payroll → then LLC
 ```
