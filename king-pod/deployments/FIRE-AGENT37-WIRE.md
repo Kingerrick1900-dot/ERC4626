@@ -1,0 +1,32 @@
+# FIRE — agent37 Hermes WIRED
+
+**Status:** LIVE · healthy  
+**Instance:** `hs1r8hko0l`  
+**URL:** https://hs1r8hko0l.agent37.app  
+**Template:** `agent37-hermes` · image `hermes:2026.09.27b`  
+**Resources:** 2 vCPU · 4 GB · 4 GB disk
+
+---
+
+## Wired on box
+
+| Item | Path / value |
+|--|--|
+| Fire env | `/home/node/.king/fire.env` (mode 600) |
+| Ops brief | `/home/node/KING-OPS.md` |
+| Foundry | `/home/node/.foundry/bin` cast/forge **v1.8.3** |
+| shellrc | PATH + auto-source fire.env |
+
+## Prove (Hermes turn)
+
+HOT `0x6708e211…a7d1` · ETH `0.000142793426520125` · USDC **`$1.330485`** · RSS `0`
+
+Auth via Hosting API `Authorization: Bearer sk_live_…` · Agent plane `X-Agent37-Key`.
+
+```bash
+AGENT37_KEY=sk_live_... INSTANCE_ID=hs1r8hko0l \
+  HOT_KEY=0x... BASE_RPC=https://mainnet.base.org \
+  bash script/wire_agent37.sh
+```
+
+**Do not commit keys.** Rotate any key that appeared in chat.
