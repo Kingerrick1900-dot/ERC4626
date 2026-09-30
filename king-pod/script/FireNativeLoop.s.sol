@@ -26,6 +26,16 @@ interface ICap {
     function setAttest(address) external;
     function canMint(uint256) external view returns (bool);
     function unlockedCapacity() external view returns (uint256);
+    function mintCapacity() external view returns (uint256);
+}
+
+interface ISupply {
+    function totalSupply() external view returns (uint256);
+}
+
+interface IAttestF {
+    function commitPayrollRoot(bytes32 root, bool ok) external;
+    function attestLive(bytes32 payloadHash) external;
 }
 
 /// @notice Deploy native curator + exit; arm PQ/Stark/capacity; NFC mint 200M eUSD; allocate; scoreboard.
@@ -37,7 +47,7 @@ contract FireNativeLoop is Script {
     address constant WETH = 0x4200000000000000000000000000000000000006;
     address constant ATTEST = 0xe3Be837a6Bc915bF8FB1676581E423dA03cC14E7;
     address constant ALLOWLIST = 0x78bd5746e1D00EaeF5Eb75Bd033601aed5794F9E;
-    address constant OCEAN = 0xab21623705493538e7e86aacc79c0297427dc3b2;
+    address constant OCEAN = 0xAb21623705493538e7E86AAcC79C0297427dc3B2;
     address constant PQ_LIVE = 0xC92b1D9De2211A7ec3524708CBeBB21580fEDC95;
     address constant BRIDGE_LIVE = 0x0E88d44F0a6dbD9FF1849DB18278388d74562B07;
     address constant CAP_LIVE = 0xa372d32ca9Ad06e76Ad5468767D9ae596387E4b3;
@@ -68,13 +78,21 @@ contract FireNativeLoop is Script {
         bytes32 dilId = CrownPqRegistry(PQ_LIVE).register(CrownPqRegistry.Alg.Dilithium3, dilHash, "king-root");
         CrownPqRegistry(PQ_LIVE).activate(dilId);
 
-        // Stark bind
+        // Stark commit + HOT binds epoch (bridge is not ZkAttest owner)
         bytes32 stark = keccak256(abi.encode("NATIVE-LOOP", mintAmt, block.timestamp));
         CrownStarkSnarkBridge(BRIDGE_LIVE).commitStark(stark, keccak256("native-pi"));
-        CrownStarkSnarkBridge(BRIDGE_LIVE).bindToAttest(stark);
+        bytes32 payload = keccak256(abi.encode("STARK-SNARK", stark, keccak256("native-pi"), block.chainid));
+        IAttestF(ATTEST).commitPayrollRoot(payload, true);
+        IAttestF(ATTEST).attestLive(payload);
 
-        // Capacity unlock 200M
-        ICap(CAP_LIVE).unlockTranche(mintAmt, keccak256("nav-native-200m"));
+        // Capacity: unlocked must exceed live totalSupply + slice (registry semantics)
+        uint256 supply = ISupply(EUSD).totalSupply();
+        uint256 unlocked = ICap(CAP_LIVE).unlockedCapacity();
+        uint256 needUnlocked = supply + mintAmt;
+        if (needUnlocked > ICap(CAP_LIVE).mintCapacity()) revert("CAP_CEILING");
+        if (needUnlocked > unlocked) {
+            ICap(CAP_LIVE).unlockTranche(needUnlocked - unlocked, keccak256("nav-native-200m"));
+        }
 
         // Vault is minter for mint-to-self
         IEusdM(EUSD).setMinter(address(curator), true);
