@@ -38,4 +38,16 @@ AGENT37_KEY=sk_live_... INSTANCE_ID=hs1r8hko0l \
   bash script/wire_agent37.sh
 ```
 
+### Smart-contract bots (wire only)
+
+| Env | Address |
+|--|--|
+| HUNT_ROUTER | `0xc4c63f8CD4182452f665e338F87b4d31aeF04516` |
+| MULTI_ASSET_HUNTER | `0xE4900bfc340eE083C113211A51d1207A518fC2b2` |
+| SPOIL_FIRE | `0xcFF60f3B071c09C17853bA715ceDc0Fc2e6645Fa` |
+| CHUNK_FREER | `0xcFEaEC4eD07559963b0dc21aD46517e3bb9B823A` |
+
+On box: `~/.king/SC-BOTS.md` · `BOTS_ARMED=0` (no hunt loops).  
+Live: HuntRouter `killSwitch=false` · HOT + MultiAssetHunter are hunters — **wired, not commanded to hunt**.
+
 **Do not commit keys.** Rotate any key that appeared in chat.
