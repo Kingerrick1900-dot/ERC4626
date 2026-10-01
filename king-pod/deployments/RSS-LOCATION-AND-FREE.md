@@ -1,5 +1,7 @@
 # RSS location map + free status (Base)
 
+> **Superseded for the liquid bag:** see `RSS-NOT-CRASH-LOCATED.md` (2026-10-01). ~9.50M RSS is Morpho collateral on HOT market `0x6075ba26…` (+100k on `0x5dd0f7c1…`) — not a server crash. V1 LP stranding below still applies.
+
 Live read confirms **all 21,000,000,000 RSS** is accounted for. Nothing is missing.
 
 ## Where the tokens are
