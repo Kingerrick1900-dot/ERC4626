@@ -1,0 +1,43 @@
+From: King Errick Desk <efthompson008@gmail.com>
+To: Conflux Network <build@confluxnetwork.org>
+Cc: Dora Jiang — Global BD Lead (LinkedIn Conflux) <build@confluxnetwork.org>, Renzhi Wu — BD Manager Shanghai <build@confluxnetwork.org>
+Subject: KE-Sov × Conflux — RMB / AxCNH corridor fill $700k–$5M · CIPS desk + Base Landing
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Conflux BD / China desk —
+
+KE-Sov LLC requests a regulated RMB connection against attested Kingdom idle eUSD.
+
+NAMED PATH (your live HK partnership stack)
+- AnchorX AxCNH (enquiry@anchorx.org) — already MoU’d with Conflux + TradeGo in Hong Kong
+- TradeGo eBL — trade-document entry
+- ATAIX — AxCNH markets on Conflux
+
+ASK
+- First tranche: USD 700,000
+- Scale band: USD 700,000 – USD 5,000,000
+- Convert / match Kingdom eUSD inventory into external USDC or CNY rails
+- No RSS liquidation into the rail
+
+SETTLEMENT
+- Base Landing only: 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357
+- CrownRicardian: 0xe56D14583a736aD02943c69b19340A8475A7dF8a (offer keccak256("Conflux") SENT)
+- Prose hash: 0xfb464c9b1b982e7a319b57242d0369397aeaac85d2202886e4915c587d986dca
+- China spend surface (Polygon): RoyalCard 0xc532b0e5400524d2ca83b3ffc85b7ae96ccefcd7 · Lakala-class acquiring 0xbb5b4439060a3f46d14826973fb30ada661ff5f0 · NFC spend = eUSD spend, not mint
+
+GRAY CHANNEL / CIPS CORRIDOR
+- Kingdom PSM rails (Base): Classic 0x064489A287448674AA1dC6fb740d2F518CBA75dA · Multi 0xF7337A26d9456e42a36531A12036A4556EF1F987 · LSR 0x3edeD70F8ACa4472948E7D3AE3Ad95D63ECdda4F · PSMFiller 0xe93737c5275CEa3A90cEB0A28A7A0873dc107150
+- Corridor desk counterparties named in GRAY-CHANNEL-CIPS.txt (AnchorX · Conflux · TradeGo · ATAIX · Shenzhen/HK OTC)
+
+WIRE
+- USDC Base → Landing 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357
+- Ref: KE-SOV-CONFLUX-700K
+- Full wire sheet: deployments/ke-sov/sell/onboarding/WIRE-INSTRUCTIONS.txt
+
+Please assign a named BD owner (Shanghai or HK) and confirm value date for the $700k first fill.
+
+King Errick
+KE-Sov desk
+efthompson008@gmail.com
++86 / HK dial via reply
