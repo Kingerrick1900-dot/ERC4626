@@ -19,6 +19,9 @@ KE-Sov offers to route **idle eUSD ↔ CNH / AxCNH liquidity** under KAR-gated s
 
 `CrownRicardian.openOffer(keccak256("AnchorX"), …)` — status **sent** when fired.
 
-## Contact
+## Contact / send
 
-King Errick desk · `efthompson008@gmail.com` · repo `Kingerrick1900-dot/ERC4626`
+**To:** `enquiry@anchorx.org`  
+**From:** King Errick desk · `efthompson008@gmail.com`  
+**Ready email:** `deployments/ke-sov/sell/OUTREACH-ANCHORX.eml`  
+Repo `Kingerrick1900-dot/ERC4626`

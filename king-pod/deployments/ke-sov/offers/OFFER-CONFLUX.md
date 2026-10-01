@@ -19,6 +19,8 @@ KE-Sov offers **regulated RMB connection** for converting Kingdom idle eUSD into
 
 `CrownRicardian.openOffer(keccak256("Conflux"), …)` when fired.
 
-## Contact
+## Contact / send
 
-King Errick desk · `efthompson008@gmail.com`
+**To:** `build@confluxnetwork.org` (BD: Dora Jiang · Renzhi Wu Shanghai)  
+**From:** King Errick desk · `efthompson008@gmail.com`  
+**Ready email:** `deployments/ke-sov/sell/OUTREACH-CONFLUX.eml`

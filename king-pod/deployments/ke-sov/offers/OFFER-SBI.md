@@ -18,6 +18,8 @@ KE-Sov offers to open a **regulated Japan rail** for external USDC against attes
 
 `CrownRicardian.openOffer(keccak256("SBI"), …)` when fired.
 
-## Contact
+## Contact / send
 
-King Errick desk · `efthompson008@gmail.com`
+**To:** `contact@sbidah.com` · Cc `media@sbidigitalmarkets.com`  
+**From:** King Errick desk · `efthompson008@gmail.com`  
+**Ready email:** `deployments/ke-sov/sell/OUTREACH-SBI.eml`
