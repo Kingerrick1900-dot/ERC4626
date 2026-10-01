@@ -1,0 +1,21 @@
+ySYNTH FIRST-LENDER FLYWHEEL (NO NEW CONTRACTS)
+
+Vault: ySYNTH-USDC 0xc91f3Bc556001eF7ACFCB869eC0fC29ac780c35C
+Market: eUSD collateral → USDC loan 0x08039ffa5b39da99b2847c66f738ecf8f149a00b4374818b7cdf4d134dd33fcd
+Asset: USDC on Base
+
+INCENTIVE
+- Trigger: vault totalAssets >= USD 1,000,000
+- Boost: 50,000 eUSD paid from HOT inventory to FIRST_LENDER (ERC20 transfer — existing eUSD)
+- Script: bash script/ysynth_first_lender_boost.sh
+  HOT_KEY=… FIRST_LENDER=0x… bash script/ysynth_first_lender_boost.sh
+
+LENDER MESSAGE (paste)
+"Deposit USDC into King Synth eUSD USDC Vault (ySYNTH-USDC) on Base:
+0xc91f3Bc556001eF7ACFCB869eC0fC29ac780c35C
+First USD 1,000,000 of vault TVL unlocks a 50,000 eUSD boost to the first lender
+address King names. Risk: HIGH — synthetic eUSD collateral market, 86% LLTV."
+
+Arm check (now):
+  bash script/ysynth_first_lender_boost.sh
+→ reports waiting until $1M; does not invent TVL.
