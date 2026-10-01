@@ -66,5 +66,6 @@ EXIT=0x97bd6846…bB68 exited=2660969 USDC
 AAVE_SLEEVE=0x90ae3823…cb47 supplied=1330484
 PATH=C mint→allocate→harvest→exit→aave ✓
 PSMs=5 named
+2035=see FIRE-2035-RUN.md (ZK+PQ+QKD+NFC fired · cold still 0)
 NEXT=scale Exit inventory / open foreign gate when ready
 ```
