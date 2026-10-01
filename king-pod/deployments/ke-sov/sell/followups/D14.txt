@@ -1,0 +1,10 @@
+Subject: Re: KE-Sov fill — Day-14 final ping before re-tranche
+
+[Desk] —
+
+Final ping on this offer cycle. If no accept by EOD, KE-Sov will re-tranche to the
+next named desk on the gray channel (AnchorX / Conflux / TradeGo / ATAIX / SBI).
+
+Landing unchanged: 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357.
+
+King Errick · efthompson008@gmail.com
