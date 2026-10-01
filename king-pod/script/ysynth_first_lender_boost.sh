@@ -1,19 +1,27 @@
 #!/usr/bin/env bash
-# ySYNTH first-lender flywheel — NO NEW CONTRACTS.
-# Pays boosted eUSD from HOT inventory to the first lender address(es) into ySYNTH-USDC.
-# Trigger: when vault totalAssets >= $1M USDC (raw 1000000000000), boost unlocks.
+# ySYNTH first-lender flywheel — both sides with borrower script.
+# Pays boosted eUSD from HOT inventory to the first lender into ySYNTH-USDC.
+# Trigger: vault totalAssets >= $1M. If GATE set, also requires Gate B (Exit > $500k).
 set -euo pipefail
 RPC="${BASE_RPC_URL:-${BASE_RPC:-https://mainnet.base.org}}"
 HOT="${HOT:-0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1}"
 YSYNTH="${YSYNTH:-0xc91f3Bc556001eF7ACFCB869eC0fC29ac780c35C}"
 EUSD="${EUSD:-0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a}"
 USDC="${USDC:-0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913}"
+GATE="${GATE:-}"
 # Boost: 50_000 eUSD (18dp) to first lender when $1M TVL hit — King sets FIRST_LENDER
 BOOST_EUSD="${BOOST_EUSD:-50000000000000000000000}"
 TRIGGER_USDC="${TRIGGER_USDC:-1000000000000}" # $1M @ 6dp
 FIRST_LENDER="${FIRST_LENDER:-}"
 PATH_BIN="${HOME}/.foundry/bin:${PATH}"
 export PATH="$PATH_BIN"
+
+if [ -n "$GATE" ]; then
+  cast call "$GATE" "assertCanFlywheel()(bool)" --rpc-url "$RPC" >/dev/null || {
+    echo "GATE_B_LOCKED — no lender boost until Exit > \$500k confirmed"
+    exit 0
+  }
+fi
 
 ta=$(cast call "$YSYNTH" "totalAssets()(uint256)" --rpc-url "$RPC" | awk '{print $1}')
 echo "ySYNTH_totalAssets_raw=$ta"
@@ -41,5 +49,9 @@ python3 -c "import sys; sys.exit(0 if int('$bal') >= int('$BOOST_EUSD') else 1)"
 echo "Paying boost $BOOST_EUSD eUSD → $FIRST_LENDER"
 cast send "$EUSD" "transfer(address,uint256)" "$FIRST_LENDER" "$BOOST_EUSD" \
   --private-key "$HOT_KEY" --rpc-url "$RPC" --legacy --gas-price "${GAS_PRICE:-5000000}"
+if [ -n "$GATE" ]; then
+  cast send "$GATE" "recordFlywheel(address,uint256,bool)" "$FIRST_LENDER" "$BOOST_EUSD" false \
+    --private-key "$HOT_KEY" --rpc-url "$RPC" --legacy --gas-price "${GAS_PRICE:-5000000}" || true
+fi
 echo "BOOST_PAID"
 cast call "$EUSD" "balanceOf(address)(uint256)" "$FIRST_LENDER" --rpc-url "$RPC"
