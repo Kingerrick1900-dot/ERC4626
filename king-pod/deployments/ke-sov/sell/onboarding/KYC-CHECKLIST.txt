@@ -1,0 +1,34 @@
+KE-SOV LLC — COUNTERPARTY KYC / KYB CHECKLIST
+Desk: efthompson008@gmail.com · Settlement: Landing 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357
+
+A. ENTITY (KE-Sov provides)
+[ ] Certificate of formation / Articles — KE-Sov LLC
+[ ] EIN (IRS SS-4) — post to CrownRicardian.markIncorporated(ein, bankLabel)
+[ ] Operating Agreement excerpt (dual-control treasury; 30% cold buffer)
+[ ] Beneficial owner ID — King Errick / named managers
+[ ] Ricardian address + prose hash acknowledgment signed by counterparty
+
+B. BANK
+[ ] FDIC-insured operating account in KE-Sov name
+[ ] Dual-control wire policy (> cold-buffer threshold)
+[ ] Fiat ↔ Landing mirror SOP (same-day)
+[ ] No hot-key custody of operating fiat
+
+C. COUNTERPARTY PROVIDES (AnchorX / Conflux / SBI / OTC)
+[ ] Legal name + registration number + jurisdiction
+[ ] Licensed activity evidence (stablecoin / VA / CMS as applicable)
+[ ] Authorized signatory name, title, email, phone
+[ ] Settlement wallet whitelist (Base USDC) OR fiat bank coordinates
+[ ] Sanctions / PEP attestation
+[ ] Source-of-funds statement for the fill tranche
+
+D. ON-CHAIN GATES (already live — attach Basescan links)
+[ ] CrownRicardian 0xe56D14583a736aD02943c69b19340A8475A7dF8a
+[ ] KAR Allowlist 0x78bd5746e1D00EaeF5Eb75Bd033601aed5794F9E
+[ ] ZkAttest 0xe3Be837a6Bc915bF8FB1676581E423dA03cC14E7 (bordersSecure)
+[ ] Offer SENT for named desk (AnchorX | Conflux | SBI)
+
+E. ACCEPTANCE
+[ ] Written accept of tranche size + value date
+[ ] Landing address confirmed in writing
+[ ] Wire ref code assigned (KE-SOV-<DESK>-700K)
