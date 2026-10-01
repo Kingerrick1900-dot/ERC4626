@@ -30,7 +30,7 @@
     "maxGasPerTx": 3000000,
     "maxValueWei": "0"
   },
-  "rails": {
+    "rails": {
     "CrownKingAgent": "0x128d1b9c8Ad4c47C3BCc12d237e78B95EF46f6bA",
     "CrownRailShield": "0xa559752E0d84A7871A725451Ccfc96EE16c1F721",
     "CrownColdBuffer": "0xBb3c14bBacD639797cB5c537fde370d1b7195521",
@@ -39,7 +39,20 @@
     "CrownHuntRouter": "0xc4c63f8CD4182452f665e338F87b4d31aeF04516",
     "CrownPayAdapter": "0xA6D5C5257aCA0028D98a2f2244792Ba68f09f3B1",
     "yRSS": "0xF80C0529bD94C773844E459853CD91B9263dD525",
+    "ySYNTH": "0xc91f3Bc556001eF7ACFCB869eC0fC29ac780c35C",
+    "PublicAllocator": "0xA090dD1a701408Df1d4d0B85b716c87565f90467",
+    "CrownCuratorNative": "0x8Cb11A67F9734143195b24D179749534099b7558",
+    "CrownExitNative": "0x97bd68464709A61D70D70d4A6027A5Bb9e80bB68",
+    "CrownKarReallocator": "PENDING",
     "CrownAllowlist": "0x78bd5746e1D00EaeF5Eb75Bd033601aed5794F9E"
+  },
+  "reallocator": {
+    "targetMarket": "0x08039ffa5b39da99b2847c66f738ecf8f149a00b4374818b7cdf4d134dd33fcd",
+    "utilTriggerBps": 9500,
+    "idleThresholdUsdc": 1000000000,
+    "maxRiskScore": 7000,
+    "irm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+    "watcher": "kar/reallocator.py"
   },
   "allowSelectors": {
     "0x128d1b9c8Ad4c47C3BCc12d237e78B95EF46f6bA": [

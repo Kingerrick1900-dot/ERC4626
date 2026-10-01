@@ -127,7 +127,10 @@ def cmd_nfc(intent: str, sig: str) -> None:
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Kingdom Agent Runtime")
-    p.add_argument("command", choices=["status", "attest", "check", "scoreboard", "nfc"])
+    p.add_argument(
+        "command",
+        choices=["status", "attest", "check", "scoreboard", "nfc", "realloc"],
+    )
     p.add_argument("--target", default="")
     p.add_argument("--sig", default="")
     p.add_argument("--intent", default="")
@@ -158,6 +161,15 @@ def main() -> None:
         if not args.target or not args.sig:
             raise SystemExit("--target and --sig required")
         cmd_check(policy, rpc, args.target, args.sig)
+    elif args.command == "realloc":
+        env = {**os.environ, "BASE_RPC_URL": rpc}
+        if args.fire:
+            env["FIRE"] = "1"
+        subprocess.check_call(
+            [sys.executable, str(ROOT / "reallocator.py"), "--once"]
+            + (["--fire"] if args.fire else []),
+            env=env,
+        )
 
 
 if __name__ == "__main__":
