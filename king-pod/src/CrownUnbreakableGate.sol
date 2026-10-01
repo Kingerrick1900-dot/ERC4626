@@ -32,6 +32,7 @@ interface IPqGate {
 interface IStarkGate {
     function lastStarkRoot() external view returns (bytes32);
     function lastBoundPayload() external view returns (bytes32);
+    function isBound() external view returns (bool);
 }
 
 /// @title CrownUnbreakableGate
@@ -89,6 +90,7 @@ contract CrownUnbreakableGate is Ownable {
     error Stark();
     error ScaleCap();
     error Inventory();
+    error BindRequired();
 
     modifier onlyHot() {
         if (msg.sender != owner && msg.sender != hot) revert Auth();
@@ -115,7 +117,7 @@ contract CrownUnbreakableGate is Ownable {
         hot = hot_;
         marketId = marketId_;
         _snapshotPeg();
-        refreshGateA();
+        // Gate A refresh deferred until setArmor + Stark isBound (requireBind).
     }
 
     function setArmor(address pq_, address stark_, address aave_) external onlyOwner {
@@ -175,8 +177,18 @@ contract CrownUnbreakableGate is Ownable {
         killOn = paused;
     }
 
-    /// @notice Refresh Gate A from live Morpho depth. Emits GateA.
+    /// @notice Armor weld check — no gate fire without Stark↔Attest bind.
+    function requireBind() public view {
+        if (address(stark) == address(0) || !stark.isBound()) revert BindRequired();
+    }
+
+    function armorBound() external view returns (bool) {
+        return address(stark) != address(0) && stark.isBound();
+    }
+
+    /// @notice Refresh Gate A from live Morpho depth. Emits GateA. Bind required.
     function refreshGateA() public returns (bool ok) {
+        requireBind();
         uint256 d = vaultDepth();
         lastDepth = d;
         lastUtilBps = utilBps();
@@ -186,8 +198,9 @@ contract CrownUnbreakableGate is Ownable {
         emit GateA(d, ok);
     }
 
-    /// @notice Phase check before Exit — Gate A + Exit USDC inventory > $500k. No human override.
+    /// @notice Phase check before Exit — Bind + Gate A + Exit USDC inventory > $500k.
     function assertCanExit() external returns (bool) {
+        requireBind();
         _checkKill();
         if (!refreshGateA()) revert GateAFail();
         uint256 inv = exitVault.inventory(address(usdc));
@@ -197,6 +210,7 @@ contract CrownUnbreakableGate is Ownable {
 
     /// @notice Confirm Exit produced > $500k USDC to HOT. Sets Gate B. Reverts otherwise.
     function confirmExit(uint256 baselineHotUsdc) external onlyHot returns (bool) {
+        requireBind();
         _checkKill();
         if (!refreshGateA()) revert GateAFail();
         uint256 now_ = usdc.balanceOf(hot);
@@ -211,6 +225,7 @@ contract CrownUnbreakableGate is Ownable {
 
     /// @notice Phase check before flywheel pay.
     function assertCanFlywheel() external view returns (bool) {
+        requireBind();
         if (paused) revert Paused();
         if (!gateBPassed) revert GateBFail();
         return true;
@@ -218,6 +233,7 @@ contract CrownUnbreakableGate is Ownable {
 
     /// @notice Fire 3 — record + allow eUSD boost accounting (actual transfer is HOT→recipient).
     function recordFlywheel(address to, uint256 eusdAmt, bool borrower) external onlyHot {
+        requireBind();
         _checkKill();
         if (!gateBPassed) revert GateBFail();
         if (to == address(0) || eusdAmt == 0) revert Bad();
@@ -228,10 +244,10 @@ contract CrownUnbreakableGate is Ownable {
 
     /// @notice Fire 4 arm — Dilithium + Stark bind required. Cap ≥ $10M.
     function armScale(uint256 maxFlashUsdc) external onlyHot {
+        requireBind();
         _checkKill();
         if (!gateBPassed) revert GateBFail();
         if (address(pq) == address(0) || pq.activeDilithium() == bytes32(0)) revert Pq();
-        if (address(stark) == address(0) || stark.lastBoundPayload() == bytes32(0)) revert Stark();
         if (maxFlashUsdc < 10_000_000e6) revert Bad();
         scaleArmedTo = maxFlashUsdc;
         emit ScaleArmed(maxFlashUsdc, pq.activeDilithium(), stark.lastStarkRoot());
@@ -239,6 +255,7 @@ contract CrownUnbreakableGate is Ownable {
 
     /// @notice Phase check before $10M/$50M/$200M scale fires.
     function assertCanScale(uint256 flashUsdc) external view returns (bool) {
+        requireBind();
         if (paused) revert Paused();
         if (!gateBPassed) revert GateBFail();
         if (flashUsdc > scaleArmedTo) revert ScaleCap();

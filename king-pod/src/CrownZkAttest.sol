@@ -25,7 +25,10 @@ interface IZkSettleGate {
 /// @notice Third shot: forever attestations across Crown rails.
 /// @dev Live view attestations are on-chain facts anyone can re-check (NAV public).
 ///      Optional Groth16 proofs route through existing King ZK settle gates.
+///      StarkSnarkBridge must hold ATTESTER_ROLE to weld quantum proofs into epochs.
 contract CrownZkAttest is Ownable {
+    bytes32 public constant ATTESTER_ROLE = keccak256("ATTESTER_ROLE");
+
     IYrssNav public immutable yrss;
     IColdBuf public cold;
     IZkSettleGate public settleGate;
@@ -50,11 +53,14 @@ contract CrownZkAttest is Ownable {
 
     mapping(uint256 => Attestation) public attestations;
     mapping(bytes32 => bool) public payrollRoots; // committed payroll batch roots
+    mapping(bytes32 => mapping(address => bool)) public roles;
     uint256 public lastAttestTime;
 
     event ThresholdsSet(uint256 navThreshold, uint256 redeemableWindow, uint256 maxStale);
     event ColdSet(address cold);
     event GatesSet(address settle, address elepan);
+    event RoleGranted(bytes32 indexed role, address indexed account);
+    event RoleRevoked(bytes32 indexed role, address indexed account);
     event PayrollRoot(bytes32 indexed root, bool ok);
     event Attested(
         uint256 indexed epochId,
@@ -69,6 +75,7 @@ contract CrownZkAttest is Ownable {
 
     error Stale();
     error BadNav();
+    error Auth();
 
     constructor(
         address yrss_,
@@ -107,9 +114,37 @@ contract CrownZkAttest is Ownable {
         emit ThresholdsSet(navThreshold_, redeemableWindow_, maxStale_);
     }
 
-    function commitPayrollRoot(bytes32 root, bool ok) external onlyOwner {
+    /// @notice Grant ATTESTER_ROLE (or other) — StarkSnarkBridge needs this to bind proofs.
+    function grantRole(bytes32 role, address account) external onlyOwner {
+        if (account == address(0)) revert Auth();
+        roles[role][account] = true;
+        emit RoleGranted(role, account);
+    }
+
+    function revokeRole(bytes32 role, address account) external onlyOwner {
+        roles[role][account] = false;
+        emit RoleRevoked(role, account);
+    }
+
+    function hasRole(bytes32 role, address account) external view returns (bool) {
+        return roles[role][account];
+    }
+
+    /// @notice Owner or ATTESTER_ROLE (StarkSnarkBridge) may commit quantum/ZK payroll roots.
+    function commitPayrollRoot(bytes32 root, bool ok) external {
+        if (msg.sender != owner && !roles[ATTESTER_ROLE][msg.sender]) revert Auth();
         payrollRoots[root] = ok;
         emit PayrollRoot(root, ok);
+    }
+
+    function latestEpoch() external view returns (uint256) {
+        return epoch;
+    }
+
+    /// @notice Latest attestation payload hash (Stark/SNARK bind proof surface).
+    function latestProof() external view returns (bytes32) {
+        if (epoch == 0) return bytes32(0);
+        return attestations[epoch].payloadHash;
     }
 
     /// @notice Forever epoch from live on-chain facts (borders set).

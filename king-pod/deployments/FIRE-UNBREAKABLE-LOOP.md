@@ -60,16 +60,18 @@ Private relayer: set `PRIVATE_RPC` when available; Base public mempool is the ho
 
 ---
 
-## Armor (live)
+## Armor (live — welded)
+
+See `WELD-STARK-ATTEST-BIND.md`. Scaffold gate `0x60d56fAD…902C` (commit-only, no bind) is **superseded**.
 
 | Module | Address | Role |
 |--|--|--|
-| **CrownUnbreakableGate** | [`0x60d56fAD…902C`](https://basescan.org/address/0x60d56fADAc4e400087394F15AbAB61A05AB5902C) | Gate A/B · kill · scale arm |
-| **CrownLoopScoreboard** | [`0xf38b3a83…Bbe7`](https://basescan.org/address/0xf38b3a838ae15487129905150FA00429Fa82Bbe7) | On-chain dashboard |
-| Stark commit | [`0x10feb375…6e0c`](https://basescan.org/tx/0x10feb37565184c5efea0f5c171f2d888deeb371504d59f2a1fde8673869b6e0c) | Dilithium-era intent root |
+| **CrownZkAttest** (ATTESTER_ROLE) | [`0xDFd6414e…354F`](https://basescan.org/address/0xDFd6414e8F699d7593803333116CF8C4d717354F) | ZK epoch / latestProof |
+| **CrownStarkSnarkBridge** | [`0xE4cc983E…B8A1`](https://basescan.org/address/0xE4cc983E919374591cDe809E3Dc2D8aDa97cB8A1) | `isBound=true` |
+| **CrownUnbreakableGate** | [`0x4946D33b…A148`](https://basescan.org/address/0x4946D33b2539FE175F0CCceB42fBb0ED3dD0A148) | Gate A/B · `requireBind` |
+| **CrownLoopScoreboard** | [`0x58C93C9F…d120`](https://basescan.org/address/0x58C93C9Fe9d3847addC52E433E445ae0dE78d120) | On-chain dashboard |
 | Dilithium | active on PqRegistry | quantum sign |
 | Aave sleeve | `0x90ae…cb47` | kill → rescue route signal |
-| Attest bind | **NotOwner** from Stark bridge | commit-only armor (honest) |
 
 ### Kill switch (auto-pause)
 

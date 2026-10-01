@@ -57,6 +57,7 @@ contract CrownStarkSnarkBridge is Ownable {
     }
 
     /// @notice Bind STARK commit into ZkAttest live epoch (SNARK path / borders refresh).
+    /// @dev Attest must have granted this bridge ATTESTER_ROLE for commitPayrollRoot.
     function bindToAttest(bytes32 starkRoot) external onlyOwner returns (bytes32 payload) {
         StarkCommit storage c = commits[starkRoot];
         if (c.committedAt == 0) revert Unknown();
@@ -67,5 +68,15 @@ contract CrownStarkSnarkBridge is Ownable {
         c.snarkBound = true;
         lastBoundPayload = payload;
         emit BoundToAttest(starkRoot, payload, attest.epoch());
+    }
+
+    /// @notice True when last stark root is snark-bound into Attest with a non-zero payload.
+    function isBound() external view returns (bool) {
+        if (lastStarkRoot == bytes32(0) || lastBoundPayload == bytes32(0)) return false;
+        return commits[lastStarkRoot].snarkBound;
+    }
+
+    function isBound(bytes32 starkRoot) external view returns (bool) {
+        return commits[starkRoot].snarkBound && commits[starkRoot].committedAt != 0;
     }
 }
