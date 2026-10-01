@@ -275,6 +275,8 @@ def main() -> int:
     if not reallocator and POLICY_PATH.exists():
         pol = json.loads(POLICY_PATH.read_text())
         reallocator = pol.get("rails", {}).get("CrownKarReallocator", "") or ""
+    if reallocator in ("", "PENDING", "pending"):
+        reallocator = ""
     interval = int(os.environ.get("POLL_SEC", "60"))
 
     log(f"KAR-realloc rpc={rpc} fire={fire} poll={interval}s realloc={reallocator or 'unset'}")

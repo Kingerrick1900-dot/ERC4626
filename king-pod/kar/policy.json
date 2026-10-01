@@ -43,7 +43,7 @@
     "PublicAllocator": "0xA090dD1a701408Df1d4d0B85b716c87565f90467",
     "CrownCuratorNative": "0x8Cb11A67F9734143195b24D179749534099b7558",
     "CrownExitNative": "0x97bd68464709A61D70D70d4A6027A5Bb9e80bB68",
-    "CrownKarReallocator": "PENDING",
+    "CrownKarReallocator": "0xA6F695dE7FE2C957f206b6374e6A8a96fA0758a0",
     "CrownAllowlist": "0x78bd5746e1D00EaeF5Eb75Bd033601aed5794F9E"
   },
   "reallocator": {

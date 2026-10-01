@@ -131,10 +131,10 @@ contract FireKarReallocator is Script {
 
         vm.startBroadcast(pk);
 
-        // 1) Grant allocators: PA + CrownCuratorNative + Landing (HOT already true)
-        mm.setIsAllocator(PA, true);
-        mm.setIsAllocator(CURATOR_NATIVE, true);
-        mm.setIsAllocator(LANDING, true);
+        // 1) Grant allocators: PA + CrownCuratorNative (+ Landing if missing)
+        if (!mm.isAllocator(PA)) mm.setIsAllocator(PA, true);
+        if (!mm.isAllocator(CURATOR_NATIVE)) mm.setIsAllocator(CURATOR_NATIVE, true);
+        if (!mm.isAllocator(LANDING)) mm.setIsAllocator(LANDING, true);
 
         // 2) Cap side markets so PA can later pull idle → SYNTH (Steakhouse multi-book)
         IMetaMorphoWire.MarketParams memory cbBtc = IMetaMorphoWire.MarketParams({
@@ -163,19 +163,21 @@ contract FireKarReallocator is Script {
         _ensureCap(mm, weth, WETH_ID, CAP_SIDE);
         _ensureCap(mm, idleM, IDLE_ID, CAP_SIDE);
 
-        // Queue: park books first, synth last (PA target for demand)
-        bytes32[] memory queue = new bytes32[](4);
-        queue[0] = IDLE_ID;
-        queue[1] = CBBTC_ID;
-        queue[2] = WETH_ID;
-        queue[3] = SYNTH_ID;
+        // Queue: park books first, synth last (PA target). Skip Morpho IDLE in queue —
+        // MetaMorpho deposit panics on zero-IRM idle market; IDLE stays capped for PA only.
+        bytes32[] memory queue = new bytes32[](3);
+        queue[0] = CBBTC_ID;
+        queue[1] = WETH_ID;
+        queue[2] = SYNTH_ID;
         mm.setSupplyQueue(queue);
 
         // 3) PA admin + zero fee + flow caps (Kingdom-owned vault)
         if (IPublicAllocatorWire(PA).admin(YSYNTH) != HOT) {
             IPublicAllocatorWire(PA).setAdmin(YSYNTH, HOT);
         }
-        IPublicAllocatorWire(PA).setFee(YSYNTH, 0);
+        if (IPublicAllocatorWire(PA).fee(YSYNTH) != 0) {
+            IPublicAllocatorWire(PA).setFee(YSYNTH, 0);
+        }
 
         IPublicAllocatorWire.FlowCapsConfig[] memory caps = new IPublicAllocatorWire.FlowCapsConfig[](4);
         caps[0] = IPublicAllocatorWire.FlowCapsConfig({
@@ -205,7 +207,7 @@ contract FireKarReallocator is Script {
         // killswitch OFF (not tripped) — armed for fire; ban list empty
         reallocator.setKillswitch(false);
 
-        mm.setIsAllocator(address(reallocator), true);
+        if (!mm.isAllocator(address(reallocator))) mm.setIsAllocator(address(reallocator), true);
 
         // KAR allowlist: fireReallocate selector
         if (IAllowlistWire(ALLOWLIST).owner() == HOT) {
@@ -310,7 +312,7 @@ contract FireKarReallocator is Script {
             }
         }
         if (pulled == 0) {
-            console2.log("reallocate", "NO_WITHDRAWABLE_IDLE — PA wired; watcher hunts");
+            console2.log("reallocate", "NO_WITHDRAWABLE_IDLE - PA wired; watcher hunts");
         }
     }
 }
