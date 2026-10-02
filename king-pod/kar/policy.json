@@ -1,0 +1,89 @@
+{
+  "name": "Kingdom Agent Runtime",
+  "version": "1.0.0",
+  "decree": "With Christ all things are possible - agents serve King Errick alone",
+  "chains": {
+    "base": {
+      "chainId": 8453,
+      "rpcEnv": "BASE_RPC_URL",
+      "rpcDefault": "https://mainnet.base.org"
+    },
+    "scroll": {
+      "chainId": 534352,
+      "rpcEnv": "SCROLL_RPC_URL",
+      "rpcDefault": "https://rpc.scroll.io"
+    }
+  },
+  "keyPolicy": {
+    "rawKeyInLlm": false,
+    "signer": "env:PRIVATE_KEY",
+    "nfcCosignRequiredFor": [
+      "migrate(uint256)",
+      "firePayroll(uint256)",
+      "releaseToSink(uint256,bytes32)"
+    ]
+  },
+  "gates": {
+    "requireBordersSecure": true,
+    "attest": "0xe3Be837a6Bc915bF8FB1676581E423dA03cC14E7",
+    "allowlist": "0x78bd5746e1D00EaeF5Eb75Bd033601aed5794F9E",
+    "maxGasPerTx": 3000000,
+    "maxValueWei": "0"
+  },
+    "rails": {
+    "CrownKingAgent": "0x128d1b9c8Ad4c47C3BCc12d237e78B95EF46f6bA",
+    "CrownRailShield": "0xa559752E0d84A7871A725451Ccfc96EE16c1F721",
+    "CrownColdBuffer": "0xBb3c14bBacD639797cB5c537fde370d1b7195521",
+    "CrownZkAttest": "0xe3Be837a6Bc915bF8FB1676581E423dA03cC14E7",
+    "CrownMigrateYrss": "0x9bA812440E365a5736871ef4B5E47A007668f98D",
+    "CrownHuntRouter": "0xc4c63f8CD4182452f665e338F87b4d31aeF04516",
+    "CrownPayAdapter": "0xA6D5C5257aCA0028D98a2f2244792Ba68f09f3B1",
+    "yRSS": "0xF80C0529bD94C773844E459853CD91B9263dD525",
+    "ySYNTH": "0xc91f3Bc556001eF7ACFCB869eC0fC29ac780c35C",
+    "PublicAllocator": "0xA090dD1a701408Df1d4d0B85b716c87565f90467",
+    "CrownCuratorNative": "0x8Cb11A67F9734143195b24D179749534099b7558",
+    "CrownExitNative": "0x97bd68464709A61D70D70d4A6027A5Bb9e80bB68",
+    "CrownKarReallocator": "0xA6F695dE7FE2C957f206b6374e6A8a96fA0758a0",
+    "CrownAllowlist": "0x78bd5746e1D00EaeF5Eb75Bd033601aed5794F9E"
+  },
+  "reallocator": {
+    "targetMarket": "0x08039ffa5b39da99b2847c66f738ecf8f149a00b4374818b7cdf4d134dd33fcd",
+    "utilTriggerBps": 9500,
+    "idleThresholdUsdc": 1000000000,
+    "maxRiskScore": 7000,
+    "irm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+    "watcher": "kar/reallocator.py"
+  },
+  "allowSelectors": {
+    "0x128d1b9c8Ad4c47C3BCc12d237e78B95EF46f6bA": [
+      "firePayroll(uint256)",
+      "observe()",
+      "pokePsmSweep()"
+    ],
+    "0xa559752E0d84A7871A725451Ccfc96EE16c1F721": [
+      "setRail(uint8,address)"
+    ],
+    "0xBb3c14bBacD639797cB5c537fde370d1b7195521": [
+      "fund(uint256)",
+      "releaseToSink(uint256,bytes32)",
+      "armOutflow(bool)"
+    ],
+    "0x9bA812440E365a5736871ef4B5E47A007668f98D": [
+      "migrate(uint256)"
+    ],
+    "0xe3Be837a6Bc915bF8FB1676581E423dA03cC14E7": [
+      "attestLive(bytes32)",
+      "commitPayrollRoot(bytes32,bool)",
+      "setThresholds(uint256,uint256,uint256)",
+      "setCold(address)"
+    ],
+    "0xc4c63f8CD4182452f665e338F87b4d31aeF04516": [
+      "setKillSwitch(bool)"
+    ]
+  },
+  "blockedUntilKingArm": {
+    "0xc4c63f8CD4182452f665e338F87b4d31aeF04516": [
+      "hunt(address,uint256,address[],uint256[],bytes[],uint256)"
+    ]
+  }
+}
