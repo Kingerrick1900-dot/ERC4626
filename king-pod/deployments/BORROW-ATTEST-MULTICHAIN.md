@@ -1,6 +1,6 @@
 # BORROW ATTEST — Base · Scroll · Polygon
 
-**Mode:** FIND (live probe) · not FIRE  
+**Mode:** FIRE complete — see `FIRE-ZK-BORROW-PORT.md`  
 **Decree:** Fuck the lenders — find the Kingdom borrow attest. It is on Base; we are also on Scroll and Polygon.  
 **Probe note:** `FOUNDRY_ETH_RPC_URL` overrides `cast --rpc-url`. Unset it (or use `script/ProbeBorrowAttestCast.sh`) before reading L2s.
 
