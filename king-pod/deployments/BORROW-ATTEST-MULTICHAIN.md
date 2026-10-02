@@ -19,22 +19,19 @@ No external Morpho market accepts CrownZkAttest alone as USDC collateral. The bo
 
 ## Live scoreboard (probed)
 
-| Chain | id | CrownZkAttest | borders | epoch | latest NAV (attested) | WalletGate | Credit pool |
-|--|--:|--|--|--:|--|--|--|
-| **Base** | 8453 | `0xe3Be837a6Bc915bF8FB1676581E423dA03cC14E7` | **true** | 14 | ~$240.55M · navMet | **`0xFfC9dE1f…f579` LIVE** | script-ready (`FireZkYieldLadder`) — pool empty until seeded |
-| **Polygon** | 137 | `0x00cAe93dd7F8D3331fe697D8B636B550aD6D7211` | **true** | 5 | ~$228.90M · navMet | **NONE** | **NONE** |
-| **Scroll** | 534352 | `0x2ab17e3c00D783F58B106De2fB1723b4915Da257` | **true** | 7 | ~$226.24M · navMet | **NONE** | **NONE** |
+| Chain | id | CrownZkAttest | borders / epoch | WalletGate | Credit | isProven(HOT) |
+|--|--:|--|--|--|--|--|
+| **Base** | 8453 | `0xe3Be…14E7` | true / 15 | `0xFfC9…f579` + port `0x3fF6…7091` | `0x7527…2e09` | **true** |
+| **Polygon** | 137 | `0x00cA…7211` | true / 6 | `0xd0c8…27Da` | `0xe8EF…3B18` | **true** |
+| **Scroll** | 534352 | `0x2ab1…a257` | true / 8 | `0xBCFE…2575` | `0x869E…4413` | **true** |
 
-### Base WalletGate (HOT `0x6708…a7d1`)
+### Borrow scoreboard (HOT)
 
-| Field | Value |
-|--|--|
-| `minThreshold` | $700,000 (6dp) |
-| `attestations` | threshold=$700k · valid=**true** · provenAt≈1784704289 |
-| `proofTtl` | 7 days |
-| `isProven(HOT)` | **false** (TTL expired — needs `submitProof` refresh) |
-
-Sister Base gates with `minThreshold` / `isProven` surface: `0xab285662…427F`, Elepan `0xca2a41A5…3f30`. None of these addresses have code on Scroll or Polygon.
+| Chain | HOT pay-token bal | Notes |
+|--|--|--|
+| Polygon USDC | **490000** ($0.49) | Cold→Credit→`operatorBorrowTo(HOT)` |
+| Base USDC | **10278** dust | seeded+borrowed via port Credit |
+| Scroll axlUSDC | **0** | Credit live; pool empty |
 
 ---
 
