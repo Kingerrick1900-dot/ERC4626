@@ -1,0 +1,31 @@
+GRAY CHANNEL — PSM ↔ HK / SHENZHEN OTC VIA CIPS CORRIDOR
+Named counterparties only. No anonymous desks.
+
+NAMED COUNTERPARTIES
+1) AnchorX Group — AxCNH issuer (AFSA licensed)
+   Email: enquiry@anchorx.org
+   Role: offshore CNH stablecoin / trade settlement
+2) Conflux Network — China-compliant L1 / RMB corridor
+   Email: build@confluxnetwork.org
+   BD: Dora Jiang (Global BD Lead) · Renzhi Wu (BD Manager, Shanghai)
+3) TradeGo — eBL / commodity trade documents (AnchorX+Conflux HK MoU 2025-05-15)
+   Role: trade-info entry linked to AxCNH capital flow
+4) ATAIX — licensed VA exchange (AxCNH pairs on Conflux / ETH per Belt & Road MoUs)
+   Role: secondary AxCNH / USDT liquidity
+5) KE-Sov China desk (Polygon) — Kingdom merchant / NFC spend
+   RoyalCard 0xc532b0e5400524d2ca83b3ffc85b7ae96ccefcd7
+   Lakala-class acquiring 0xbb5b4439060a3f46d14826973fb30ada661ff5f0
+
+BASE PSM RAILS (connect fill → Kingdom gems / eUSD)
+Classic PSM      0x064489A287448674AA1dC6fb740d2F518CBA75dA
+Multi-PSM        0xF7337A26d9456e42a36531A12036A4556EF1F987
+CrownLsrEusd     0x3edeD70F8ACa4472948E7D3AE3Ad95D63ECdda4F
+CrownPSMFiller   0xe93737c5275CEa3A90cEB0A28A7A0873dc107150
+
+FLOW
+HK/Shenzhen OTC or AxCNH desk → USDC on Base → Landing 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357
+Optional: eUSD spend on Polygon RoyalCard / Lakala micropay (not a mint)
+QKD corridor log (hashes): Shenzhen-Shanghai · partner Conflux+CN-telco · QkdPilotV2 0x96f275AEDe2a8802D52D25ef866DCCc50D038f9a
+
+RULE
+Only the five named counterparties above. No gray brokers without King written name-add.
