@@ -149,3 +149,16 @@ ROUTE_B=CrownGoldConvert targetUsdc=1500000 floor=9.80/oz window=7d
 OCEAN=DeepPull seed≤1500000 when HOT USDC funds USDC leg
 FIRE_GATE=FIRE_3M=1
 ```
+
+---
+
+## FIRE status
+
+**FIRED on Base.** Live scoreboard + txs: [`FIRE-3M-AB.md`](./FIRE-3M-AB.md)
+
+| | |
+|--|--|
+| Sweep | `0xd22cBd6f87DA859295b94c50e9dEB75842a18570` |
+| Convert | `0x194f272CB9CFFD6B71C90A1cFdd5907a14E5923D` |
+| TWAMM #0 | $1.5M kXAU ask @ $9.80 / 7d — open |
+| HOT USDC | post-sweep scoreboard in FIRE doc |
