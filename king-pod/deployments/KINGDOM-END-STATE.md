@@ -10,13 +10,15 @@ Everything built hands the King **six** things no protocol has held at once.
 
 | Piece | Status |
 |--|--|
-| `CrownCircuitBreaker` · `MintGate` · Cold bps=3000 | **LIVE + green** — `FIRE-AMO6-OCEAN.md` |
-| `CrownSpoilsOfWar` (30/50/20) | **LIVE** `0x4dBc…ecd0` · oceanExternal=DeepPull |
+| `CrownCircuitBreaker` · `MintGate` · Cold bps=3000 | **LIVE + green** · amoCount **4** — `FIRE-AMO6-OCEAN.md` |
+| `CrownSpoilsOfWar` (30/50/20) | **LIVE + proved** `0x4dBc…ecd0` · first `DUST_UNI` campaign |
 | Ocean **USDC** external leg | **SEEDED** (686232 USDC → DeepPull LP) |
 | Ocean USDT / DAI / EURC | **Not seeded yet** — widen when inventory allows |
 | $3M A+B Sweep / Convert / TWAMM | **Live** — `FIRE-3M-AB.md` |
+| ZK borders Base / Poly / Scroll | **true** · epochs **16 / 8 / 10** — `FIRE-COMPLETE.md` |
+| Polygon Credit → HOT USDC | **816015** @ HOT.poly |
 
-**Rule satisfied:** AMO 6 greened before Ocean USDC external seed.
+**Rule satisfied:** AMO 6 greened before Ocean USDC external seed. **Fire-complete** recorded.
 
 ---
 

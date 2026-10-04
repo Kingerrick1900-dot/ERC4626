@@ -13,12 +13,12 @@
 | **CrownCircuitBreaker** | `0xd92482bb8a4Ac2F6B80cd1583D2b7AcB630759A8` |
 | armed / tripped | **true** / **false** |
 | yRssBaseline | `255873051242331` |
-| PauseStub (registered) | `0xBbA40146E15EFE9350B41D99bD067630135c683e` |
-| amoCount | **1** |
+| PauseStub (registered) | `0xBbA40146…` + 3 more (`FireAmo6RegisterMore`) |
+| amoCount | **4** |
 | **MintGate** | `0xf2a6cE82E89C347637e173Dd892385A118048982` |
 | canMint / unlocked | **false** / **0** |
 | ColdBuffer `minBufferBps` | **3000** |
-| bordersSecure Base | **true** · epoch **15** |
+| bordersSecure Base | **true** · epoch **16** |
 | PqRegistry keyCount | **4** (pre-existing) |
 
 ### Txs
@@ -56,24 +56,30 @@
 
 | Meter | Value |
 |--|--:|
-| HOT USDC | **0** |
-| ColdBuffer USDC | **294099** |
+| HOT USDC Base | **2** |
+| HOT USDC Polygon | **816015** |
+| ColdBuffer USDC | **294101** |
 | ColdBuffer bps | **3000** |
 | Ocean pool USDC | **17527** |
 | MintGate.canMint | **false** |
-| Breaker.armed | **true** |
+| Breaker.armed / amoCount | **true** / **4** |
+| Spoils proved | **DUST_UNI** (7) |
+
+See `FIRE-COMPLETE.md` for attest + Poly Credit + stub txs.
 
 ---
 
 ## Not yet
 
 - USDT · DAI · EURC Ocean legs (widen when more external USDC arrives)  
-- Spoils `takeSpoil` campaigns (router live; inventory awaits TWAMM/fee fills)  
-- AMO 2–5  
+- Material Spoils campaigns (router + first dust campaign live; needs TWAMM/fee fills)  
+- AMO 1–5 real targets (4 pause stubs registered)  
 
 ```
 AMO6=GREEN
+AMO_COUNT=4
 SPOILS=0x4dBc59786790F3B7B6aB03730dD2Db7DC7feecd0
 OCEAN_USDC_LEG=SEEDED
-NEXT=TWAMM_fills→spoils→widen_USDT_DAI_EURC
+FIRE_COMPLETE=1
+NEXT=TWAMM_fills→widen_USDT_DAI_EURC
 ```
