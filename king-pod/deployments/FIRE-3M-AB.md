@@ -42,7 +42,7 @@ TWAMM state: `open=true`, `soldIn=0`, escrow on Convert = `15306200000000`.
 | Fee sources allowlisted | Landing · KingVault · DeepPull · HOT |
 | Sweep | **980331** USDC from HOT → **294099** Cold (30%) + **686232** HOT (70%) |
 
-Tx: FireRevenueSweep broadcast (`broadcast/FireRevenueSweep.s.sol/8453/run-latest.json`).
+Tx: [`0xca78e3f9…4684`](https://basescan.org/tx/0xca78e3f98c85965f390ffaaa9b18f901d620765a5149af49ab00bdda832a4684)
 
 ---
 
@@ -55,7 +55,7 @@ Tx: FireRevenueSweep broadcast (`broadcast/FireRevenueSweep.s.sol/8453/run-lates
 | Route B filled (cum) | 980331 | $0.980331 |
 | TWAMM notional booked | 1_500_000e6 | **$1,500,000** @ $9.80 ask |
 
-Ocean $1.5M seed: **not fired** — needs HOT USDC leg ≥ seed size (TWAMM fills or external USDC).
+Ocean **external-leg** $1.5M USDC seed: **not fired** — needs acquired HOT USDC (TWAMM fills). Law: no AMO on self-paired Ocean alone — see `SEALED-OCEAN-EXTERNAL-LEGS.md`.
 
 ---
 

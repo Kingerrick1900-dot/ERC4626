@@ -11,9 +11,11 @@
 
 | Bucket | USDC (6dp) | Share | Purpose |
 |--|--:|--:|--|
-| **Ocean seed** (DeepPull Uni eUSD/USDC) | `1_500_000_000000` | 50% | Phase-0 venue depth — Kingdom-owned LP |
-| **Route B ask book** (gold→USDC target) | `1_500_000_000000` | 50% | Controlled conversion proceeds → HOT |
+| **Ocean external leg** (DeepPull Uni — **USDC side**) | `1_500_000_000000` | 50% | First exit dollars into Ocean — not eUSD/gUSD mirror |
+| **Route B ask book** (gold→USDC target) | `1_500_000_000000` | 50% | Controlled conversion proceeds → HOT → Ocean external |
 | **Route A** | `0` bootstrap capital | — | Fee plumbing only — compounds from day one |
+
+**Ocean law (ratified):** no AMO fires against self-paired eUSD/gUSD alone. AMO 1’s first act = seed **USDT/DAI/USDC/EURC** external legs. Full amendment: [`SEALED-OCEAN-EXTERNAL-LEGS.md`](./SEALED-OCEAN-EXTERNAL-LEGS.md).
 
 **Total bootstrap notional:** `3_000_000_000000` USDC ($3,000,000).
 
@@ -103,17 +105,20 @@ CONVERT=0x… \
 
 ---
 
-## Ocean seed (50% of bootstrap — uses Route B proceeds + committed USDC)
+## Ocean external-leg seed (50% of bootstrap — Route B proceeds + committed USDC)
 
 | Param | Value |
 |--|--|
-| Venue | DeepPull Uni V3 eUSD/USDC fee 500 |
-| USDC leg | up to `1_500_000_000000` |
-| eUSD leg | co-mint matched 1:1 via DeepPull minter (yRSS inventory gate) |
+| Venue | DeepPull Uni V3 eUSD/USDC fee 500 — **first external leg = USDC** |
+| USDC leg (acquired, not minted) | up to `1_500_000_000000` |
+| eUSD leg | co-mint matched only **after** USDC leg is funded (depth magnet, not exit) |
+| Later legs | USDT · DAI · EURC (6-way elite add) — after first USDC exit live |
 | LP recipient | HOT |
 | Flash deepPull | only if `REPAY_SOURCE=HOT USDC` prefunded (FLASH-POLICY) |
+| Reward split | **30% ColdBuffer / 70% HOT** (ColdBuffer law) |
 
-Do **not** fire Ocean seed until Route B has produced measurable HOT USDC **or** King wires external USDC for the USDC leg.
+Do **not** fire Ocean seed until HOT holds acquired USDC for the external leg.  
+Do **not** fire AMO 2–5 until Ocean has at least one external stable leg.
 
 ---
 
