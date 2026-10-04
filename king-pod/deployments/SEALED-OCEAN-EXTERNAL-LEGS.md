@@ -39,7 +39,7 @@ That single step converts the self-paired Ocean into a Frax-style market. Every 
 | 3 | CrownCurator | CrownCuratorNative | Chassis · markets incomplete — **blocked until Ocean has exit** |
 | 4 | HuntRouter | HuntRouter + DeepPull | Armed · peg hold — **blocked until Ocean has exit** |
 | 5 | China Corridor | CIPS / Parallel / RoyalCard | Deployed unseeded · AxCNH on King sig — **blocked until Ocean has exit** |
-| 6 | ZK + Quantum | ZkAttest / Pq / Stark | Live ×3 · bordersSecure — attestation only, not USDC mint |
+| 6 | ZK + Quantum | ZkAttest / Pq / Stark + **CircuitBreaker / ColdBufferLaw / MintGate** | Borders live ×3 · **armor built, audit-ready, not fired** — see `AMO6-ARMOR-AUDIT.md` |
 
 ---
 
