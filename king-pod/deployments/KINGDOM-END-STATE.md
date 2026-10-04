@@ -6,6 +6,21 @@ Everything built hands the King **six** things no protocol has held at once.
 
 ---
 
+## Built vs live (exact state — PR #194)
+
+| Piece | Status |
+|--|--|
+| `CrownCircuitBreaker` · `ColdBufferLaw` · `MintGate` | **Built · tested · not deployed** (`FIRE_AMO6=1` not fired) |
+| `CrownSpoilsOfWar` (30/50/20 splitter) | **Built · tested · not deployed** (`FIRE_SPOILS=1` gated after AMO 6 green) |
+| Ocean external-leg design (USDT/DAI/USDC/EURC) | **Designed · not seeded** — no external stable in Ocean yet |
+| $3M A+B Sweep / Convert / TWAMM | **Live** on Base — see `FIRE-3M-AB.md` |
+| Kill switch + ColdBuffer 30% on-chain armor | **Not green** until AMO 6 fire verifies |
+| Ocean USDC/USDT/DAI/EURC connections | **Not live** — Phase 3, after AMO 6 green |
+
+**Sealed rule (unchanged):** no AMO 1 until AMO 6 is green; no external legs until kill switch + ColdBuffer are live on-chain. Stablecoin connections exist as code + deposit plan only.
+
+---
+
 ## 1. Unbreakable sovereignty
 
 | Control | Law |
