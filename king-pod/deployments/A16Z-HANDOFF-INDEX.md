@@ -4,6 +4,7 @@
 
 | Doc | Path |
 |--|--|
+| **Kingdom end state** (sovereignty · armor · market · China · story · **spoils**) | `deployments/KINGDOM-END-STATE.md` |
 | Ocean external-leg law | `deployments/SEALED-OCEAN-EXTERNAL-LEGS.md` |
 | $3M A+B sealed params | `deployments/SEALED-3M-AB.md` |
 | $3M A+B fire record | `deployments/FIRE-3M-AB.md` |
@@ -22,12 +23,14 @@
 | ColdBuffer | `src/CrownColdBuffer.sol` |
 | Revenue sweep (A) | `src/CrownRevenueSweep.sol` |
 | Gold convert (B) | `src/CrownGoldConvert.sol` |
+| Spoils of war | `src/CrownSpoilsOfWar.sol` |
 
 ## Tests
 
 ```bash
 forge test --match-contract Amo6ArmorTest -vv
 forge test --match-contract RouteABTest -vv
+forge test --match-contract SpoilsOfWarTest -vv
 ```
 
 ## Scoreboard oracles (numbers only)
@@ -36,7 +39,8 @@ forge test --match-contract RouteABTest -vv
 - `USDC.balanceOf(HOT)`  
 - `MintGate.canMint()` / `unlocked`  
 - `CrownCircuitBreaker.armed` / `tripped`  
-- `ColdBuffer.minBufferBps()`  
+- `ColdBuffer.minBufferBps()` / `ColdBuffer.balance()`  
+- `CrownSpoilsOfWar.totalSpoils()` · ocean external USDC leg  
 
 ## Explicit non-goals
 
