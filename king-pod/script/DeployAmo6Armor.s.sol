@@ -47,7 +47,7 @@ contract DeployAmo6Armor is Script {
         console2.log("unlocked", gate.unlocked());
 
         vm.stopBroadcast();
-        console2.log("MISSION AMO6 armor deployed — audit surface live");
+        console2.log("MISSION AMO6 armor deployed - audit surface live");
         console2.log("COLD", COLD);
     }
 }

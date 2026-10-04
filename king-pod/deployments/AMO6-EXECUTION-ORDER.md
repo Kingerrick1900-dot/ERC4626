@@ -1,6 +1,7 @@
 # AMO 6 → AMO 1 — Execution Order
 
-**Now:** code built in PR #194. Connections **not** live. Waiting on King AMO 6 fire.
+**Now:** AMO 6 **FIRED + green** · Spoils router live · Ocean **USDC** leg seeded.  
+See `FIRE-AMO6-OCEAN.md`. USDT/DAI/EURC widen still pending.
 
 ## Phase 1 — Armor fire (blocked on King/KAR)
 

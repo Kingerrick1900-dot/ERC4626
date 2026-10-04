@@ -1,13 +1,14 @@
 # a16z Handoff Index — Kingdom AMO Package
 
-## Exact state (do not overclaim)
+## Exact state
 
 | | |
 |--|--|
-| **Built** (PR #194) | Armor · Spoils splitter · Ocean external-leg design · tests 15/15 |
-| **Live** | $3M A+B Sweep/Convert/TWAMM only |
-| **Not live** | `FIRE_AMO6` · `FIRE_SPOILS` · Ocean USDT/DAI/USDC/EURC seed |
-| **Rule** | No AMO 1 / no external legs until AMO 6 kill switch + ColdBuffer green on-chain |
+| **AMO 6** | **FIRED + green** — Breaker · MintGate · Cold bps=3000 · `FIRE-AMO6-OCEAN.md` |
+| **Spoils** | **Live** `0x4dBc…ecd0` — 30/50/20 · oceanExternal=DeepPull |
+| **Ocean USDC leg** | **Seeded** (686232 USDC via DeepPull LP 6136635) |
+| **Not yet** | USDT · DAI · EURC legs · AMO 2–5 |
+| **Also live** | $3M A+B Sweep/Convert/TWAMM |
 
 ## Package contents
 

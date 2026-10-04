@@ -9,7 +9,7 @@ contract DeploySpoilsOfWar is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant COLD = 0xBb3c14bBacD639797cB5c537fde370d1b7195521;
-    address constant OCEAN_DEFAULT = 0xDDe33827dbd0aC5Ed1a8A68eE5D95c829902679A; // DeepPull — first external leg
+    address constant OCEAN_DEFAULT = 0xDDe33827dbd0aC5Ed1a8A68eE5D95c829902679A; // DeepPull - first external leg
 
     function run() external {
         require(vm.envOr("FIRE_SPOILS", uint256(0)) == 1, "FIRE_SPOILS");
