@@ -10,7 +10,7 @@ import {CrownGateV2} from "../src/CrownGateV2.sol";
 ///      Optional COLD_ADDRESS env overrides default new cold.
 contract FireKingRotate is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
-    address constant DEFAULT_COLD = 0x5E07D7167282F9ec912a05c3048D7D0F24A8b826;
+    address constant DEFAULT_COLD = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357; // Landing
     address constant GATE = 0x76fa390951fA31185490378F46B6e9F05bA4bC3b;
 
     function run() external {
