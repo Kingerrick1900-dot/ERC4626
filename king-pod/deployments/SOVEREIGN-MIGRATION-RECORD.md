@@ -1,6 +1,6 @@
 # Sovereign migration — fork PASS · treasury bridge
 
-**Status:** Fork proofs green · awaiting live `FIRE_SOVEREIGN_MIGRATE=1`  
+**Status:** Fork PASS · **live oracle+market+migrator fired** · migrate held (`TreasuryShort`) — `FIRE-SOVEREIGN-MIGRATE.md`  
 **Chain:** Base · legacy `0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88`
 
 ---

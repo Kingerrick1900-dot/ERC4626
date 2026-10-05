@@ -3,7 +3,8 @@
 **Operation:** Sovereign Oracle deployment + new RSS/USDC Morpho market  
 **Target:** Base mainnet · **chainId `8453`**  
 **Authority:** King HOT `0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1`  
-**Status:** **Built · fork migration PASS · awaiting live `FIRE_SOVEREIGN_MIGRATE=1`**
+**Status:** **FIRED on Base** — see `FIRE-SOVEREIGN-MIGRATE.md`  
+Oracle `0x22E2…f2d` · market `0x1293…2f7b` · migrator `0xAbE2…Be24` · migrate **held** (`TreasuryShort` · need ~$22.8M USDC delta)
 
 Migration proof: `deployments/SOVEREIGN-MIGRATION-RECORD.md` · test `test_sovereign_migration`
 

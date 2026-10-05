@@ -89,13 +89,16 @@ contract FireSovereignMigrate is Script {
         );
         console2.log("CrownSovereignMigrate", address(mig));
 
-        IERC20F(USDC).approve(address(mig), type(uint256).max);
-        IYrssF(YRSS).approve(address(mig), type(uint256).max);
-        IMorphoF(MORPHO).setAuthorization(address(mig), true);
-        mig.migrate();
+        if (vm.envOr("SKIP_MIGRATE", uint256(0)) == 0) {
+            IERC20F(USDC).approve(address(mig), type(uint256).max);
+            IYrssF(YRSS).approve(address(mig), type(uint256).max);
+            IMorphoF(MORPHO).setAuthorization(address(mig), true);
+            mig.migrate();
+            console2.log("MISSION legacy cleared; RSS on sovereign market under King oracle");
+        } else {
+            console2.log("SKIP_MIGRATE=1 - oracle + market + migrator deployed; migrate held");
+        }
 
         vm.stopBroadcast();
-
-        console2.log("MISSION legacy cleared; RSS on sovereign market under King oracle");
     }
 }
