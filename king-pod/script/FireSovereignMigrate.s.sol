@@ -18,10 +18,6 @@ interface IMorphoF {
     function setAuthorization(address authorized, bool newIsAuthorized) external;
 }
 
-interface IERC20F {
-    function approve(address, uint256) external returns (bool);
-}
-
 interface IYrssF {
     function approve(address, uint256) external returns (bool);
 }
@@ -90,11 +86,11 @@ contract FireSovereignMigrate is Script {
         console2.log("CrownSovereignMigrate", address(mig));
 
         if (vm.envOr("SKIP_MIGRATE", uint256(0)) == 0) {
-            IERC20F(USDC).approve(address(mig), type(uint256).max);
+            // Path B only: yRSS equity + Morpho flash. No King USDC approve.
             IYrssF(YRSS).approve(address(mig), type(uint256).max);
             IMorphoF(MORPHO).setAuthorization(address(mig), true);
             mig.migrate();
-            console2.log("MISSION legacy cleared; RSS on sovereign market under King oracle");
+            console2.log("MISSION Path B self-fund: legacy cleared; RSS on sovereign market");
         } else {
             console2.log("SKIP_MIGRATE=1 - oracle + market + migrator deployed; migrate held");
         }
