@@ -8,6 +8,8 @@
 
 ## Status: **INITIATED** (accept pending Landing signature)
 
+**Builder handoff (2 tx):** `HANDOFF-KING-ROTATE-2TX.md`
+
 | Step | Action | Status |
 |--|--|--|
 | 1 | `initiateKingTransfer(Landing)` from HOT | ✅ **Live** |
