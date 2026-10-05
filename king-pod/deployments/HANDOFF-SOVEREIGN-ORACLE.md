@@ -3,7 +3,9 @@
 **Operation:** Sovereign Oracle deployment + new RSS/USDC Morpho market  
 **Target:** Base mainnet · **chainId `8453`**  
 **Authority:** King HOT `0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1`  
-**Status:** **Built · tests green · awaiting `FIRE_SOVEREIGN_ORACLE=1`**
+**Status:** **Built · fork migration PASS · awaiting live `FIRE_SOVEREIGN_MIGRATE=1`**
+
+Migration proof: `deployments/SOVEREIGN-MIGRATION-RECORD.md` · test `test_sovereign_migration`
 
 ---
 
