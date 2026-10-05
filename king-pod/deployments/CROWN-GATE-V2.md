@@ -1,58 +1,72 @@
-# CrownGateV2 — King Morpho gate (sovereign RSS/USDC)
+# CrownGateV2 — ZK-mandatory King Morpho gate
 
-**Mode:** READY · King authority only · no audit gates  
+**Mode:** READY · **NOTHING FIRES WITHOUT ZK**  
 **Market:** `0x1293c4e7708c2fd0239b093a9f43ef7792d66691c1216b106f6cfc270edb2f7b`  
-**Oracle:** `CrownOracle` `0x22E2F66a26eA8d01E0Bb4154ef4DfB0304a34f2d` @ **$50,000**
+**Oracle:** `CrownOracle` `0x22E2…4f2d` @ **$50,000**  
+**ZK WalletGate (Base port):** `0x3fF6a7E336aFF445F6C8D6CBad1135a49b4B7091`  
+**ZK Credit:** `0x75279D46F0dA7f91D5283687C1D0a6EF86992e09`
 
 ---
 
-## What it is
+## Doctrine
 
-`CrownGateV2` is the King's exclusive Morpho operator for the sovereign book:
+Transparent Morpho fire is **forbidden**.
 
-| Action | Function |
-|--|--|
-| Post RSS | `supplyCollateral(amount)` |
-| Borrow USDC | `borrowUSDC(assets, to)` |
-| Repay | `repayUSDC(assets)` |
-| Free RSS | `withdrawCollateral(amount, to)` |
-| Pause supply/borrow | `setPaused` |
-| King succession | `initiateKingTransfer` / `acceptKingship` |
+| Layer | Contract | Role |
+|--|--|--|
+| Attestation | `CrownZkWalletGate` | Groth16 wallet-bind · `isProven(HOT)` |
+| Morpho gate | `CrownGateV2` | supply/borrow **revert `NotProven`** without ZK |
+| Shield draw | `CrownZkAutoDraw` | Morpho borrow ± Credit draw to Landing |
+| Credit | `CrownZkCredit` | Proven-subject USDC pool (existing port) |
 
-Position `onBehalf` = **the gate**. King alone.
+`supplyCollateral` / `borrowUSDC` require `zkGate.isProven(king)`.  
+`repayUSDC` / `withdrawCollateral` remain King-only exit (TTL must not trap RSS).
 
 ---
 
-## Adopt Path B collateral
-
-Path B posted **~222,521.94 RSS** on Morpho **as HOT** (not the migrator).  
-Fire script withdraws that collateral to HOT, then `supplyCollateral` through the gate.
+## Fire (ZK only)
 
 ```
 FIRE_CROWN_GATE_V2=1
-# optional: GATE_ONLY=1          deploy only
-# optional: BORROW_USDC=<6dec>   borrow after adopt (needs market cash)
+ZK_SHIELD=1          # mandatory — script reverts without it
+# TRANSPARENT_OK / NO_ZK → forbidden (script reverts if set)
+# optional: BORROW_USDC · CREDIT_BORROW · LANDING · GATE_ONLY=1
 ```
 
 ```bash
 source /tmp/fire.env
+# If isProven drifts false, refresh first:
+#   script/FireZkAttestRefreshCast.sh / FireZkSubmitProof
 cd king-pod
 forge script script/FireCrownGateV2.s.sol:FireCrownGateV2 \
   --rpc-url "$BASE_RPC" --broadcast -vvvv
 ```
 
+Script aborts before broadcast unless port WalletGate reports **`isProven(HOT)=true`**.
+
 ---
 
-## Notes
+## Fork proof
 
-- Struct `MarketParams` is rebuilt from immutables (`marketParams()`) — Solidity has no immutable structs.
-- Uses `king-pod` `Core.sol` (no OpenZeppelin remapping required).
-- Sovereign market may have **zero supplier cash** until seeded; adopt works without cash; `BORROW_USDC` needs liquidity on market `0x1293…`.
-- Fork proof: `forge test --match-contract SimCrownGateV2 -vv`
+```bash
+forge test --match-contract SimCrownGateV2 -vv
+```
+
+- `test_reverts_without_zk` — supply/borrow blocked  
+- `test_zk_adopt_and_shielded_autodraw` — live proven HOT · adopt 222k RSS · AutoDraw Morpho+Credit  
+- `test_live_zk_proven_hot` — port gate live read  
+
+---
+
+## Honest boundary
+
+ZK attestation binds the King without revealing private wallet sizes in the proof.  
+Morpho Blue state on Base remains public ledger state after a fire — the **Kingdom law** is that the fire path cannot run without a live proof. No transparent bypass flag exists.
 
 ```
-CROWN_GATE_V2=READY
+CROWN_GATE_V2=ZK_READY
+ZK_SHIELD=MANDATORY
+TRANSPARENT_FIRE=FORBIDDEN
 SOVEREIGN=0x1293…2f7b
-ORACLE=0x22E2…4f2d
-KING=0x6708…a7d1
+WALLET_GATE=0x3fF6…7091
 ```

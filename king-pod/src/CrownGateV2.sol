@@ -17,8 +17,14 @@ interface IMorphoGate is IMorphoMarket {
         external;
 }
 
+interface IZkGateV2 {
+    function isProven(address subject) external view returns (bool);
+    function attestations(address subject) external view returns (uint256 threshold, uint256 provenAt, bool valid);
+}
+
 /// @notice King-controlled Morpho Blue gate for the sovereign RSS/USDC market.
-/// @dev Position lives on this contract (onBehalf = address(this)). King alone may supply/borrow/repay/withdraw.
+/// @dev Position onBehalf = this. Supply/borrow require live ZK wallet-bind on `zkGate`.
+///      Doctrine: nothing fires without ZK. Repay/withdraw stay King-only (exit if TTL expires).
 contract CrownGateV2 is ReentrancyGuard {
     using SafeTransfer for IERC20;
 
@@ -30,6 +36,7 @@ contract CrownGateV2 is ReentrancyGuard {
     address public immutable irm;
     uint256 public immutable lltv;
     bytes32 public immutable MARKET_ID;
+    IZkGateV2 public immutable zkGate;
 
     IERC20 public immutable LOAN_TOKEN;
     IERC20 public immutable COLLATERAL_TOKEN;
@@ -37,6 +44,7 @@ contract CrownGateV2 is ReentrancyGuard {
     address public king;
     address public pendingKing;
     bool public paused;
+    mapping(address => bool) public operator;
 
     event Supplied(uint256 amount);
     event Borrowed(uint256 assets, uint256 shares, address indexed to);
@@ -47,8 +55,10 @@ contract CrownGateV2 is ReentrancyGuard {
     event Paused(bool isPaused);
     event Rescued(address indexed token, uint256 amount, address indexed to);
     event ApprovalsReset();
+    event OperatorSet(address indexed op, bool allowed);
 
     error NotKing();
+    error NotProven();
     error ZeroAmount();
     error ZeroAddress();
     error IsPaused();
@@ -59,17 +69,29 @@ contract CrownGateV2 is ReentrancyGuard {
         _;
     }
 
+    modifier onlyKingOrOperator() {
+        if (msg.sender != king && !operator[msg.sender]) revert NotKing();
+        _;
+    }
+
+    /// @dev Fire path: valid ZK attestation on King required.
+    modifier whenZkFire() {
+        if (!zkGate.isProven(king)) revert NotProven();
+        _;
+    }
+
     modifier whenNotPaused() {
         if (paused) revert IsPaused();
         _;
     }
 
-    constructor(address _king, IMorphoMarket.MarketParams memory _params) {
-        if (_king == address(0)) revert ZeroAddress();
+    constructor(address _king, address _zkGate, IMorphoMarket.MarketParams memory _params) {
+        if (_king == address(0) || _zkGate == address(0)) revert ZeroAddress();
         if (_params.loanToken == address(0) || _params.collateralToken == address(0)) revert ZeroAddress();
         if (_params.oracle == address(0) || _params.irm == address(0)) revert ZeroAddress();
 
         king = _king;
+        zkGate = IZkGateV2(_zkGate);
         loanToken = _params.loanToken;
         collateralToken = _params.collateralToken;
         oracle = _params.oracle;
@@ -88,20 +110,23 @@ contract CrownGateV2 is ReentrancyGuard {
         return IMorphoMarket.MarketParams(loanToken, collateralToken, oracle, irm, lltv);
     }
 
-    function supplyCollateral(uint256 amount) external onlyKing whenNotPaused nonReentrant {
+    /// @notice King posts RSS. Requires `zkGate.isProven(king)`.
+    function supplyCollateral(uint256 amount) external onlyKing whenNotPaused whenZkFire nonReentrant {
         if (amount == 0) revert ZeroAmount();
         COLLATERAL_TOKEN.safeTransferFrom(msg.sender, address(this), amount);
         IMorphoGate(MORPHO).supplyCollateral(marketParams(), amount, address(this), "");
         emit Supplied(amount);
     }
 
-    function borrowUSDC(uint256 assets, address to) external onlyKing whenNotPaused nonReentrant {
+    /// @notice King or AutoDraw operator borrows USDC. Requires ZK attestation.
+    function borrowUSDC(uint256 assets, address to) external onlyKingOrOperator whenNotPaused whenZkFire nonReentrant {
         if (assets == 0) revert ZeroAmount();
         if (to == address(0)) revert ZeroAddress();
         (uint256 a, uint256 s) = IMorphoGate(MORPHO).borrow(marketParams(), assets, 0, address(this), to);
         emit Borrowed(a, s, to);
     }
 
+    /// @notice Exit path — King-only, no ZK (TTL expiry must not trap position).
     function repayUSDC(uint256 assets) external onlyKing nonReentrant {
         if (assets == 0) revert ZeroAmount();
         LOAN_TOKEN.safeTransferFrom(msg.sender, address(this), assets);
@@ -109,11 +134,18 @@ contract CrownGateV2 is ReentrancyGuard {
         emit Repaid(a, s);
     }
 
+    /// @notice Exit path — King-only, no ZK.
     function withdrawCollateral(uint256 amount, address to) external onlyKing nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (to == address(0)) revert ZeroAddress();
         IMorphoGate(MORPHO).withdrawCollateral(marketParams(), amount, address(this), to);
         emit Withdrawn(amount, to);
+    }
+
+    function setOperator(address op, bool allowed) external onlyKing {
+        if (op == address(0)) revert ZeroAddress();
+        operator[op] = allowed;
+        emit OperatorSet(op, allowed);
     }
 
     function setPaused(bool _paused) external onlyKing {
