@@ -40,6 +40,34 @@ interface IERC20G {
     function balanceOf(address) external view returns (uint256);
 }
 
+interface IMetaMorphoFire {
+    struct MarketParams {
+        address loanToken;
+        address collateralToken;
+        address oracle;
+        address irm;
+        uint256 lltv;
+    }
+
+    function submitCap(MarketParams memory marketParams, uint256 newSupplyCap) external;
+    function acceptCap(MarketParams memory marketParams) external;
+    function config(bytes32 id) external view returns (uint184 cap, bool enabled, uint64 removableAt);
+}
+
+interface IPublicAllocatorFire {
+    struct FlowCaps {
+        uint128 maxIn;
+        uint128 maxOut;
+    }
+
+    struct FlowCapsConfig {
+        bytes32 id;
+        FlowCaps caps;
+    }
+
+    function setFlowCaps(address vault, FlowCapsConfig[] calldata config) external;
+}
+
 /// @notice ZK-mandatory fire: deploy CrownGateV2 + CrownZkAutoDraw, adopt Path B RSS, optional shielded borrow.
 /// @dev NOTHING FIRES WITHOUT ZK.
 ///      Required: FIRE_CROWN_GATE_V2=1 · ZK_SHIELD=1 · HOT_KEY
@@ -60,6 +88,8 @@ contract FireCrownGateV2 is Script {
     address constant ZK_WALLET_GATE = 0x3fF6a7E336aFF445F6C8D6CBad1135a49b4B7091;
     address constant ZK_CREDIT = 0x75279D46F0dA7f91D5283687C1D0a6EF86992e09;
     address constant LEGACY_ZK_GATE = 0xFfC9dE1fC86d45fdB2b4163122d89F8FBfB8f579;
+    address constant YRSS = 0xF80C0529bD94C773844E459853CD91B9263dD525;
+    address constant PA = 0xA090dD1a701408Df1d4d0B85b716c87565f90467;
 
     function run() external {
         require(vm.envOr("FIRE_CROWN_GATE_V2", uint256(0)) == 1, "FIRE_CROWN_GATE_V2");
@@ -96,6 +126,29 @@ contract FireCrownGateV2 is Script {
             IMorphoMarket.MarketParams(USDC, RSS, SOV_ORACLE, IRM, LLTV);
         require(keccak256(abi.encode(mp)) == SOV, "SOV_ID_MISMATCH");
 
+        uint256 borrowAmt = vm.envOr("BORROW_USDC", uint256(0));
+        uint256 creditBorrow = vm.envOr("CROWN_CREDIT", vm.envOr("CREDIT_BORROW", uint256(0)));
+        if (borrowAmt > 0 && borrowAmt < 1e9) borrowAmt *= 1e6;
+        if (creditBorrow > 0 && creditBorrow < 1e9) creditBorrow *= 1e6;
+
+        if (borrowAmt > 0 || creditBorrow > 0) {
+            (uint128 totalSup,, uint128 totalBor,,,) = IMorphoGateFire(MORPHO).market(SOV);
+            uint256 cash = uint256(totalSup) > uint256(totalBor) ? uint256(totalSup) - uint256(totalBor) : 0;
+            uint256 creditBal = IERC20G(USDC).balanceOf(creditAddr);
+            console2.log("preflightMarketCash", cash);
+            console2.log("preflightCreditBal", creditBal);
+            console2.log("wantMorpho", borrowAmt);
+            console2.log("wantCredit", creditBorrow);
+            bool short = borrowAmt > cash || creditBorrow > creditBal;
+            if (short) {
+                // Full commanded borrow package cannot land. Adopt-only requires explicit ack.
+                require(vm.envOr("ADOPT_DESPITE_BORROW_SHORT", uint256(0)) == 1, "LIQUIDITY_SHORT");
+                console2.log("ADOPT_ONLY_BORROW_SKIPPED", uint256(1));
+                borrowAmt = 0;
+                creditBorrow = 0;
+            }
+        }
+
         vm.startBroadcast(pk);
 
         CrownGateV2 gate = new CrownGateV2(HOT, zkGate, mp);
@@ -115,6 +168,23 @@ contract FireCrownGateV2 is Script {
             }
         }
 
+        // Arm sovereign market on yRSS + PA maxIn so external/PA liquidity can land for the borrow.
+        if (vm.envOr("ARM_SOV_LIQUIDITY", uint256(1)) == 1) {
+            (, bool enabled,) = IMetaMorphoFire(YRSS).config(SOV);
+            if (!enabled) {
+                IMetaMorphoFire.MarketParams memory ymp = IMetaMorphoFire.MarketParams(USDC, RSS, SOV_ORACLE, IRM, LLTV);
+                IMetaMorphoFire(YRSS).submitCap(ymp, 50_000_000e6);
+                IMetaMorphoFire(YRSS).acceptCap(ymp);
+                console2.log("yRSS_sov_cap", uint256(50_000_000e6));
+            }
+            IPublicAllocatorFire.FlowCapsConfig[] memory caps = new IPublicAllocatorFire.FlowCapsConfig[](1);
+            caps[0] = IPublicAllocatorFire.FlowCapsConfig({
+                id: SOV, caps: IPublicAllocatorFire.FlowCaps({maxIn: 5_000_000e6, maxOut: 5_000_000e6})
+            });
+            IPublicAllocatorFire(PA).setFlowCaps(YRSS, caps);
+            console2.log("PA_sov_maxIn", uint256(5_000_000e6));
+        }
+
         if (vm.envOr("GATE_ONLY", uint256(0)) == 0) {
             (, uint128 bor, uint128 kingColl) = IMorphoGateFire(MORPHO).position(SOV, HOT);
             console2.log("kingColl", uint256(kingColl));
@@ -130,14 +200,7 @@ contract FireCrownGateV2 is Script {
                 console2.log("adoptedRss", uint256(kingColl));
             }
 
-            uint256 borrowAmt = vm.envOr("BORROW_USDC", uint256(0));
-            uint256 creditBorrow = vm.envOr("CREDIT_BORROW", uint256(0));
             if (borrowAmt > 0 || creditBorrow > 0) {
-                if (borrowAmt > 0) {
-                    (uint128 cash,,,,,) = IMorphoGateFire(MORPHO).market(SOV);
-                    console2.log("marketCash", uint256(cash));
-                    require(borrowAmt <= uint256(cash), "NO_CASH");
-                }
                 autoDraw.autoDraw(borrowAmt, landing, creditBorrow);
                 console2.log("shieldedMorphoBorrow", borrowAmt);
                 console2.log("shieldedCreditBorrow", creditBorrow);
