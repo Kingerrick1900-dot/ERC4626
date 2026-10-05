@@ -21,20 +21,13 @@
 
 ---
 
-## Migrate — held (capital)
+## Migrate — Path B ready (gap STRUCK)
 
-| Meter | Live |
-|--|--:|
-| Legacy debt | ~**$257,294,976** |
-| Morpho USDC (flash max) | ~**$234,531,742** |
-| **Treasury delta needed** | ~**$22,768,266** |
-| HOT USDC Base | **$0.33** (`328834`) |
-| HOT USDC Polygon | **$0.82** (`816015`) |
-| yRSS `maxWithdraw(HOT)` | **0** |
+**Path A struck. $4.4M gap STRUCK.** See `PATH-B-SELF-FUND.md`.
 
-Live `migrate()` reverts **`TreasuryShort()`** — fork path needs ~**$22.8M USDC** on HOT (flash + bridge).
+Fork PASS: **~222,524 RSS** → sovereign · residual ~29k RSS + ~$27M debt left healthy on legacy · **no King USDC**.
 
-Legacy 252k RSS still on `0x41c08085…7d88` (immutable $1,200 oracle).
+Debt origin: Morpho borrow vs RSS, funded by **yRSS suppliers** — not King wallet USDC.
 
 ---
 

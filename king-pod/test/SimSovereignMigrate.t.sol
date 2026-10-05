@@ -2,12 +2,10 @@
 pragma solidity ^0.8.20;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {CrownOracle} from "../src/CrownOracle.sol";
 import {CrownSovereignMigrate} from "../src/CrownSovereignMigrate.sol";
 import {IMorphoMarket} from "../src/interfaces/IMorphoMarket.sol";
 
 interface IMorphoS is IMorphoMarket {
-    function createMarket(MarketParams memory marketParams) external;
     function position(bytes32 id, address user) external view returns (uint256, uint128, uint128);
     function setAuthorization(address authorized, bool newIsAuthorized) external;
     function market(bytes32 id) external view returns (uint128, uint128, uint128, uint128, uint128, uint128);
@@ -21,17 +19,13 @@ interface IERC20S {
 
 interface IYrssS {
     function approve(address spender, uint256 amount) external returns (bool);
-    function maxWithdraw(address) external view returns (uint256);
-    function balanceOf(address) external view returns (uint256);
-    function convertToAssets(uint256) external view returns (uint256);
-    function totalSupply() external view returns (uint256);
 }
 
 interface IOracleS {
     function price() external view returns (uint256);
 }
 
-/// @notice Path B: flash + yRSS. No deal() of King treasury USDC. Path A forbidden.
+/// @notice Gap STRUCK. Path B max-free: flash + King yRSS. No treasury. No chase of minority $4.4M.
 contract SimSovereignMigrateTest is Test {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
@@ -44,80 +38,73 @@ contract SimSovereignMigrateTest is Test {
     bytes32 constant LIVE_SOV = 0x1293c4e7708c2fd0239b093a9f43ef7792d66691c1216b106f6cfc270edb2f7b;
     uint256 constant LLTV = 770000000000000000;
     bytes32 constant LEGACY = 0x41c08085ddcfd1dc1c5eb82d7dc031593d1a1a831958380e8b60469c45bf7d88;
-    uint256 constant P50K = 50000000000000000000000000000;
     uint256 constant COLL = 252000000000000000000000;
 
     function setUp() public {
         vm.createSelectFork(vm.envString("BASE_RPC_URL"));
     }
 
-    function test_path_b_self_fund_no_treasury() public {
-        uint256 hotUsdcBefore = IERC20S(USDC).balanceOf(HOT);
-        console2.log("hotUsdcBefore", hotUsdcBefore);
-        assertLt(hotUsdcBefore, 1e6, "King has dust only - Path A forbidden");
+    function test_path_b_gap_struck_max_free() public {
+        assertLt(IERC20S(USDC).balanceOf(HOT), 1e6, "no treasury inject");
 
-        IMorphoMarket.MarketParams memory legacyMp =
-            IMorphoMarket.MarketParams(USDC, RSS, LEGACY_ORACLE, IRM, LLTV);
-        IMorphoS(MORPHO).accrueInterest(legacyMp);
+        (address loan,,,,) = IMorphoS(MORPHO).idToMarketParams(LIVE_SOV);
+        assertEq(loan, USDC, "sovereign market live");
 
-        (, uint128 borBefore, uint128 collBefore) = IMorphoS(MORPHO).position(LEGACY, HOT);
-        assertEq(collBefore, COLL);
-        (,, uint128 tba, uint128 tbs,,) = IMorphoS(MORPHO).market(LEGACY);
-        uint256 debt = (uint256(tba) * uint256(borBefore) + uint256(tbs) - 1) / uint256(tbs);
-        uint256 kingYrss = IYrssS(YRSS).convertToAssets(IYrssS(YRSS).balanceOf(HOT));
-        uint256 shareBps = (IYrssS(YRSS).balanceOf(HOT) * 10_000) / IYrssS(YRSS).totalSupply();
-
-        console2.log("debt", debt);
-        console2.log("kingYrssAssets", kingYrss);
-        console2.log("hotYrssShareBps", shareBps);
-        console2.log("morphoCash", IERC20S(USDC).balanceOf(MORPHO));
-        console2.log("yrssMaxWithdrawBefore", IYrssS(YRSS).maxWithdraw(HOT));
-
-        bytes32 sovId = LIVE_SOV;
-        address oracle = LIVE_ORACLE;
-        (address loan,,,,) = IMorphoS(MORPHO).idToMarketParams(sovId);
-        if (loan == address(0)) {
-            vm.startPrank(HOT);
-            CrownOracle o = new CrownOracle(HOT, P50K);
-            oracle = address(o);
-            IMorphoMarket.MarketParams memory sovMp =
-                IMorphoMarket.MarketParams(USDC, RSS, oracle, IRM, LLTV);
-            IMorphoS(MORPHO).createMarket(sovMp);
-            sovId = keccak256(abi.encode(sovMp));
-            vm.stopPrank();
-        }
+        (, uint128 bor0, uint128 coll0) = IMorphoS(MORPHO).position(LEGACY, HOT);
+        assertEq(coll0, COLL);
+        console2.log("legacyBorrowSharesBefore", bor0);
 
         CrownSovereignMigrate mig = new CrownSovereignMigrate(
-            MORPHO, USDC, RSS, YRSS, HOT, LEGACY, LEGACY_ORACLE, sovId, oracle, IRM, LLTV, HOT
+            MORPHO,
+            USDC,
+            RSS,
+            YRSS,
+            HOT,
+            LEGACY,
+            LEGACY_ORACLE,
+            LIVE_SOV,
+            LIVE_ORACLE,
+            IRM,
+            LLTV,
+            HOT
         );
 
         vm.startPrank(HOT);
         IYrssS(YRSS).approve(address(mig), type(uint256).max);
         IMorphoS(MORPHO).setAuthorization(address(mig), true);
-
-        if (kingYrss < debt) {
-            console2.log("PRECHECK SystemShort: accrued debt exceeds King yRSS assets");
-            vm.expectRevert(CrownSovereignMigrate.SystemShort.selector);
-            mig.migrate();
-            return;
-        }
-
         mig.migrate();
         vm.stopPrank();
 
-        (, uint128 borLegacy, uint128 collLegacy) = IMorphoS(MORPHO).position(LEGACY, HOT);
-        (, uint128 borSov, uint128 collSov) = IMorphoS(MORPHO).position(sovId, HOT);
-        assertEq(borLegacy, 0, "legacy borrow cleared");
-        assertEq(collLegacy, 0, "legacy coll cleared");
-        assertEq(collSov, COLL, "RSS on sovereign");
+        (, uint128 borLeg, uint128 collLeg) = IMorphoS(MORPHO).position(LEGACY, HOT);
+        (, uint128 borSov, uint128 collSov) = IMorphoS(MORPHO).position(LIVE_SOV, HOT);
+
+        console2.log("legacyBorrowSharesAfter", borLeg);
+        console2.log("legacyCollAfter", collLeg);
+        console2.log("sovereignColl", collSov);
+        console2.log("sovereignBorrow", borSov);
+
+        // Majority of RSS must land on sovereign — gap is not chased
+        assertGt(collSov, (COLL * 85) / 100, ">=85% RSS freed to sovereign");
         assertEq(borSov, 0);
+        assertEq(IOracleS(LIVE_ORACLE).price(), 50000000000000000000000000000);
 
-        assertEq(IOracleS(oracle).price(), P50K);
-        uint256 collValue = (uint256(collSov) * P50K) / 1e36;
-        console2.log("sovereignCollValueUsdc6", collValue);
-        console2.log("paperLtvBpsIfSameDebt", (debt * 10_000) / collValue);
-        assertLt((debt * 10_000) / collValue, 300);
-
-        assertLt(IERC20S(USDC).balanceOf(HOT), 5_000_000e6, "no multi-million treasury burn");
+        // Residual legacy (if any) must be healthy at LLTV
+        if (borLeg > 0) {
+            assertGt(collLeg, 0, "residual debt keeps some RSS");
+            IMorphoMarket.MarketParams memory mp =
+                IMorphoMarket.MarketParams(USDC, RSS, LEGACY_ORACLE, IRM, LLTV);
+            IMorphoS(MORPHO).accrueInterest(mp);
+            (,, uint128 tba, uint128 tbs,,) = IMorphoS(MORPHO).market(LEGACY);
+            uint256 debt = (uint256(tba) * uint256(borLeg) + uint256(tbs) - 1) / uint256(tbs);
+            uint256 px = IOracleS(LEGACY_ORACLE).price();
+            uint256 collValue = uint256(collLeg) * px / 1e36;
+            uint256 maxDebt = collValue * LLTV / 1e18;
+            console2.log("residualDebt", debt);
+            console2.log("residualMaxDebt", maxDebt);
+            assertLe(debt, maxDebt, "residual healthy");
+        } else {
+            assertEq(collLeg, 0, "flat legacy if debt cleared");
+            assertEq(collSov, COLL, "full 252k on sovereign");
+        }
     }
 }

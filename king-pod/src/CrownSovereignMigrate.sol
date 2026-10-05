@@ -25,14 +25,14 @@ interface IMorphoFlashLoanCallbackM {
 interface IYrssM {
     function withdraw(uint256 assets, address receiver, address owner) external returns (uint256);
     function maxWithdraw(address owner) external view returns (uint256);
-    function balanceOf(address) external view returns (uint256);
-    function convertToAssets(uint256 shares) external view returns (uint256);
-    function totalAssets() external view returns (uint256);
 }
 
-/// @notice Path B — self-fund: Morpho flash + King yRSS equity. Path A (King treasury) REMOVED.
-/// @dev Cannot borrow on sovereign market first: RSS locked on legacy; sovereign book has no lenders.
-///      Debt is Morpho borrow funded by yRSS suppliers — not King wallet USDC.
+interface IOracleM {
+    function price() external view returns (uint256);
+}
+
+/// @notice Path B — flash + King yRSS. Path A REMOVED. $4.4M gap STRUCK (not chased).
+/// @dev Reserve flash repay first from yRSS idle; spend surplus on debt; free max RSS to sovereign.
 contract CrownSovereignMigrate is Ownable, ReentrancyGuard, IMorphoFlashLoanCallbackM {
     using SafeTransfer for IERC20;
 
@@ -51,7 +51,6 @@ contract CrownSovereignMigrate is Ownable, ReentrancyGuard, IMorphoFlashLoanCall
     bool private _inFlash;
 
     error OnlyMorpho();
-    error Short();
     error NothingToMigrate();
     error NoFlashLiquidity();
     error SystemShort();
@@ -97,7 +96,6 @@ contract CrownSovereignMigrate is Ownable, ReentrancyGuard, IMorphoFlashLoanCall
         return (uint256(tba) * uint256(borShares) + uint256(tbs) - 1) / uint256(tbs);
     }
 
-    /// @notice Self-fund migrate. No King wallet USDC.
     function migrate() external onlyOwner nonReentrant {
         morpho.accrueInterest(_legacyMp());
         (, uint128 bor, uint128 coll) = morpho.position(legacyMarketId, king);
@@ -107,66 +105,84 @@ contract CrownSovereignMigrate is Ownable, ReentrancyGuard, IMorphoFlashLoanCall
             uint256 debt = _debtAssets(bor);
             uint256 morphoCash = usdc.balanceOf(address(morpho));
             if (morphoCash == 0 || debt == 0) revert NoFlashLiquidity();
-
-            // King must own enough yRSS assets to settle debt through the vault (system capital).
-            uint256 kingYrss = yrss.convertToAssets(yrss.balanceOf(king));
-            if (kingYrss < debt) revert SystemShort();
-
             uint256 flashAmt = debt < morphoCash ? debt : morphoCash;
             _inFlash = true;
-            morpho.flashLoan(address(usdc), flashAmt, abi.encode(uint256(coll)));
+            morpho.flashLoan(address(usdc), flashAmt, "");
             _inFlash = false;
-            _supplyMigratorRssOnSovereign();
         } else if (coll > 0) {
             morpho.withdrawCollateral(_legacyMp(), coll, king, address(this));
-            _supplyMigratorRssOnSovereign();
         }
+
+        _supplyMigratorRssOnSovereign();
         _sweepKing();
     }
 
-    function onMorphoFlashLoan(uint256 assets, bytes calldata data) external override {
+    function onMorphoFlashLoan(uint256 assets, bytes calldata) external override {
         if (msg.sender != address(morpho) || !_inFlash) revert OnlyMorpho();
-        uint256 coll = abi.decode(data, (uint256));
         IMorphoMarket.MarketParams memory leg = _legacyMp();
-
         usdc.approve(address(morpho), type(uint256).max);
 
-        // 1) Partial/full repay with flash — opens market idle
         uint256 cash = usdc.balanceOf(address(this));
         if (cash > 0) morpho.repay(leg, cash, 0, king, "");
 
-        // 2) Drain King yRSS liquidity (loop: idle unlocks in waves as we repay)
         _pullAllYrss();
-
-        // 3) Finish legacy debt from yRSS proceeds
-        (, uint128 borRem,) = morpho.position(legacyMarketId, king);
-        if (borRem > 0) {
-            if (usdc.balanceOf(address(this)) < _debtAssets(borRem)) {
-                _pullAllYrss();
-            }
-            if (usdc.balanceOf(address(this)) < _debtAssets(borRem)) revert SystemShort();
-            morpho.repay(leg, 0, borRem, king, "");
-        }
-
-        // 4) More idle may open after final repay — pull again for flash coverage
-        _pullAllYrss();
-
-        // 5) RSS to migrator
-        (, , uint128 collRem) = morpho.position(legacyMarketId, king);
-        if (collRem > 0) morpho.withdrawCollateral(leg, collRem, king, address(this));
-        if (coll > 0 && rss.balanceOf(address(this)) == 0) revert Short();
-
-        // 6) Flash repay from yRSS proceeds only
-        if (usdc.balanceOf(address(this)) < assets) {
+        uint256 bal = usdc.balanceOf(address(this));
+        if (bal < assets) {
             _pullAllYrss();
+            bal = usdc.balanceOf(address(this));
         }
-        if (usdc.balanceOf(address(this)) < assets) revert SystemShort();
+        // Flash coverage first — gap not chased if surplus is thin
+        if (bal < assets) revert SystemShort();
+
+        // Surplus above flash reserve → cut legacy debt (optional, max effort)
+        if (bal > assets) {
+            uint256 spend = bal - assets;
+            (, uint128 borRem,) = morpho.position(legacyMarketId, king);
+            if (borRem > 0) {
+                uint256 debtLeft = _debtAssets(borRem);
+                if (spend >= debtLeft) morpho.repay(leg, 0, borRem, king, "");
+                else morpho.repay(leg, spend, 0, king, "");
+                _pullAllYrss();
+                bal = usdc.balanceOf(address(this));
+                if (bal > assets) {
+                    (, borRem,) = morpho.position(legacyMarketId, king);
+                    if (borRem > 0 && bal - assets >= _debtAssets(borRem)) {
+                        morpho.repay(leg, 0, borRem, king, "");
+                    }
+                }
+            }
+        }
+
+        _freeMaxRss(leg);
+
+        bal = usdc.balanceOf(address(this));
+        if (bal < assets) {
+            _pullAllYrss();
+            bal = usdc.balanceOf(address(this));
+        }
+        if (bal < assets) revert SystemShort();
         usdc.approve(address(morpho), assets);
+    }
+
+    function _freeMaxRss(IMorphoMarket.MarketParams memory leg) internal {
+        (, uint128 borRem, uint128 collRem) = morpho.position(legacyMarketId, king);
+        if (collRem == 0) return;
+        if (borRem == 0) {
+            morpho.withdrawCollateral(leg, collRem, king, address(this));
+            return;
+        }
+        uint256 debtLeft = _debtAssets(borRem);
+        uint256 px = IOracleM(legacyOracle).price();
+        uint256 minCollValue = (debtLeft * 1e18 + lltv - 1) / lltv;
+        uint256 minColl = (minCollValue * 1e36 + px - 1) / px;
+        minColl = minColl + minColl / 200; // 0.5% buffer
+        if (minColl >= collRem) return;
+        morpho.withdrawCollateral(leg, uint256(collRem) - minColl, king, address(this));
     }
 
     function _supplyMigratorRssOnSovereign() internal {
         uint256 bal = rss.balanceOf(address(this));
-        if (bal == 0) revert Short();
+        if (bal == 0) return;
         rss.approve(address(morpho), type(uint256).max);
         morpho.supplyCollateral(_sovMp(), bal, king, "");
     }
