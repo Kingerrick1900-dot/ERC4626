@@ -158,4 +158,19 @@ contract SimCrownGateV2 is Test {
         vm.expectRevert(CrownGateV2.NotKing.selector);
         gate.borrowUSDC(1, address(this));
     }
+
+    /// @notice Live deployed gate kill switch — builder handoff P1 step 5.
+    function test_live_gate_kill_switch() public {
+        CrownGateV2 gate = CrownGateV2(payable(0x76fa390951fA31185490378F46B6e9F05bA4bC3b));
+        assertEq(gate.king(), HOT);
+
+        vm.startPrank(HOT);
+        gate.setPaused(true);
+        vm.expectRevert(CrownGateV2.IsPaused.selector);
+        gate.borrowUSDC(1, HOT);
+        gate.setPaused(false);
+        vm.stopPrank();
+
+        console2.log("KILL_SWITCH", uint256(1));
+    }
 }
