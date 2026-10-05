@@ -159,24 +159,24 @@ contract SimCrownGateV2 is Test {
         gate.borrowUSDC(1, address(this));
     }
 
-    address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
+    address constant NEW_COLD = 0x5E07D7167282F9ec912a05c3048D7D0F24A8b826;
     address constant LIVE_GATE = 0x76fa390951fA31185490378F46B6e9F05bA4bC3b;
 
-    /// @notice HOT → Landing rotation on live gate (fork only).
-    function test_king_rotation_hot_to_landing() public {
+    /// @notice HOT → new cold rotation on live gate (fork only).
+    function test_king_rotation_hot_to_new_cold() public {
         CrownGateV2 gate = CrownGateV2(payable(LIVE_GATE));
         assertEq(gate.king(), HOT);
-
+        // Live pending may already be NEW_COLD from initiate; re-set for determinism.
         vm.prank(HOT);
-        gate.initiateKingTransfer(LANDING);
-        assertEq(gate.pendingKing(), LANDING);
+        gate.initiateKingTransfer(NEW_COLD);
+        assertEq(gate.pendingKing(), NEW_COLD);
 
-        vm.prank(LANDING);
+        vm.prank(NEW_COLD);
         gate.acceptKingship();
-        assertEq(gate.king(), LANDING);
+        assertEq(gate.king(), NEW_COLD);
         assertEq(gate.pendingKing(), address(0));
 
-        vm.prank(LANDING);
+        vm.prank(NEW_COLD);
         gate.setOperator(HOT, true);
         assertTrue(gate.operator(HOT));
 
