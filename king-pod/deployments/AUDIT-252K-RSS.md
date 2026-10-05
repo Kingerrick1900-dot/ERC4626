@@ -86,6 +86,8 @@ Morpho collateral value (loan units) = `collateral * price / 1e36`:
 
 **Audit finding (not softened):** At this block, **LTV 85.08% > LLTV 77%**. The stored Morpho view marks this position **over the liquidation threshold**. Interest may push further on next accrue. This is a fact of the read, not a recommendation.
 
+**Oracle $50k command:** Paper LTV at $50,000 would be ~2.04%. Live oracle is still **$1,200** — immutable bytecode, no `setPrice`. See `ORACLE-50K-COMMAND-RECORD.md`. Commanded ≠ executed.
+
 ---
 
 ## 5) Key holder — address + controller
