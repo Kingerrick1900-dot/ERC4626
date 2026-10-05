@@ -8,17 +8,19 @@
 
 ## AMO 6 — green on-chain
 
+**Proof paste (full txs · live canMint · borders ×3):** see [`PROOF-AMO6-GREEN.md`](PROOF-AMO6-GREEN.md).
+
 | Piece | Address / value |
 |--|--|
 | **CrownCircuitBreaker** | `0xd92482bb8a4Ac2F6B80cd1583D2b7AcB630759A8` |
 | armed / tripped | **true** / **false** |
 | yRssBaseline | `255873051242331` |
-| PauseStub (registered) | `0xBbA40146…` + 3 more (`FireAmo6RegisterMore`) |
+| PauseStub (registered) | `0xBbA40146e15EFE9350b41d99BD067630135c683E` + 3 more (`FireAmo6RegisterMore`) |
 | amoCount | **4** |
 | **MintGate** | `0xf2a6cE82E89C347637e173Dd892385A118048982` |
 | canMint / unlocked | **false** / **0** |
 | ColdBuffer `minBufferBps` | **3000** |
-| bordersSecure Base | **true** · epoch **16** |
+| bordersSecure Base / Poly / Scroll | **true** · epochs **16 / 8 / 10** |
 | PqRegistry keyCount | **4** (pre-existing) |
 
 ### Txs
