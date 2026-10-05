@@ -26,10 +26,10 @@ Fire scripts: `script/FireKingsCombined.s.sol` · `script/FireKingsOrder.s.sol` 
 
 | Step | Action | Contract / call | Status |
 |--|--|--|--|
-| 1 | Generate fresh **cold** wallet (offline; never fund as HOT) | — | ⏳ Pending |
-| 2 | `initiateKingTransfer(cold)` | `CrownGateV2` @ `0x76fa390951fA31185490378F46B6e9F05bA4bC3b` · `onlyKing` | ⏳ Pending |
-| 3 | `acceptKingship()` from **cold** | same gate · `msg.sender == pendingKing` | ⏳ Pending |
-| 4 | HOT remains **operator only** on gate + credit | `setOperator(HOT, true)` stays; **no** `king = HOT` after rotate | ⏳ Pending |
+| 1 | **Landing** = cold sovereign wallet | `0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357` | ✅ Recorded |
+| 2 | `initiateKingTransfer(Landing)` | `CrownGateV2` @ `0x76fa…` · HOT signed | ✅ **Live** · `FIRE-KING-ROTATE.md` |
+| 3 | `acceptKingship()` from **Landing** | `pendingKing == Landing` | ⏳ Pending Landing key |
+| 4 | HOT **operator only** on gate | `setOperator(HOT, true)` from Landing after accept | ⏳ Pending |
 | 5 | Kill switch drill | `setPaused(true)` → `supplyCollateral` / `borrowUSDC` **revert `IsPaused`** → `setPaused(false)` | Fork **PASS** (`test_live_gate_kill_switch`) · mainnet drill ⏳ |
 | 6 | Approval hygiene | `resetApprovals()` after every borrow/repay cycle | ⏳ Pending |
 

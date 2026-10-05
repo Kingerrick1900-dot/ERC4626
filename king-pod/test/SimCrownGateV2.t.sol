@@ -159,6 +159,34 @@ contract SimCrownGateV2 is Test {
         gate.borrowUSDC(1, address(this));
     }
 
+    address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
+    address constant LIVE_GATE = 0x76fa390951fA31185490378F46B6e9F05bA4bC3b;
+
+    /// @notice HOT → Landing rotation on live gate (fork only).
+    function test_king_rotation_hot_to_landing() public {
+        CrownGateV2 gate = CrownGateV2(payable(LIVE_GATE));
+        assertEq(gate.king(), HOT);
+
+        vm.prank(HOT);
+        gate.initiateKingTransfer(LANDING);
+        assertEq(gate.pendingKing(), LANDING);
+
+        vm.prank(LANDING);
+        gate.acceptKingship();
+        assertEq(gate.king(), LANDING);
+        assertEq(gate.pendingKing(), address(0));
+
+        vm.prank(LANDING);
+        gate.setOperator(HOT, true);
+        assertTrue(gate.operator(HOT));
+
+        vm.prank(HOT);
+        vm.expectRevert(CrownGateV2.NotKing.selector);
+        gate.setPaused(true);
+
+        console2.log("KING_ROTATION", uint256(1));
+    }
+
     /// @notice Live deployed gate kill switch — builder handoff P1 step 5.
     function test_live_gate_kill_switch() public {
         CrownGateV2 gate = CrownGateV2(payable(0x76fa390951fA31185490378F46B6e9F05bA4bC3b));
