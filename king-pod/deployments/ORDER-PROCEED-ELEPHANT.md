@@ -49,13 +49,15 @@
 
 | Fact | Value |
 |--|--|
-| Gate Morpho collateral | **222521940922706875000000** RSS (~222.5k units) |
-| Gate Morpho borrow | **~3,000,017 USDC** (market fully drawn) |
-| Market idle USDC | **0** (`totalSupplyAssets == totalBorrowAssets`) |
-| Safe wallet cbBTC / yRSS / RSS / USDC | **0** |
-| Free collateral under Safe to post | **none observed** |
+| Gate Morpho (SOV) collateral | **222521940922706875000000** RSS (~222.5k) — already posted |
+| Gate Morpho (SOV) borrow | **~3,000,017 USDC** |
+| SOV market idle USDC | **$0** |
+| Safe wallet (USDC/cbBTC/WETH/RSS/yRSS) | **all 0** |
+| HOT cbBTC | **257 wei** (not borrowable size) |
+| HOT yRSS | shares large · `maxWithdraw(HOT)=0` |
+| External idle cbBTC/USDC Morpho `0x9103…1836` | **~$168.5M** idle — needs **real cbBTC** Kingdom does not hold |
 
-**To green Item 3:** Accepted collateral under Safe (or authorized Gate post path) sized to intended borrow at LLTV with buffer, **and** a Morpho market with verified idle USDC **> 0**. Current SOV market idle = **$0** — no new claim inventory.
+**To green Item 3:** (1) SOV path — new USDC supply into SOV (idle > 0) + free RSS under Safe/Gate; or (2) cbBTC path — material cbBTC under Safe → post on `0x9103…1836` (86% LLTV) → borrow ≤ risk locks. No paper games.
 
 ### Item 4 — Risk Parameters Locked → **GREEN** (agent law)
 
