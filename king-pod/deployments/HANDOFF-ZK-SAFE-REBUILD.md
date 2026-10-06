@@ -38,6 +38,22 @@ FIRE_KINGS_COMBINED=1 ZK_SHIELD=1 MODE=cover \
 
 Gate fires now pass `whenZkFire` because `isProven(king)==isProven(Safe)==true`.
 
+---
+
+## Re-verify (builder executed handoff)
+
+| Check | Result |
+|--|--|
+| `circom --version` | 2.1.9 (binary `/usr/local/bin/circom`) |
+| `king()` | Safe `0x23590FEb…eac0` |
+| `pendingKing()` | `0x0` |
+| `isProven(Safe)` WalletGate | **true** |
+| `minThreshold()` | `200000000000` |
+| HOT USDC | `164417` (~$0.16) — cover still blocked |
+| Artifacts | `zk/proofs/wallet_safe_{proof,public,witness,input,solidity}.*` |
+
+Doctrine held: Safe King · HOT operator only · no throne return.
+
 ```
 HANDOFF=ZK_SAFE_REBUILD
 STATUS=DONE
