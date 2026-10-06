@@ -62,6 +62,8 @@ contract MockZkGateTrue {
 /// @notice Fork: ZK-mandatory CrownGateV2 + AutoDraw against sovereign market.
 contract SimCrownGateV2 is Test {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
+    address constant SAFE = 0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0;
+    address constant LIVE_GATE = 0x76fa390951fA31185490378F46B6e9F05bA4bC3b;
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant RSS = 0x7a305D07B537359cf468eAea9bb176E5308bC337;
@@ -79,6 +81,26 @@ contract SimCrownGateV2 is Test {
 
     function test_live_zk_proven_hot() public view {
         assertTrue(IZkT(ZK_WALLET_GATE).isProven(HOT), "HOT must be ZK-proven on Base port gate");
+    }
+
+    function test_live_zk_proven_safe_king() public view {
+        CrownGateV2 gate = CrownGateV2(payable(LIVE_GATE));
+        assertEq(gate.king(), SAFE, "Safe is King");
+        assertEq(gate.pendingKing(), address(0), "no pending king");
+        assertTrue(gate.operator(HOT), "HOT is operator");
+        assertTrue(IZkT(ZK_WALLET_GATE).isProven(SAFE), "isProven(Safe) required for whenZkFire");
+    }
+
+    function test_live_market_params() public view {
+        CrownGateV2 gate = CrownGateV2(payable(LIVE_GATE));
+        assertEq(gate.MARKET_ID(), SOV);
+        assertEq(gate.loanToken(), USDC);
+        assertEq(gate.collateralToken(), RSS);
+        assertEq(gate.oracle(), SOV_ORACLE);
+        assertEq(gate.irm(), IRM);
+        assertEq(gate.lltv(), LLTV);
+        assertEq(address(gate.zkGate()), ZK_WALLET_GATE);
+        assertFalse(gate.paused());
     }
 
     function test_reverts_without_zk() public {
@@ -159,46 +181,76 @@ contract SimCrownGateV2 is Test {
         gate.borrowUSDC(1, address(this));
     }
 
-    address constant NEW_COLD = 0x5E07D7167282F9ec912a05c3048D7D0F24A8b826;
-    address constant LIVE_GATE = 0x76fa390951fA31185490378F46B6e9F05bA4bC3b;
-
-    /// @notice HOT → new cold rotation on live gate (fork only).
-    function test_king_rotation_hot_to_new_cold() public {
+    /// @notice Safe King: HOT operator cannot pause; only King controls pause.
+    function test_safe_king_hot_cannot_pause() public {
         CrownGateV2 gate = CrownGateV2(payable(LIVE_GATE));
-        assertEq(gate.king(), HOT);
-        // Live pending may already be NEW_COLD from initiate; re-set for determinism.
-        vm.prank(HOT);
-        gate.initiateKingTransfer(NEW_COLD);
-        assertEq(gate.pendingKing(), NEW_COLD);
-
-        vm.prank(NEW_COLD);
-        gate.acceptKingship();
-        assertEq(gate.king(), NEW_COLD);
-        assertEq(gate.pendingKing(), address(0));
-
-        vm.prank(NEW_COLD);
-        gate.setOperator(HOT, true);
+        assertEq(gate.king(), SAFE);
         assertTrue(gate.operator(HOT));
 
         vm.prank(HOT);
         vm.expectRevert(CrownGateV2.NotKing.selector);
         gate.setPaused(true);
 
-        console2.log("KING_ROTATION", uint256(1));
+        console2.log("SAFE_KING_HOT_CANNOT_PAUSE", uint256(1));
     }
 
-    /// @notice Live deployed gate kill switch — builder handoff P1 step 5.
+    /// @notice Live gate kill switch under Safe king (fork prank as Safe).
     function test_live_gate_kill_switch() public {
-        CrownGateV2 gate = CrownGateV2(payable(0x76fa390951fA31185490378F46B6e9F05bA4bC3b));
-        assertEq(gate.king(), HOT);
+        CrownGateV2 gate = CrownGateV2(payable(LIVE_GATE));
+        assertEq(gate.king(), SAFE);
+        assertTrue(IZkT(ZK_WALLET_GATE).isProven(SAFE));
 
-        vm.startPrank(HOT);
+        vm.prank(SAFE);
         gate.setPaused(true);
+        assertTrue(gate.paused());
+
+        vm.prank(HOT);
         vm.expectRevert(CrownGateV2.IsPaused.selector);
         gate.borrowUSDC(1, HOT);
+
+        vm.prank(SAFE);
         gate.setPaused(false);
-        vm.stopPrank();
+        assertFalse(gate.paused());
 
         console2.log("KILL_SWITCH", uint256(1));
     }
+
+    /// @notice rescueToken blocks collateral; allows other tokens (fork).
+    function test_rescue_blocks_collateral() public {
+        CrownGateV2 gate = CrownGateV2(payable(LIVE_GATE));
+        assertEq(gate.king(), SAFE);
+
+        vm.prank(SAFE);
+        vm.expectRevert(CrownGateV2.RescueBlocked.selector);
+        gate.rescueToken(RSS, 1, SAFE);
+
+        console2.log("RESCUE_BLOCKS_COLLATERAL", uint256(1));
+    }
+
+    /// @notice Only Safe King may initiate transfer; HOT cannot steal the throne.
+    function test_only_safe_initiates_king_transfer() public {
+        CrownGateV2 gate = CrownGateV2(payable(LIVE_GATE));
+        assertEq(gate.king(), SAFE);
+
+        vm.prank(HOT);
+        vm.expectRevert(CrownGateV2.NotKing.selector);
+        gate.initiateKingTransfer(HOT);
+
+        vm.prank(SAFE);
+        gate.initiateKingTransfer(NEW_COLD);
+        assertEq(gate.pendingKing(), NEW_COLD);
+
+        // Cancel path: re-initiate to zero-safe holding — leave pending; do not accept (doctrine).
+        // Clear by initiating back to Safe then accept as Safe (no HOT throne).
+        vm.prank(SAFE);
+        gate.initiateKingTransfer(SAFE);
+        vm.prank(SAFE);
+        gate.acceptKingship();
+        assertEq(gate.king(), SAFE);
+        assertEq(gate.pendingKing(), address(0));
+
+        console2.log("KING_TRANSFER_CONTROLS", uint256(1));
+    }
+
+    address constant NEW_COLD = 0x5E07D7167282F9ec912a05c3048D7D0F24A8b826;
 }
