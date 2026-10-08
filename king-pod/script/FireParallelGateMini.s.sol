@@ -50,6 +50,6 @@ contract FireParallelGateMini is Script {
         console2.log("pendingKing", gate.pendingKing());
         console2.log("operatorHOT", gate.operator(HOT));
         console2.logBytes32(gate.MARKET_ID());
-        console2.log("MISSION parallel mini Gate live — Safe King, no accept");
+        console2.log("MISSION parallel mini Gate live - Safe King, no accept");
     }
 }
