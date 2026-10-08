@@ -86,7 +86,7 @@ contract SimZkIdleEngineer is Test {
         MockZkOff off = new MockZkOff();
         IMorphoMarket.MarketParams memory mp =
             IMorphoMarket.MarketParams(USDC, RSS, SOV_ORACLE, IRM, LLTV);
-        CrownGateV2 g = new CrownGateV2(HOT, address(off), mp);
+        CrownGateV2 g = new CrownGateV2(HOT, address(off), mp, address(0));
         CrownZkIdleEngineer eng = new CrownZkIdleEngineer(MORPHO, USDC, YRSS, address(off), address(g), HOT, HOT);
         vm.prank(HOT);
         vm.expectRevert(CrownZkIdleEngineer.NotProven.selector);

@@ -107,7 +107,7 @@ contract SimCrownGateV2 is Test {
         MockZkGateFalse bad = new MockZkGateFalse();
         IMorphoMarket.MarketParams memory mp =
             IMorphoMarket.MarketParams(USDC, RSS, SOV_ORACLE, IRM, LLTV);
-        CrownGateV2 gate = new CrownGateV2(HOT, address(bad), mp);
+        CrownGateV2 gate = new CrownGateV2(HOT, address(bad), mp, address(0));
         vm.prank(HOT);
         vm.expectRevert(CrownGateV2.NotProven.selector);
         gate.supplyCollateral(1);
@@ -134,7 +134,7 @@ contract SimCrownGateV2 is Test {
         credit.supply(50_000e6);
 
         vm.startPrank(HOT);
-        CrownGateV2 gate = new CrownGateV2(HOT, ZK_WALLET_GATE, mp);
+        CrownGateV2 gate = new CrownGateV2(HOT, ZK_WALLET_GATE, mp, HOT);
         CrownZkAutoDraw autoDraw = new CrownZkAutoDraw(ZK_WALLET_GATE, address(gate), address(credit), HOT, HOT, HOT);
         gate.setOperator(address(autoDraw), true);
         credit.setOperator(address(autoDraw), true);
@@ -176,7 +176,7 @@ contract SimCrownGateV2 is Test {
     function test_only_king() public {
         IMorphoMarket.MarketParams memory mp =
             IMorphoMarket.MarketParams(USDC, RSS, SOV_ORACLE, IRM, LLTV);
-        CrownGateV2 gate = new CrownGateV2(HOT, ZK_WALLET_GATE, mp);
+        CrownGateV2 gate = new CrownGateV2(HOT, ZK_WALLET_GATE, mp, HOT);
         vm.expectRevert(CrownGateV2.NotKing.selector);
         gate.borrowUSDC(1, address(this));
     }

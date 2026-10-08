@@ -85,7 +85,13 @@ contract CrownGateV2 is ReentrancyGuard {
         _;
     }
 
-    constructor(address _king, address _zkGate, IMorphoMarket.MarketParams memory _params) {
+    /// @param _operator Optional initial operator (pass address(0) for none).
+    constructor(
+        address _king,
+        address _zkGate,
+        IMorphoMarket.MarketParams memory _params,
+        address _operator
+    ) {
         if (_king == address(0) || _zkGate == address(0)) revert ZeroAddress();
         if (_params.loanToken == address(0) || _params.collateralToken == address(0)) revert ZeroAddress();
         if (_params.oracle == address(0) || _params.irm == address(0)) revert ZeroAddress();
@@ -104,6 +110,11 @@ contract CrownGateV2 is ReentrancyGuard {
 
         COLLATERAL_TOKEN.safeApprove(MORPHO, type(uint256).max);
         LOAN_TOKEN.safeApprove(MORPHO, type(uint256).max);
+
+        if (_operator != address(0)) {
+            operator[_operator] = true;
+            emit OperatorSet(_operator, true);
+        }
     }
 
     function marketParams() public view returns (IMorphoMarket.MarketParams memory) {

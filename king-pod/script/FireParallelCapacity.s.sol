@@ -84,7 +84,7 @@ contract FireParallelCapacity is Script {
 
         IMorphoMarket.MarketParams memory gateMp =
             IMorphoMarket.MarketParams(USDC, RSS, SOV_ORACLE, IRM, PARALLEL_LLTV);
-        CrownGateV2 gate = new CrownGateV2(HOT, zkGate, gateMp);
+        CrownGateV2 gate = new CrownGateV2(HOT, zkGate, gateMp, HOT);
         require(gate.MARKET_ID() == parId, "GATE_ID");
 
         gate.setOperator(HOT, true);

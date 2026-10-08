@@ -151,7 +151,7 @@ contract FireCrownGateV2 is Script {
 
         vm.startBroadcast(pk);
 
-        CrownGateV2 gate = new CrownGateV2(HOT, zkGate, mp);
+        CrownGateV2 gate = new CrownGateV2(HOT, zkGate, mp, HOT);
         console2.log("CrownGateV2", address(gate));
         console2.logBytes32(gate.MARKET_ID());
 
