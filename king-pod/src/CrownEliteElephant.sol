@@ -55,9 +55,10 @@ interface IOracleEl {
     function transferOwnership(address newOwner) external;
 }
 
-/// @notice Elite Elephant — atomic self-del migrate: legacy SOV book → parallel 38.5% rail.
-/// @dev Morpho flash (0%) · temp oracle self-del · reseat RSS on PAR · borrow · restore oracle · repay flash.
-///      RSS never sold — seized to this Kingdom contract and re-posted as collateral.
+/// @notice Elite Elephant — atomic self-del migrate: jammed Safe Gate → HOT-owned Elephant on SOV.
+/// @dev Morpho flash (0%) · calibrated oracle self-del · reseat RSS + debt on this contract · restore oracle.
+///      RSS never sold. PAR seat deferred: parallel book has $0 idle and Kingdom SOV LP contracts have no withdraw.
+///      LIQ_PRICE is in the Morpho band where full repaidShares seizes exact collateral (no bad-debt socialize).
 contract CrownEliteElephant is Ownable, ReentrancyGuard {
     using SafeTransfer for IERC20;
 
@@ -65,8 +66,9 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
     bytes32 public constant PAR = 0x1bfd981b9905c55085390f7dedad00f32cd43527acf9dabe7de758e3f6c42134;
     address public constant LEGACY_GATE = 0x76fa390951fA31185490378F46B6e9F05bA4bC3b;
 
-    /// @dev Morpho price low enough that 222k RSS @ 77% LLTV cannot cover ~$3M debt.
-    uint256 public constant LIQ_PRICE = 1e25; // ~$10 / RSS on Morpho scale
+    /// @dev Exact Morpho band floor: full borrowShares repay seizes all Gate RSS; no underflow; no bad debt.
+    ///      Band ≈ [1.448109e25, 1.750896e25). Live-calibrated to Gate coll + debt + 77% LIF.
+    uint256 public constant LIQ_PRICE = 14481091385879511120322260;
 
     IMorphoEl public immutable morpho;
     IERC20 public immutable usdc;
@@ -76,7 +78,7 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
     bool private _locking;
 
     event ElephantWalked(
-        uint256 debtRepaidShares, uint256 rssSeized, uint256 borrowedPar, uint256 priceRestored
+        uint256 debtRepaidAssets, uint256 rssSeized, uint256 borrowedSov, uint256 priceRestored
     );
 
     error OnlyMorpho();
@@ -84,6 +86,7 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
     error Short();
     error BadOracle();
     error FlashFail();
+    error GateResidual();
 
     constructor(address morpho_, address usdc_, address rss_, address oracle_, address owner_) Ownable(owner_) {
         morpho = IMorphoEl(morpho_);
@@ -119,40 +122,51 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
             abi.decode(data, (uint256, uint256, uint256));
 
         IMorphoEl.MarketParams memory sovMp = _params(SOV);
-        IMorphoEl.MarketParams memory parMp = _params(PAR);
 
         usdc.safeApprove(address(morpho), type(uint256).max);
         rss.safeApprove(address(morpho), type(uint256).max);
 
-        // 1) Self-del: drop oracle so Gate is liquidatable, seize RSS by repaying debt.
+        // 1) Self-del at calibrated LIQ_PRICE: repay ALL shares → seize ALL RSS (no bad debt).
         oracle.setPrice(LIQ_PRICE);
-        (uint256 seized, uint256 repaidShares) =
-            morpho.liquidate(sovMp, LEGACY_GATE, 0, borShares, "");
-        if (seized == 0) {
-            // fallback: seize by collateral amount
-            (seized, repaidShares) = morpho.liquidate(sovMp, LEGACY_GATE, coll, 0, "");
-        }
+        (, uint128 liveBor, uint128 liveColl) = morpho.position(SOV, LEGACY_GATE);
+        uint256 shares = uint256(liveBor);
+        if (shares == 0) shares = borShares;
+        if (uint256(liveColl) == 0 && coll == 0) revert FlashFail();
+
+        (uint256 seized, uint256 repaidAssets) = morpho.liquidate(sovMp, LEGACY_GATE, 0, shares, "");
+        if (seized == 0 || repaidAssets == 0) revert FlashFail();
+
+        // Gate must be flat — no stranded RSS under Safe-only withdraw.
+        (, uint128 gateBor, uint128 gateColl) = morpho.position(SOV, LEGACY_GATE);
+        if (gateBor != 0 || gateColl != 0) revert GateResidual();
 
         uint256 rssBal = rss.balanceOf(address(this));
         if (rssBal == 0) revert FlashFail();
 
-        // 2) Restore oracle before opening the parallel book at true King price.
+        // 2) Restore King oracle before opening the reseated book.
         oracle.setPrice(priceBefore);
 
-        // 3) Post RSS on parallel rail (this contract = Kingdom position vault).
-        morpho.supplyCollateral(parMp, rssBal, address(this), "");
+        // 3) Reseat RSS on SOV under this HOT-owned contract (same rail; escapes jammed Gate).
+        //    Liquidate just freed ~repaidAssets idle — borrow it back to repay the flash.
+        morpho.supplyCollateral(sovMp, rssBal, address(this), "");
 
-        // 4) Borrow USDC to repay flash (conservative: flash size).
-        uint256 need = assets;
-        (uint256 borrowed,) = morpho.borrow(parMp, need, 0, address(this), address(this));
+        uint256 need = assets - usdc.balanceOf(address(this));
+        if (need == 0) {
+            // Exact flash sizing edge: still open dust-sized borrow for event parity — skip.
+            need = 0;
+        }
+        uint256 borrowed;
+        if (need > 0) {
+            (borrowed,) = morpho.borrow(sovMp, need, 0, address(this), address(this));
+        }
 
         if (usdc.balanceOf(address(this)) < assets) revert Short();
         usdc.safeApprove(address(morpho), assets);
 
-        // Return oracle to King HOT before flash ends.
+        // 4) Return oracle to King HOT before flash ends.
         oracle.transferOwnership(owner);
 
-        emit ElephantWalked(repaidShares, seized, borrowed, priceBefore);
+        emit ElephantWalked(repaidAssets, seized, borrowed, priceBefore);
     }
 
     function _params(bytes32 id) internal view returns (IMorphoEl.MarketParams memory mp) {

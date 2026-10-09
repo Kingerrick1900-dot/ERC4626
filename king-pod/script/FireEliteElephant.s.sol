@@ -19,6 +19,7 @@ interface IOracleFire {
 }
 
 /// @notice FIRE_ELITE_ELEPHANT=1 · ZK_SHIELD=1 · HOT_KEY
+/// @dev Atomic Gate → Elephant reseat on SOV. PAR deferred (no idle / LP peel).
 contract FireEliteElephant is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
@@ -41,6 +42,7 @@ contract FireEliteElephant is Script {
         console2.log("legacyBorShares", uint256(bor));
         console2.log("legacyColl", uint256(coll));
         console2.log("oraclePrice", IOracleFire(ORACLE).price());
+        console2.log("liqPrice", uint256(14481091385879511120322260));
 
         vm.startBroadcast(pk);
         CrownEliteElephant el = new CrownEliteElephant(MORPHO, USDC, RSS, ORACLE, HOT);
@@ -51,13 +53,18 @@ contract FireEliteElephant is Script {
         vm.stopBroadcast();
 
         (, uint128 borAfter, uint128 collAfter) = IMorphoFire(MORPHO).position(SOV, LEGACY_GATE);
+        (, uint128 borEl, uint128 collEl) = IMorphoFire(MORPHO).position(SOV, address(el));
         (, uint128 borPar, uint128 collPar) = IMorphoFire(MORPHO).position(PAR, address(el));
         console2.log("ELEPHANT", address(el));
         console2.log("legacyCollAfter", uint256(collAfter));
         console2.log("legacyBorAfter", uint256(borAfter));
+        console2.log("elephantSovColl", uint256(collEl));
+        console2.log("elephantSovBorShares", uint256(borEl));
         console2.log("parColl", uint256(collPar));
         console2.log("parBorShares", uint256(borPar));
         console2.log("oracleAfter", IOracleFire(ORACLE).price());
+        require(collAfter == 0 && borAfter == 0, "GATE_NOT_FLAT");
+        require(collEl > 0 && borEl > 0, "ELEPHANT_NOT_SEATED");
         console2.log("MISSION elephant walked");
     }
 }
