@@ -18,6 +18,10 @@ interface IOracleK {
     function transferOwnership(address newOwner) external;
 }
 
+interface IERC20K {
+    function approve(address spender, uint256 amount) external returns (bool);
+}
+
 /// @notice FIRE_KILL_RESEAT_PAR=1 · ZK_SHIELD=1 · HOT_KEY
 /// @dev Kill Elephant $3M SOV debt via own-LP bad-debt unwind · reseat RSS on PAR · no draw.
 contract FireKillReseatPar is Script {
@@ -26,7 +30,7 @@ contract FireKillReseatPar is Script {
     address constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address constant RSS = 0x7a305D07B537359cf468eAea9bb176E5308bC337;
     address constant ORACLE = 0x22E2F66a26eA8d01E0Bb4154ef4DfB0304a34f2d;
-    address constant ELEPHANT = 0x03bdf75d11237C0560F48527F360640d9c7ddCAa;
+    address constant ELEPHANT = 0x03Bdf75d11237C0560F48527F360640d9c7ddCAa;
     address constant KF = 0x16a3a6d50e80D70C873645789afCECf8B8b6aDC9;
     address constant CF = 0x37C9b6f79cA311B40083363Eb231E62B980Fa646;
     bytes32 constant SOV = 0x1293c4e7708c2fd0239b093a9f43ef7792d66691c1216b106f6cfc270edb2f7b;
@@ -51,6 +55,8 @@ contract FireKillReseatPar is Script {
 
         vm.startBroadcast(pk);
         CrownKillReseatPar killer = new CrownKillReseatPar(MORPHO, USDC, RSS, ORACLE, HOT);
+        // Tip cover for dust liquidate repay (flash is always short by repaidAssets).
+        IERC20K(USDC).approve(address(killer), 1000);
         IOracleK(ORACLE).transferOwnership(address(killer));
         killer.killAndReseat();
         require(IOracleK(ORACLE).owner() == HOT, "ORACLE_NOT_RETURNED");
@@ -70,6 +76,6 @@ contract FireKillReseatPar is Script {
         console2.log("oraclePrice", IOracleK(ORACLE).price());
         require(elBor == 0, "ELEPHANT_DEBT_LIVE");
         require(kColl > 0 && kBor == 0, "PAR_NOT_COLL_ONLY");
-        console2.log("MISSION kill reseat par — $3M dead — $4.28B rail coll seated — no draw");
+        console2.log("MISSION kill reseat par - $3M dead - $4.28B rail coll seated - no draw");
     }
 }

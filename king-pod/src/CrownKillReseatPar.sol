@@ -56,10 +56,10 @@ contract CrownKillReseatPar is Ownable, ReentrancyGuard {
 
     bytes32 public constant SOV = 0x1293c4e7708c2fd0239b093a9f43ef7792d66691c1216b106f6cfc270edb2f7b;
     bytes32 public constant PAR = 0x1bfd981b9905c55085390f7dedad00f32cd43527acf9dabe7de758e3f6c42134;
-    address public constant ELEPHANT = 0x03bdf75d11237C0560F48527F360640d9c7ddCAa;
+    address public constant ELEPHANT = 0x03Bdf75d11237C0560F48527F360640d9c7ddCAa;
 
-    /// @dev Dust Morpho price — full seize repays pennies; remainder is bad-debt vs Kingdom LP.
-    uint256 public constant DUST_LIQ_PRICE = 1e20; // ≪ band; forces bad-debt unwind
+    /// @dev Dust Morpho price — full seize repays ~1 wei tip; remainder is bad-debt vs Kingdom LP.
+    uint256 public constant DUST_LIQ_PRICE = 1;
 
     IMorphoKill public immutable morpho;
     IERC20 public immutable usdc;
@@ -95,9 +95,12 @@ contract CrownKillReseatPar is Ownable, ReentrancyGuard {
         IMorphoKill.MarketParams memory sovMp = _params(SOV);
         morpho.accrueInterest(sovMp);
 
-        // Flash only needs the tiny liquidate repay (plus buffer), not $3M.
-        // At DUST_LIQ_PRICE, repaidAssets from full seize is ≪ $10k; pad hard for safety.
-        uint256 flashAmt = 50_000e6;
+        // Flash covers the dust liquidate tip only — not $3M. Tip shortfall pulled from HOT.
+        uint256 flashAmt = 100_000; // $0.10
+        uint256 tip = 1000; // covers ~2 wei repaidAssets at DUST_LIQ_PRICE
+        uint256 hotBal = usdc.balanceOf(owner);
+        if (hotBal < tip) tip = hotBal;
+        if (tip > 0) usdc.safeTransferFrom(owner, address(this), tip);
 
         uint256 priceBefore = oracle.price();
         _locking = true;
@@ -147,8 +150,16 @@ contract CrownKillReseatPar is Ownable, ReentrancyGuard {
 
         oracle.transferOwnership(owner);
 
+        // Return unused tip dust to HOT after flash repay pulls `assets`.
+        // (Morpho pulls flash repay after this callback returns.)
         uint256 badDebtHint = repaidAssets < 3_000_000e6 ? (3_000_000e6 - repaidAssets) : 0;
         emit KilledAndReseated(seized, repaidAssets, badDebtHint, priceBefore, uint256(parColl));
+    }
+
+    /// @notice Sweep leftover USDC tip after a successful kill.
+    function sweepUsdc() external onlyOwner {
+        uint256 bal = usdc.balanceOf(address(this));
+        if (bal > 0) usdc.safeTransfer(owner, bal);
     }
 
     function _params(bytes32 id) internal view returns (IMorphoKill.MarketParams memory mp) {
