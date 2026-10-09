@@ -56,9 +56,8 @@ interface IOracleEl {
 }
 
 /// @notice Elite Elephant — atomic self-del migrate: jammed Safe Gate → HOT-owned Elephant on SOV.
-/// @dev Morpho flash (0%) · calibrated oracle self-del · reseat RSS + debt on this contract · restore oracle.
-///      RSS never sold. PAR seat deferred: parallel book has $0 idle and Kingdom SOV LP contracts have no withdraw.
-///      LIQ_PRICE is in the Morpho band where full repaidShares seizes exact collateral (no bad-debt socialize).
+/// @dev Morpho flash (0%) · live-calibrated oracle self-del · reseat RSS + debt here · restore oracle.
+///      RSS never sold. PAR seat deferred: parallel book has $0 idle; Kingdom SOV LP has no withdraw.
 contract CrownEliteElephant is Ownable, ReentrancyGuard {
     using SafeTransfer for IERC20;
 
@@ -66,9 +65,10 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
     bytes32 public constant PAR = 0x1bfd981b9905c55085390f7dedad00f32cd43527acf9dabe7de758e3f6c42134;
     address public constant LEGACY_GATE = 0x76fa390951fA31185490378F46B6e9F05bA4bC3b;
 
-    /// @dev Exact Morpho band floor: full borrowShares repay seizes all Gate RSS; no underflow; no bad debt.
-    ///      Band ≈ [1.448109e25, 1.750896e25). Live-calibrated to Gate coll + debt + 77% LIF.
-    uint256 public constant LIQ_PRICE = 14481091385879511120322260;
+    uint256 internal constant WAD = 1e18;
+    uint256 internal constant ORACLE_PRICE_SCALE = 1e36;
+    uint256 internal constant LIQUIDATION_CURSOR = 0.3e18;
+    uint256 internal constant MAX_LIF = 1.15e18;
 
     IMorphoEl public immutable morpho;
     IERC20 public immutable usdc;
@@ -87,6 +87,7 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
     error BadOracle();
     error FlashFail();
     error GateResidual();
+    error BadLiqPrice();
 
     constructor(address morpho_, address usdc_, address rss_, address oracle_, address owner_) Ownable(owner_) {
         morpho = IMorphoEl(morpho_);
@@ -126,19 +127,26 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
         usdc.safeApprove(address(morpho), type(uint256).max);
         rss.safeApprove(address(morpho), type(uint256).max);
 
-        // 1) Self-del at calibrated LIQ_PRICE: repay ALL shares → seize ALL RSS (no bad debt).
-        oracle.setPrice(LIQ_PRICE);
+        // Accrue again so LIQ_PRICE band matches liquidate's internal accrue.
+        morpho.accrueInterest(sovMp);
         (, uint128 liveBor, uint128 liveColl) = morpho.position(SOV, LEGACY_GATE);
         uint256 shares = uint256(liveBor);
+        uint256 collAmt = uint256(liveColl);
         if (shares == 0) shares = borShares;
-        if (uint256(liveColl) == 0 && coll == 0) revert FlashFail();
+        if (collAmt == 0) collAmt = coll;
 
+        (,, uint128 tba, uint128 tbs,,) = morpho.market(SOV);
+        uint256 liqPrice = _liqPrice(shares, collAmt, uint256(tba), uint256(tbs), sovMp.lltv);
+        if (liqPrice == 0) revert BadLiqPrice();
+
+        // 1) Self-del: full share repay seizes all RSS at calibrated price (no bad debt).
+        oracle.setPrice(liqPrice);
         (uint256 seized, uint256 repaidAssets) = morpho.liquidate(sovMp, LEGACY_GATE, 0, shares, "");
         if (seized == 0 || repaidAssets == 0) revert FlashFail();
 
-        // Gate must be flat — no stranded RSS under Safe-only withdraw.
-        (, uint128 gateBor, uint128 gateColl) = morpho.position(SOV, LEGACY_GATE);
-        if (gateBor != 0 || gateColl != 0) revert GateResidual();
+        // Debt must be gone. Sub-wei RSS dust may remain on Gate (Morpho round-down); Safe-only withdraw.
+        (, uint128 gateBor,) = morpho.position(SOV, LEGACY_GATE);
+        if (gateBor != 0) revert GateResidual();
 
         uint256 rssBal = rss.balanceOf(address(this));
         if (rssBal == 0) revert FlashFail();
@@ -146,15 +154,11 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
         // 2) Restore King oracle before opening the reseated book.
         oracle.setPrice(priceBefore);
 
-        // 3) Reseat RSS on SOV under this HOT-owned contract (same rail; escapes jammed Gate).
-        //    Liquidate just freed ~repaidAssets idle — borrow it back to repay the flash.
+        // 3) Reseat on SOV under this HOT-owned contract; borrow freed idle to repay flash.
         morpho.supplyCollateral(sovMp, rssBal, address(this), "");
 
-        uint256 need = assets - usdc.balanceOf(address(this));
-        if (need == 0) {
-            // Exact flash sizing edge: still open dust-sized borrow for event parity — skip.
-            need = 0;
-        }
+        uint256 bal = usdc.balanceOf(address(this));
+        uint256 need = assets > bal ? assets - bal : 0;
         uint256 borrowed;
         if (need > 0) {
             (borrowed,) = morpho.borrow(sovMp, need, 0, address(this), address(this));
@@ -167,6 +171,50 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
         oracle.transferOwnership(owner);
 
         emit ElephantWalked(repaidAssets, seized, borrowed, priceBefore);
+    }
+
+    /// @dev Floor price where Morpho repaidShares→seizedAssets ≤ coll, and position is unhealthy.
+    function _liqPrice(uint256 shares, uint256 collAmt, uint256 tba, uint256 tbs, uint256 lltv)
+        internal
+        pure
+        returns (uint256 price)
+    {
+        uint256 lif = _lif(lltv);
+        // Morpho: seized = toAssetsDown(shares).wMulDown(lif).mulDivDown(ORACLE, price)
+        uint256 debtDown = _mulDivDown(shares, tba, tbs);
+        uint256 num = _mulDivDown(debtDown, lif, WAD) * ORACLE_PRICE_SCALE;
+        // smallest price with seized <= coll: ceil(num / collAmt) but Morpho uses floor div on seize,
+        // so price = num / collAmt (floor) yields seized == coll when divides evenly, else seized < coll.
+        // Underflow when seized > coll ⟺ price < ceil(num/coll). Use ceil:
+        price = (num + collAmt - 1) / collAmt;
+
+        // Ensure liquidatable: borrowed > coll * price / ORACLE * lltv / WAD
+        uint256 debtUp = _mulDivUp(shares, tba, tbs);
+        // maxBorrow at `price` = coll * price / ORACLE * lltv / WAD
+        // need maxBorrow < debtUp ⇒ price < debtUp * ORACLE * WAD / (coll * lltv)
+        uint256 pMax = (debtUp * ORACLE_PRICE_SCALE * WAD) / (collAmt * lltv);
+        if (price >= pMax) {
+            // nudge just below pMax; still must be >= ceil band
+            if (pMax <= 1) revert BadLiqPrice();
+            price = pMax - 1;
+            // re-check seize fits
+            uint256 seized = num / price; // mulDivDown equivalent for our num construction
+            if (seized > collAmt) revert BadLiqPrice();
+        }
+    }
+
+    function _lif(uint256 lltv) internal pure returns (uint256) {
+        uint256 factor = WAD - _mulDivDown(LIQUIDATION_CURSOR, WAD - lltv, WAD);
+        uint256 lif = (WAD * WAD) / factor; // wDivDown
+        return lif < MAX_LIF ? lif : MAX_LIF;
+    }
+
+    function _mulDivDown(uint256 x, uint256 y, uint256 d) internal pure returns (uint256) {
+        return (x * y) / d;
+    }
+
+    function _mulDivUp(uint256 x, uint256 y, uint256 d) internal pure returns (uint256) {
+        return (x * y + d - 1) / d;
     }
 
     function _params(bytes32 id) internal view returns (IMorphoEl.MarketParams memory mp) {
