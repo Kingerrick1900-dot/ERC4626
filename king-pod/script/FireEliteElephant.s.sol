@@ -15,6 +15,7 @@ interface IMorphoFire {
 interface IOracleFire {
     function price() external view returns (uint256);
     function owner() external view returns (address);
+    function transferOwnership(address newOwner) external;
 }
 
 /// @notice FIRE_ELITE_ELEPHANT=1 · ZK_SHIELD=1 · HOT_KEY
@@ -43,7 +44,10 @@ contract FireEliteElephant is Script {
 
         vm.startBroadcast(pk);
         CrownEliteElephant el = new CrownEliteElephant(MORPHO, USDC, RSS, ORACLE, HOT);
+        // Elephant must own oracle for atomic self-del + restore inside the flash.
+        IOracleFire(ORACLE).transferOwnership(address(el));
         el.fire();
+        require(IOracleFire(ORACLE).owner() == HOT, "ORACLE_NOT_RETURNED");
         vm.stopBroadcast();
 
         (, uint128 borAfter, uint128 collAfter) = IMorphoFire(MORPHO).position(SOV, LEGACY_GATE);

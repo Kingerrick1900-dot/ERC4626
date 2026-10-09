@@ -52,6 +52,7 @@ interface IOracleEl {
     function price() external view returns (uint256);
     function setPrice(uint256 newPrice) external;
     function owner() external view returns (address);
+    function transferOwnership(address newOwner) external;
 }
 
 /// @notice Elite Elephant — atomic self-del migrate: legacy SOV book → parallel 38.5% rail.
@@ -147,6 +148,9 @@ contract CrownEliteElephant is Ownable, ReentrancyGuard {
 
         if (usdc.balanceOf(address(this)) < assets) revert Short();
         usdc.safeApprove(address(morpho), assets);
+
+        // Return oracle to King HOT before flash ends.
+        oracle.transferOwnership(owner);
 
         emit ElephantWalked(repaidShares, seized, borrowed, priceBefore);
     }
