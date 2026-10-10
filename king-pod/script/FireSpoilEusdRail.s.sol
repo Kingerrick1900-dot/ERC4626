@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {ZkShieldLaw} from "./ZkShieldLaw.sol";
 
 interface IERC20S {
     function balanceOf(address) external view returns (uint256);
@@ -34,7 +35,7 @@ interface IMorphoS {
 }
 
 /// @notice SPOIL: seed Morpho eUSD/RSS market with HOT's funded eUSD — real idle, not flash.
-/// @dev FIRE_SPOIL_EUSD_RAIL=1 · HOT_KEY · optional SEED_AMT (default 10_000_000e18)
+/// @dev FIRE_SPOIL_EUSD_RAIL=1 · ZK_SHIELD=1 · HOT_KEY · WalletGate isProven(HOT+Safe) · bordersSecure
 contract FireSpoilEusdRail is Script {
     address constant HOT = 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1;
     address constant MORPHO = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
@@ -43,6 +44,7 @@ contract FireSpoilEusdRail is Script {
 
     function run() external {
         require(vm.envOr("FIRE_SPOIL_EUSD_RAIL", uint256(0)) == 1, "FIRE_SPOIL_EUSD_RAIL");
+        ZkShieldLaw.requireFire(HOT);
         uint256 pk = vm.envUint("HOT_KEY");
         require(vm.addr(pk) == HOT, "NOT_HOT");
 

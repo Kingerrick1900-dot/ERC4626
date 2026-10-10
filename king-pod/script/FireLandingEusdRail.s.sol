@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {ZkShieldLaw} from "./ZkShieldLaw.sol";
 
 interface IERC20L {
     function balanceOf(address) external view returns (uint256);
@@ -34,9 +35,9 @@ interface IMorphoL {
     function position(bytes32 id, address user) external view returns (uint256, uint128, uint128);
 }
 
-/// @notice FIRE_LANDING_EUSD_RAIL=1 · LANDING_PRIVATE_KEY
-/// @dev Push Landing's ~1.32B eUSD into Morpho spoil rail; shares to Kingdom Safe.
-///      Optional SEED_AMT (default = full Landing balance). Optional ON_BEHALF (default Safe).
+/// @notice FIRE_LANDING_EUSD_RAIL=1 · ZK_SHIELD=1 · LANDING_PRIVATE_KEY
+/// @dev Push Landing eUSD into Morpho spoil rail; shares to Kingdom Safe.
+///      Law: bordersSecure · isProven(Safe). Landing subject proven unless KING_CUSTODY_OK=1.
 contract FireLandingEusdRail is Script {
     address constant LANDING = 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357;
     address constant SAFE = 0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0;
@@ -47,6 +48,7 @@ contract FireLandingEusdRail is Script {
 
     function run() external {
         require(vm.envOr("FIRE_LANDING_EUSD_RAIL", uint256(0)) == 1, "FIRE_LANDING_EUSD_RAIL");
+        ZkShieldLaw.requireKingCustody(LANDING);
         uint256 pk = vm.envUint("LANDING_PRIVATE_KEY");
         require(vm.addr(pk) == LANDING, "NOT_LANDING");
 

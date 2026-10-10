@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {ZkShieldLaw} from "./ZkShieldLaw.sol";
 
 interface IOwnableF {
     function owner() external view returns (address);
@@ -22,7 +23,7 @@ contract FireFalconKingSign is Script {
 
     function run() external {
         require(vm.envOr("FIRE_FALCON_KING_SIGN", uint256(0)) == 1, "FIRE_FALCON_KING_SIGN");
-        require(vm.envOr("ZK_SHIELD", uint256(0)) == 1, "ZK_SHIELD");
+        ZkShieldLaw.requireFire(HOT);
         uint256 pk = vm.envUint("HOT_KEY");
         require(vm.addr(pk) == HOT, "NOT_HOT");
 

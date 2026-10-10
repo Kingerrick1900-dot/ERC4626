@@ -36,10 +36,10 @@
 |--|--|
 | Market | eUSD/RSS `0xc61adc055891c4edd3050480465aed2062d0480783f97604c63f8d1ccd8d0599` |
 | LLTV | 77% |
-| supplyAssets | **`300999995010839744208800063`** (~301.0M eUSD) |
+| supplyAssets | **`1624450365232639864603302411`** (~1.624B eUSD) |
 | borrowAssets | **0** |
-| idle | **~301.0M eUSD** |
-| supplier | HOT (Morpho supply shares) |
+| idle | **~1.624B eUSD** |
+| suppliers | HOT (~301M shares) + **Safe** (~1.323B shares from Landing push) |
 | Approve | [`0x7ed93bc0…3293`](https://basescan.org/tx/0x7ed93bc036b1bf6ce9fcc958c31b02d46daa95cb5857d391df3bd21de64c3293) |
 | Supply | [`0xe2c019e3…cc84`](https://basescan.org/tx/0xe2c019e3090179b34083898ca7256cdd76f99fd82e985c98e02ac87d5c09cc84) |
 
@@ -99,3 +99,5 @@ FIRE_SPOIL_EUSD_RAIL=1
 FIRE_FALCON_STACK=1
 ZK_SHIELD=1
 ```
+
+**ZK audit:** Prior Spoil/Landing fires lacked full WalletGate/`bordersSecure` checks. See `AUDIT-ZK-LAST-FIRES.md`. Law restored via `ZkShieldLaw` + HOT attest refresh (`isProven(HOT)=true`).

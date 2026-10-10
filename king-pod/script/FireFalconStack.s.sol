@@ -7,6 +7,7 @@ import {CrownKRT} from "../src/CrownKRT.sol";
 import {CrownGusd} from "../src/CrownGusd.sol";
 import {CrownHarvester} from "../src/CrownHarvester.sol";
 import {Crown369} from "../src/Crown369.sol";
+import {ZkShieldLaw} from "./ZkShieldLaw.sol";
 
 interface IMorphoF {
     struct MarketParams {
@@ -43,7 +44,7 @@ contract FireFalconStack is Script {
 
     function run() external {
         require(vm.envOr("FIRE_FALCON_STACK", uint256(0)) == 1, "FIRE_FALCON_STACK");
-        require(vm.envOr("ZK_SHIELD", uint256(0)) == 1, "ZK_SHIELD");
+        ZkShieldLaw.requireFire(HOT);
         uint256 pk = vm.envUint("HOT_KEY");
         require(vm.addr(pk) == HOT, "NOT_HOT");
         require(IMorphoF(MORPHO).isLltvEnabled(LLTV_385), "LLTV");
