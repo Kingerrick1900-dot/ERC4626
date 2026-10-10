@@ -1,70 +1,81 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IERC20, Ownable} from "./lib/Core.sol";
+import {Ownable} from "./lib/Core.sol";
 
-/// @notice KingCoin (KRT) — sovereign currency. Mint/burn Safe King (or HOT until Safe wired).
-/// @dev Not a claim on USDC. Backed operationally by Kingdom RSS books. 18 decimals.
+interface IZkGateKRT {
+    function isProven(address subject) external view returns (bool);
+}
+
+interface IBordersKRT {
+    function bordersSecure() external view returns (bool);
+}
+
+/// @notice Build 3 — CrownKRT (KingCoin). Safe-only mint/burn. 18 decimals.
+/// @dev Wired to live HotOracle50k + SovereignRailLLTV55. Not a claim on USDC.
 contract CrownKRT is Ownable {
     string public constant name = "KingCoin";
     string public constant symbol = "KRT";
     uint8 public constant decimals = 18;
 
+    IZkGateKRT public immutable zkGate;
+    IBordersKRT public immutable attest;
+    address public immutable king;
+    address public immutable oracle; // HotOracle50k Build 2
+    address public immutable sovereignRail; // SovereignRailLLTV55 Build 1
+
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
-    address public king; // Safe — sole mint/burn when set; owner bootstraps
-    mapping(address => bool) public minter;
-
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
-    event KingSet(address indexed king);
-    event MinterSet(address indexed minter, bool ok);
 
     error Auth();
     error Zero();
+    error NotProven();
+    error Borders();
 
-    modifier onlyKingOrOwner() {
+    modifier onlySafe() {
         if (msg.sender != owner && msg.sender != king) revert Auth();
         _;
     }
 
-    modifier onlyMinter() {
-        if (!minter[msg.sender] && msg.sender != owner && msg.sender != king) revert Auth();
+    modifier whenZk() {
+        if (!zkGate.isProven(king)) revert NotProven();
+        if (!attest.bordersSecure()) revert Borders();
         _;
     }
 
-    constructor(address owner_, address king_) Ownable(owner_) {
+    constructor(
+        address zkGate_,
+        address attest_,
+        address oracle_,
+        address sovereignRail_,
+        address king_,
+        address owner_
+    ) Ownable(owner_) {
+        require(
+            zkGate_ != address(0) && attest_ != address(0) && oracle_ != address(0)
+                && sovereignRail_ != address(0) && king_ != address(0),
+            "ZERO"
+        );
+        zkGate = IZkGateKRT(zkGate_);
+        attest = IBordersKRT(attest_);
+        oracle = oracle_;
+        sovereignRail = sovereignRail_;
         king = king_;
-        minter[owner_] = true;
-        if (king_ != address(0)) minter[king_] = true;
     }
 
-    function setKing(address k) external onlyOwner {
-        king = k;
-        if (k != address(0)) minter[k] = true;
-        emit KingSet(k);
-    }
-
-    function setMinter(address m, bool ok) external onlyKingOrOwner {
-        minter[m] = ok;
-        emit MinterSet(m, ok);
-    }
-
-    function mint(address to, uint256 amt) external onlyMinter {
+    function mint(address to, uint256 amt) external onlySafe whenZk {
         if (to == address(0) || amt == 0) revert Zero();
         totalSupply += amt;
         balanceOf[to] += amt;
         emit Transfer(address(0), to, amt);
     }
 
-    function burn(uint256 amt) external {
+    function burn(uint256 amt) external onlySafe whenZk {
         _burn(msg.sender, amt);
-    }
-
-    function burnFrom(address from, uint256 amt) external onlyMinter {
-        _burn(from, amt);
     }
 
     function _burn(address from, uint256 amt) internal {
