@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign Safe auth — bypass UI</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 26rem; margin: 2rem auto; padding: 0 1rem; }
+    button { width: 100%; padding: 1.2rem; font-size: 1.2rem; font-weight: 800; margin: 0.5rem 0; cursor: pointer; }
+    #go { background: #12ff80; border: 0; border-radius: 12px; }
+    pre { background: #111; color: #0f0; padding: 0.75rem; white-space: pre-wrap; word-break: break-all; font-size: 0.8rem; }
+    .ok { color: #166534; font-weight: 700; }
+    .err { color: #991b1b; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>Sign (bypass Safe UI)</h1>
+  <p>Connect <strong>0x898D…</strong> or <strong>0x5E07…</strong> on <strong>Base</strong>. Landing already signed — this is the 2nd signature.</p>
+  <button id="go">CONNECT &amp; SIGN</button>
+  <pre id="log">ready</pre>
+  <script>
+    const SAFE = "0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0";
+    const HASH = "0xea15277f51a75185eda9f74d1041c6cad1dbd2cd045462ba70a85c459cb3efd1";
+    const API = "https://api.safe.global/tx-service/base/api/v1";
+    const OWNERS = new Set([
+      "0x898dbaffcd37298a60fd306e5d1b24fe16c12507",
+      "0x5e07d7167282f9ec912a05c3048d7d0f24a8b826",
+    ]);
+    const log = (m, cls) => {
+      const el = document.getElementById("log");
+      el.textContent = m;
+      el.className = cls || "";
+    };
+
+    document.getElementById("go").onclick = async () => {
+      try {
+        if (!window.ethereum) throw new Error("No MetaMask");
+        const chain = await ethereum.request({ method: "eth_chainId" });
+        if (chain !== "0x2105") {
+          await ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x2105" }],
+          });
+        }
+        const accs = await ethereum.request({ method: "eth_requestAccounts" });
+        const from = accs[0];
+        log("Connected " + from);
+        if (!OWNERS.has(from.toLowerCase())) {
+          throw new Error("Wrong wallet. Switch to 0x898D… or 0x5E07… (not Landing, not HOT)");
+        }
+
+        // EIP-712 SafeTx message — MetaMask popup
+        const typed = {
+          types: {
+            EIP712Domain: [
+              { name: "chainId", type: "uint256" },
+              { name: "verifyingContract", type: "address" },
+            ],
+            SafeTx: [
+              { name: "to", type: "address" },
+              { name: "value", type: "uint256" },
+              { name: "data", type: "bytes" },
+              { name: "operation", type: "uint8" },
+              { name: "safeTxGas", type: "uint256" },
+              { name: "baseGas", type: "uint256" },
+              { name: "gasPrice", type: "uint256" },
+              { name: "gasToken", type: "address" },
+              { name: "refundReceiver", type: "address" },
+              { name: "nonce", type: "uint256" },
+            ],
+          },
+          primaryType: "SafeTx",
+          domain: { chainId: 8453, verifyingContract: SAFE },
+          message: {
+            to: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+            value: "0",
+            data: "0xeecea0000000000000000000000000006708e21113922ed588bbccaa5ef756becbb2a7d10000000000000000000000000000000000000000000000000000000000000001",
+            operation: 0,
+            safeTxGas: "0",
+            baseGas: "0",
+            gasPrice: "0",
+            gasToken: "0x0000000000000000000000000000000000000000",
+            refundReceiver: "0x0000000000000000000000000000000000000000",
+            nonce: "1",
+          },
+        };
+
+        const sig = await ethereum.request({
+          method: "eth_signTypedData_v4",
+          params: [from, JSON.stringify(typed)],
+        });
+        log("Got sig, posting…");
+
+        const res = await fetch(API + "/multisig-transactions/" + HASH + "/confirmations/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ signature: sig }),
+        });
+        const text = await res.text();
+        if (!res.ok) throw new Error("API " + res.status + " " + text);
+        log("SIGNED OK. Tell the scribe: check again", "ok");
+      } catch (e) {
+        log(String(e.message || e), "err");
+      }
+    };
+  </script>
+</body>
+</html>
