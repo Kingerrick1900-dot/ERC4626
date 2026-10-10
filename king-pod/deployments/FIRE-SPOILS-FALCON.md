@@ -19,7 +19,7 @@
 
 | Spoil | Location | Why parked |
 |--|--|--|
-| **~1.323B eUSD** | Landing `0x5Adcea…2357` | No Landing key in agent · King must push to rail or Safe |
+| **~1.323B eUSD** | Landing `0x5Adcea…2357` | **NEXT:** Landing sign → Morpho rail onBehalf Safe · see `HANDOFF-LANDING-EUSD-FALCON.md` |
 | ColdBuffer USDC `294101` | `0xBb3c…` (HOT owner) | Cold-floor law · leave |
 | DeepPull USDC `697192` | `0xDDe3…` (HOT owner) | Ops dust · leave unless King orders sweep |
 | Poly USDC `816015` | HOT on Polygon | Desk dust · bridge uneconomic at size |
@@ -72,6 +72,8 @@ Gas for Falcon bought by converting HOT dust USDC → ETH:
 | Spoil seed into new 38.5% eUSD mkt | 0 (full spoil already on 77% rail) |
 
 Deploy broadcast: `FireFalconStack` · gas ~5.35M @ 5 gwei · HOT funded via dust-USDC spoil.
+
+**King-signed:** Falcon stack ownership → Kingdom Safe (`FireFalconKingSign` · live).
 
 ---
 
