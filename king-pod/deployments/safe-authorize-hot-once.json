@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "chainId": "8453",
+  "createdAt": 1791635355340,
+  "meta": {
+    "name": "ONE SIG - authorize HOT Morpho ops",
+    "description": "Safe authorizes HOT once. After this HOT can withdraw/supply under ZK rail without Safe every fire."
+  },
+  "transactions": [
+    {
+      "to": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+      "value": "0",
+      "data": "0xeecea0000000000000000000000000006708e21113922ed588bbccaa5ef756becbb2a7d10000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}
