@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>King Rotation — Accept Throne</title>
+  <style>
+    :root {
+      --bg: #0c1210;
+      --panel: #15201c;
+      --ink: #e8f0ec;
+      --muted: #8aa396;
+      --accent: #c4a35a;
+      --ok: #3d9a6a;
+      --bad: #c45c4a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      background:
+        radial-gradient(ellipse at 20% 0%, #1a2e26 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 80%, #2a2214 0%, transparent 45%),
+        var(--bg);
+      color: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    main {
+      width: min(420px, 100%);
+      background: color-mix(in srgb, var(--panel) 92%, black);
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+      padding: 1.75rem 1.5rem 1.5rem;
+    }
+    h1 {
+      font-size: 1.35rem; font-weight: 600; margin: 0 0 0.35rem;
+      letter-spacing: 0.02em; color: var(--accent);
+    }
+    p { margin: 0 0 1rem; color: var(--muted); font-size: 0.95rem; line-height: 1.45; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; word-break: break-all; color: var(--ink); }
+    label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.25rem; }
+    .row { margin-bottom: 1rem; }
+    button {
+      width: 100%; border: 0; cursor: pointer;
+      font: inherit; font-size: 1rem; padding: 0.85rem 1rem;
+      margin-top: 0.5rem;
+      background: var(--accent); color: #1a1408;
+    }
+    button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--muted); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    #log {
+      margin-top: 1rem; min-height: 3rem; font-size: 0.85rem;
+      white-space: pre-wrap; color: var(--muted);
+    }
+    #log.ok { color: var(--ok); }
+    #log.bad { color: var(--bad); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Accept Kingship</h1>
+    <p>Connect the <strong>Landing</strong> wallet in MetaMask. Sign two approvals. The private key never leaves MetaMask.</p>
+
+    <div class="row">
+      <label>Gate</label>
+      <div class="mono" id="gate">0x76fa390951fA31185490378F46B6e9F05bA4bC3b</div>
+    </div>
+    <div class="row">
+      <label>Must sign as (pending King)</label>
+      <div class="mono" id="landing">0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357</div>
+    </div>
+    <div class="row">
+      <label>HOT operator</label>
+      <div class="mono" id="hot">0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1</div>
+    </div>
+    <div class="row">
+      <label>Connected</label>
+      <div class="mono" id="account">—</div>
+    </div>
+
+    <button type="button" id="connect">1 · Connect MetaMask</button>
+    <button type="button" id="accept" class="secondary" disabled>2 · Accept kingship</button>
+    <button type="button" id="operator" class="secondary" disabled>3 · Set HOT as operator</button>
+
+    <div id="log"></div>
+  </main>
+  <script>
+    const GATE = "0x76fa390951fA31185490378F46B6e9F05bA4bC3b";
+    const LANDING = "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357";
+    const HOT = "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1";
+    const BASE = "0x2105"; // 8453
+
+    const ACCEPT = "0x1ec0de40";
+    const SET_OP =
+      "0x558a72970000000000000000000000006708e21113922ed588bbccaa5ef756becbb2a7d10000000000000000000000000000000000000000000000000000000000000001";
+
+    const logEl = document.getElementById("log");
+    const accountEl = document.getElementById("account");
+    const btnConnect = document.getElementById("connect");
+    const btnAccept = document.getElementById("accept");
+    const btnOperator = document.getElementById("operator");
+
+    function log(msg, kind) {
+      logEl.textContent = msg;
+      logEl.className = kind || "";
+    }
+
+    function requireEth() {
+      if (!window.ethereum) throw new Error("MetaMask not found. Open this page in a browser with MetaMask.");
+      return window.ethereum;
+    }
+
+    async function ensureBase(eth) {
+      try {
+        await eth.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: BASE }],
+        });
+      } catch (e) {
+        if (e.code === 4902) {
+          await eth.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: BASE,
+              chainName: "Base",
+              nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+              rpcUrls: ["https://mainnet.base.org"],
+              blockExplorerUrls: ["https://basescan.org"],
+            }],
+          });
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    async function connect() {
+      try {
+        const eth = requireEth();
+        await ensureBase(eth);
+        const accounts = await eth.request({ method: "eth_requestAccounts" });
+        const a = accounts[0];
+        accountEl.textContent = a;
+        const ok = a.toLowerCase() === LANDING.toLowerCase();
+        if (!ok) {
+          log("Wrong account. Switch MetaMask to Landing:\n" + LANDING, "bad");
+          btnAccept.disabled = true;
+          btnOperator.disabled = true;
+          return;
+        }
+        log("Connected as Landing. Ready to accept.", "ok");
+        btnAccept.disabled = false;
+        btnOperator.disabled = false;
+      } catch (e) {
+        log(e.message || String(e), "bad");
+      }
+    }
+
+    async function send(data, label) {
+      const eth = requireEth();
+      const accounts = await eth.request({ method: "eth_accounts" });
+      const from = accounts[0];
+      if (!from || from.toLowerCase() !== LANDING.toLowerCase()) {
+        throw new Error("Connect Landing wallet first.");
+      }
+      log("Confirm in MetaMask: " + label + " …");
+      const hash = await eth.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from,
+          to: GATE,
+          value: "0x0",
+          data,
+        }],
+      });
+      log(label + " submitted:\n" + hash + "\nhttps://basescan.org/tx/" + hash, "ok");
+      return hash;
+    }
+
+    btnConnect.onclick = connect;
+    btnAccept.onclick = async () => {
+      try { await send(ACCEPT, "acceptKingship"); }
+      catch (e) { log(e.message || String(e), "bad"); }
+    };
+    btnOperator.onclick = async () => {
+      try { await send(SET_OP, "setOperator(HOT)"); }
+      catch (e) { log(e.message || String(e), "bad"); }
+    };
+  </script>
+</body>
+</html>
