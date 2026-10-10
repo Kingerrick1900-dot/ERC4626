@@ -1,5 +1,16 @@
 # HANDOFF — Safe ZK-rewrite remaining Morpho eUSD (~1.32B Landing leg)
 
+# CLICK THESE
+
+1. **Safe home:** https://app.safe.global/home?safe=base:0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0
+2. **Transaction Builder:** https://app.safe.global/apps/open?safe=base:0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0&appUrl=https%3A%2F%2Fapps-portal.safe.global%2Ftx-builder
+3. Import `safe-zk-rewrite-batch.json` → sign → get 2nd owner → execute
+
+Or open `king-pod/tools/safe-zk-rewrite.html`
+
+---
+
+
 **Status:** HOT ~301M **REWRITTEN** via `CrownZkMorphoRail` (on-chain ZK).  
 **Remaining:** Safe still holds Morpho shares that include the Landing leg entered **before** the ZK rail. Safe must withdraw → `zkSupply` to bind the full book to the rail.
 
