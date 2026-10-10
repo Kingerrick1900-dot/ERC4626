@@ -2,47 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>King — Safe ZK rewrite</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open Safe — ZK rewrite</title>
   <style>
-    body { font-family: ui-sans-serif, system-ui, sans-serif; max-width: 36rem; margin: 2.5rem auto; padding: 0 1.25rem; line-height: 1.4; }
+    body { font-family: system-ui, sans-serif; max-width: 28rem; margin: 2rem auto; padding: 0 1rem; }
     a.big {
-      display: block; text-align: center; background: #111; color: #fff;
-      padding: 1.25rem 1rem; font-size: 1.25rem; font-weight: 700;
-      text-decoration: none; border-radius: 8px; margin: 1.5rem 0;
+      display: block; text-align: center; background: #12ff80; color: #000;
+      padding: 1.4rem 1rem; font-size: 1.35rem; font-weight: 800;
+      text-decoration: none; border-radius: 12px; margin: 1.25rem 0;
     }
-    a.big:hover { background: #333; }
-    code, pre { background: #f4f4f5; padding: 0.2rem 0.4rem; border-radius: 4px; word-break: break-all; }
-    pre { padding: 0.75rem; font-size: 0.8rem; }
-    ol { padding-left: 1.2rem; }
-    .muted { color: #52525b; }
+    ol { line-height: 1.55; padding-left: 1.2rem; }
+    code { background: #eee; padding: 0.1rem 0.35rem; word-break: break-all; }
+    .warn { background: #fff3cd; padding: 0.75rem 1rem; border-radius: 8px; }
   </style>
 </head>
 <body>
-  <h1>Push the ZK rewrite</h1>
-  <p>HOT’s ~301M is already on the ZK rail. This Safe batch moves the rest (~1.32B Landing leg) through the same rail.</p>
+  <h1>One link</h1>
+  <p class="warn"><strong>Open this in Chrome / Safari with MetaMask.</strong> Not inside Cursor. Not inside the agent chat preview.</p>
 
-  <a class="big" href="https://app.safe.global/home?safe=base:0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0" target="_blank" rel="noopener">
-    Open Kingdom Safe →
+  <a class="big" href="https://app.safe.global/home?safe=base:0x23590feb2a668817a426d46a0447ed3ea8e3eac0">
+    OPEN SAFE
   </a>
 
-  <a class="big" href="https://app.safe.global/apps/open?safe=base:0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0&appUrl=https%3A%2F%2Fapps-portal.safe.global%2Ftx-builder" target="_blank" rel="noopener">
-    Open Transaction Builder →
-  </a>
-
-  <h2>Do this</h2>
   <ol>
-    <li>Click <strong>Open Kingdom Safe</strong> (Base · Safe <code>0x23590…eac0</code>)</li>
-    <li>Click <strong>Open Transaction Builder</strong></li>
-    <li>Import file <code>safe-zk-rewrite-batch.json</code> from the repo (<code>king-pod/deployments/</code>)</li>
-    <li>Create batch → sign with your owner wallet</li>
-    <li>Get <strong>one more</strong> owner to confirm (2-of-3)</li>
+    <li>Connect an owner wallet (Landing / backup / cold)</li>
+    <li>Network = <strong>Base</strong></li>
+    <li>New transaction → <strong>Transaction Builder</strong></li>
+    <li>Import <code>safe-zk-rewrite-batch.json</code></li>
+    <li>Sign · get 2nd owner · Execute</li>
   </ol>
 
-  <p class="muted">I cannot fire the Safe from here — it needs two owner signatures. Your word authorizes it; your Safe signatures push it.</p>
-
-  <p>Batch path:</p>
-  <pre>king-pod/deployments/safe-zk-rewrite-batch.json</pre>
-
-  <p>ZK rail: <code>0xa787C47E04b38bcD84ceAd05ce903B0005E9Dda3</code></p>
+  <p>Batch file in the repo:<br /><code>king-pod/deployments/safe-zk-rewrite-batch.json</code></p>
+  <p>If Transaction Builder is missing: New transaction → Contract interaction → paste the 3 calls from that JSON one by one into a batch.</p>
 </body>
 </html>
