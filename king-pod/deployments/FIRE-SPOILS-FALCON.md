@@ -19,7 +19,7 @@
 
 | Spoil | Location | Why parked |
 |--|--|--|
-| **~1.323B eUSD** | Landing `0x5Adcea…2357` | **NEXT:** Landing sign → Morpho rail onBehalf Safe · see `HANDOFF-LANDING-EUSD-FALCON.md` |
+| **~1.323B eUSD** | Landing `0x5Adcea…2357` | **CLAIMED → Morpho idle onBehalf Safe** ([supply](https://basescan.org/tx/0xf8e68401615b8defb56f3dda09633dc703b4787c1c392a9edc410f4da1eadee5)) |
 | ColdBuffer USDC `294101` | `0xBb3c…` (HOT owner) | Cold-floor law · leave |
 | DeepPull USDC `697192` | `0xDDe3…` (HOT owner) | Ops dust · leave unless King orders sweep |
 | Poly USDC `816015` | HOT on Polygon | Desk dust · bridge uneconomic at size |

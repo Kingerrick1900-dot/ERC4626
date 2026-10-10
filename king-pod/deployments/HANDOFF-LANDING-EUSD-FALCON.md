@@ -5,15 +5,30 @@
 
 ---
 
-## Live state (pre-sign)
+## Live state
 
 | Book | Status |
 |--|--|
 | Gate `king()` | **Kingdom Safe** `0x23590FEb…eac0` · `pendingKing=0` · HOT operator **true** |
-| Falcon stack owner | HOT (until King-sign fire) → **Safe** |
-| HOT Morpho eUSD idle | **~301M** on rail `0xc61a…` |
-| Landing wallet eUSD | **`1323450370221800120394502348`** (~1.323B) — **still parked** |
-| Landing ETH | ~0.0000246 (enough for approve+supply @ current Base fees) |
+| Falcon stack owner | **Safe** (King-signed) |
+| Morpho eUSD idle (rail `0xc61a…`) | **~1.624B** · borrow **0** |
+| Landing wallet eUSD | **0** — pushed to rail |
+| Safe Morpho supply shares | **live** (onBehalf of Landing supply) |
+| HOT Morpho supply shares | still holds ~301M tranche |
+
+### Landing rail fire (LIVE)
+
+| Tx | Hash |
+|--|--|
+| Approve | [`0x8b7e542a…d192`](https://basescan.org/tx/0x8b7e542a5c8c6ba9dbc4e7dd5f4a15c6cee9e6f74095a979a116239c2ccad192) |
+| Supply | [`0xf8e68401…dee5`](https://basescan.org/tx/0xf8e68401615b8defb56f3dda09633dc703b4787c1c392a9edc410f4da1eadee5) |
+
+```
+LANDING_EUSD_WALLET=0
+MORPHO_EUSD_IDLE~=1.624e9
+ON_BEHALF=Safe
+ONE_TIME_KEY=USED_AND_DISCARDED
+```
 
 ---
 
