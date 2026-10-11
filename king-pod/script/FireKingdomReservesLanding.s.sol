@@ -56,8 +56,8 @@ contract FireKingdomReservesLanding is Script {
 
     function run() external {
         require(vm.envOr("FIRE_KINGDOM_RESERVES_LANDING", uint256(0)) == 1, "FIRE_KINGDOM_RESERVES_LANDING");
-        // Landing may be unproven; Safe-proven custody path (KING_CUSTODY_OK=1).
-        ZkShieldLaw.requireKingCustody(LANDING);
+        // Shield proves Landing — no KING_CUSTODY_OK bypass.
+        ZkShieldLaw.requireFire(LANDING);
 
         uint256 pk = vm.envUint("LANDING_PRIVATE_KEY");
         require(vm.addr(pk) == LANDING, "NOT_LANDING");
