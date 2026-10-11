@@ -1,8 +1,9 @@
 # FIRE — Bring Kingdom eUSD under ZK / Safe
 
-**Status:** COMPLETE · Kingdom-reachable eUSD under rail (AMM 5B float left external)  
-**Rail:** `0xa787C47E04b38bcD84ceAd05ce903B0005E9Dda3`  
-**Safe onBehalf:** `0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0`
+**Status:** COMPLETE · desks + Morpho book under rail (AMM 5B float left external)  
+**Rail:** `0xa787C47E04b38bcD84ceAd05ce903B0005E9Dda3` · `totalSupplied` **`7,831,918,062.45`**  
+**Safe onBehalf:** `0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0`  
+**Morpho reseat:** see `FIRE-ZK-MORPHO-RESEAT.md`
 
 ## Migrated this fire (onBehalf = Safe)
 
