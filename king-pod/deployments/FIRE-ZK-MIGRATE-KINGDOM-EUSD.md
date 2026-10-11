@@ -1,84 +1,52 @@
 # FIRE — Bring Kingdom eUSD under ZK / Safe
 
-**Status:** ARMED · gas-blocked on HOT · V3 stub cannot fire  
-**Branch doctrine:** One wallet at a time · `onBehalf = Safe` · `ZK_SHIELD = 1`
+**Status:** FIRST WAVE LIVE · HOT gUSD cleared · gas pause on remaining 7M desk inventory  
+**Rail:** `0xa787C47E04b38bcD84ceAd05ce903B0005E9Dda3`  
+**Safe onBehalf:** `0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0`
 
-## Live facts (Base)
+## Migrated this fire (onBehalf = Safe)
 
-| Item | Value |
+| Source | Amount eUSD | Notes |
+|--|--:|--|
+| HOT gUSD unwrap `0x319A…` | **2,033,908,663.50** | 100M + 500M + 1B + 433.9M remainder |
+| `0xAb216237…dc3B2` sweep | **100,000,000** | HOT-owned |
+| `0x9199e509…8060b` sweep3 | **100,000.00** | HOT-owned |
+| `0xF7337A26…F987` sweep | **1.00** | multi-PSM dust |
+| **Total new on rail** | **~2,134,008,664.50** | |
+
+**Rail `totalSupplied`:** `1,925,450,360` → **`4,059,459,024`**
+
+### Anchor txs (Base)
+
+| Step | Tx |
 |--|--|
-| eUSD | `0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a` |
-| Kingdom gUSD (7.06B eUSD reserve) | `0x319A49BB274A826F889C6e7221FA82f24ac8bc5d` |
-| CrownZkMorphoRail | `0xa787C47E04b38bcD84ceAd05ce903B0005E9Dda3` · ~1.925B supplied |
-| Safe | `0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0` · `isProven=true` |
-| Borders | `bordersSecure=true` |
-| Executor V3 | `0x184e4Ad4678E7E05D174AAD490462620e225a9a3` |
+| First 100M unwrap | `0x9f041f7d919f3fb1051c0c1ab5a81309508fd09f2f383c0f5b2333547d167ed8` |
+| First 100M zkSupply | `0x650fc4288e3e75f07fb9ee42a375f899d26681388cce8d0ba433c1fe833cd6be` |
+| Later chunks | `broadcast/FireZkMigrateGusdChunk.s.sol/8453/` · `FireZkMigrateSweepChunk` · `FireZkMigrateSweep3Chunk` |
 
-## `migrateFirst100M()` — V3 result
+## V3 executor stub
 
-Call as Safe (only authorized caller) **reverts `AwaitHandoff` (`0x587401c6`)**.  
-The deployed V3 function is an intentional stub: it never supplies, never emits a capacity event, and does not touch `0x319A…`.
+`migrateFirst100M()` on `0x184e4…` still **reverts `AwaitHandoff`**. Real path used: unwrap/sweep → `CrownZkMorphoRail.zkSupply`.
 
-## Truth of the 7.06B “wallet”
+## Remaining Kingdom-controlled (not yet migrated)
 
-`0x319A…8bc5d` is **Kingdom Gold USD (gUSD)** — not a free EOA.
+| Address | eUSD | Blocker |
+|--|--:|--|
+| `0x4C021c77…720Ab` | 5,000,000 | extract selector not confirmed |
+| `0xC28E7faA…9F6B` | 2,000,000 | linked to 4C; pull selector not confirmed |
+| `0x97bd6846…bB68` (EXIT) | 3.99 | no working rescue yet |
+| HOT ETH | ~0.0000017 | **need tip** before next wave |
 
-- `gUSD.totalSupply()` = `eUSD.balanceOf(gUSD)` = **7,063,908,663.50** (1:1 reserve)
-- HOT holds **~2,033,908,663.50 gUSD** → unwrap-reachable eUSD
-- Pool `0x8C009d9654247Bc2B68DE98b3083B27aF8f2eFE7` (**Stable AMM — gUSD/eUSD**) holds **5,000,000,000 gUSD** + **5,000,000,000 eUSD** → **external public float / Ocean LP**
-
-Migrating the full 7.06B reserve requires burning/unwrapping **all** gUSD (including the 5B in the AMM). Kingdom free path without draining the AMM: **HOT unwrap**.
-
-## External classification (confirmed)
+## External (do not migrate)
 
 | Address | eUSD | Class |
 |--|--:|--|
-| `0x8C009d9654247Bc2B68DE98b3083B27aF8f2eFE7` | 5,000,000,000 | **External** — Stable AMM gUSD/eUSD (public float) |
-| `0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb` | 1,810,391,357.90 | **External** — Morpho (includes Safe ZK seat) |
-| `0x7d41ac987f8952617cca165e7d93576107ed1863` | 500,002.56 | **External** — Uni V3-style pool |
-| `0x96D0022c7a65EE7D1819D9f48C48E4f90d91a666` | 0.14 | **External** — Uni eUSD/USDC fee 500 |
+| `0x8C009d96…FE7` | 5,000,000,000 | Stable AMM gUSD/eUSD — public float |
+| gUSD reserve `0x319A…` | ~5,030,000,000 | backs AMM gUSD supply (HOT gUSD = 0) |
+| Morpho `0xBBBB…` | ~1.81B+ | protocol vault (includes Safe seat) |
 
-## Real first-tranche path (fork-proven)
+## Next (after ≥0.001 ETH on HOT)
 
-Script: `script/FireZkMigrateGusdFirst100M.s.sol`
-
-1. HOT `gUSD.unwrap(100_000_000e18, HOT)`
-2. HOT `eUSD.approve(ZK_RAIL, 100M)`
-3. HOT `ZK_RAIL.zkSupply(100M, Safe)` — requires `isProven(HOT)` + `isProven(Safe)` + `bordersSecure`
-
-Fork test `test/SimMig100.t.sol` **PASS** (~311k gas).
-
-## Gas blocker (live) — broadcast attempted
-
-| Wallet | ETH |
-|--|--:|
-| HOT | `879497749444` wei (~0.00000088) |
-| Landing | ~0.000023 (no key in agent) |
-| Safe | 0 |
-
-Forge broadcast estimate for first 100M: **~0.00000427 ETH** (`want 2495900420000` wei).  
-HOT shortfall: ~0.0000034 ETH. Error: `insufficient funds for gas * price + value`.
-
-Simulation (no broadcast) logged success path: rail would go `1.925B → 2.025B`, HOT gUSD `2.033B → 1.933B`.
-
-**Need ≥0.001 ETH on HOT** (comfortable for 100M + scale chunks) — Landing → HOT tip — then:
-
-```bash
-cd king-pod
-FIRE_ZK_MIGRATE_GUSD_100M=1 forge script script/FireZkMigrateGusdFirst100M.s.sol:FireZkMigrateGusdFirst100M \
-  --rpc-url $BASE_RPC --broadcast --legacy -vvv
-```
-
-## Scale order (after first 100M verifies)
-
-From HOT gUSD balance remaining (~1.933B after first 100M):
-
-1. 500M unwrap → zkSupply  
-2. 1B → zkSupply  
-3. remainder HOT gUSD → zkSupply  
-4. Then HOT-owned contracts with free eUSD (`0xAb2162…`, `0x4C021c…`, `0xC28E7f…`, dust) — one wallet at a time  
-5. Do **not** migrate AMM `0x8C009d…` (external float)
-
-## Stop line
-
-No migration broadcast this turn — executor stub + HOT gas. Fork path green. Waiting ETH on HOT.
+1. Crack 4C/C28 release (desk pair — 4C view points at C28).  
+2. Sweep EXIT dust.  
+3. Leave AMM 5B as marked public float unless King orders LP unwind.
