@@ -1,25 +1,22 @@
 # FIRE — Kingdom Reserves Pull
 
-**Mode:** FIRE · Base  
-**Order:** HOT repay + 1.5B eUSD seat → Landing ocean 1.5B LP + Morpho gUSD → HOT
+**Status:** DONE · Base
 
-## Targets
+## Hashes
 
-| Leg | Source | Destination | Amount |
-|--|--|--|--|
-| eUSD reserve | Safe Morpho eUSD/RSS | HOT | **1.5B eUSD** |
-| gUSD ocean | Aerodrome stable `0x8C009d96…eFE7` | HOT | **1.5B gUSD** (+1.5B eUSD pair leg) |
-| King 30M | Morpho gUSD/RSS Landing supply (post-repay) | HOT | **~100M gUSD** (30M liquid unlocked) |
+| Step | Hash |
+|--|--|
+| Prove Landing | [`0x4ed7e05cb9cf4f16097199f9f90ef4278ee1f0c3130d2e9d2944beba2134fb99`](https://basescan.org/tx/0x4ed7e05cb9cf4f16097199f9f90ef4278ee1f0c3130d2e9d2944beba2134fb99) |
+| HOT Pull (withdraw) | [`0x14a4ee3f14dfeaed930c67c9d0680433710eec94fde996276292ef30438a2cff`](https://basescan.org/tx/0x14a4ee3f14dfeaed930c67c9d0680433710eec94fde996276292ef30438a2cff) |
+| HOT repay | [`0x367724ca24886ad1008154db8da3668b2f34a5aa3162e555ece116794a9cfd78`](https://basescan.org/tx/0x367724ca24886ad1008154db8da3668b2f34a5aa3162e555ece116794a9cfd78) |
+| Landing ocean burn | [`0x5f5a4a1d0377fa0462b75f367cb37c6ddedae4699c06e33e8aec637374c95e6d`](https://basescan.org/tx/0x5f5a4a1d0377fa0462b75f367cb37c6ddedae4699c06e33e8aec637374c95e6d) |
+| Landing Morpho gUSD | [`0xc067e8d8e6d8067d9cc4dde7efc13d03d9a14478f87ef7d2ea2944dcde0c4785`](https://basescan.org/tx/0xc067e8d8e6d8067d9cc4dde7efc13d03d9a14478f87ef7d2ea2944dcde0c4785) |
 
-## Scripts
+## HOT seated
 
-1. `script/FireKingdomReservesHot.s.sol` — `FIRE_KINGDOM_RESERVES_HOT=1` · `HOT_KEY` · `ZK_SHIELD=1`
-2. `script/FireKingdomReservesLanding.s.sol` — `FIRE_KINGDOM_RESERVES_LANDING=1` · `LANDING_PRIVATE_KEY` · `ZK_SHIELD=1` · `KING_CUSTODY_OK=1`
+| Asset | Amount |
+|--|--:|
+| eUSD | **3,000,000,000** |
+| gUSD | **1,602,000,000** |
 
-## Fork proof
-
-`test/SimKingdomReserves.t.sol` — repay ~70.168M gUSD · HOT eUSD ≥ 1.5B
-
-## Live hashes
-
-_Pending broadcast._
+`isProven(LANDING)=true` · no `KING_CUSTODY_OK`
