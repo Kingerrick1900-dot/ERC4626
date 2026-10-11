@@ -16,7 +16,7 @@ interface IHotOracleND {
 }
 
 /// @notice Build 5 — Nigeria remittance desk. One fire: settleRemittance.
-/// @dev 200 bps (2%) fee → HOT/Safe in USDC. KYC off-chain. Wired to KRT + HotOracle50k.
+/// @dev 200 bps (2%) fee → Safe in USDC. KYC off-chain. Wired to KRT + HotOracle50k.
 contract CrownNigeriaDesk is Ownable, ReentrancyGuard {
     using SafeTransfer for IERC20;
 
@@ -29,7 +29,7 @@ contract CrownNigeriaDesk is Ownable, ReentrancyGuard {
     IZkGateND public immutable zkGate;
     IBordersND public immutable attest;
     address public immutable king;
-    address public immutable feeSink; // HOT — real USDC fees
+    address public immutable feeSink; // Safe — real USDC fees
 
     uint256 public totalVolumeUsdc;
     uint256 public totalFeesUsdc;
@@ -74,7 +74,7 @@ contract CrownNigeriaDesk is Ownable, ReentrancyGuard {
         feeSink = feeSink_;
     }
 
-    /// @notice Diaspora USDC → 2% to HOT → net to Lagos agent (NGN P2P off-chain).
+    /// @notice Diaspora USDC → 2% to Safe → net to Lagos agent (NGN P2P off-chain).
     /// @param agent Payout address (KYC'd off-chain). @param usdcAmount Gross USDC (6dp).
     function settleRemittance(address agent, uint256 usdcAmount)
         external

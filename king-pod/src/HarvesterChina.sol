@@ -12,7 +12,7 @@ interface IBordersHC {
 }
 
 /// @notice Build 6d — China corridor settlement harvester. live=true from day one. Not gated.
-/// @dev collectSettlement — 1.5% USDC fee → HOT. Rails: CIPS · parallel · RoyalCardNFC.
+/// @dev collectSettlement — 1.5% USDC fee → Safe (wired as fee sink / `hot` field). Rails: CIPS · parallel · RoyalCardNFC.
 ///      Parallel to Nigeria — no require(seeded).
 contract HarvesterChina is Ownable, ReentrancyGuard {
     using SafeTransfer for IERC20;
@@ -109,7 +109,7 @@ contract HarvesterChina is Ownable, ReentrancyGuard {
         emit BotSet(b, ok);
     }
 
-    /// @notice 1.5% settlement fee to HOT. Gross USDC pulled from msg.sender; net stays with counterparty path.
+    /// @notice 1.5% settlement fee to Safe (`hot` sink). Gross USDC pulled from msg.sender; net stays with counterparty path.
     /// @param counterparty Factory / buyer settlement subject (ops). @param usdcGross Gross settlement notional.
     function collectSettlement(address counterparty, uint256 usdcGross)
         external

@@ -47,10 +47,14 @@ contract CrownZkMorphoRail is Ownable, ReentrancyGuard {
 
     uint256 public totalSupplied;
     uint256 public totalWithdrawn;
+    /// @dev 100T eUSD (18dp) monetary-base ceiling — CapacityCheck on every supply.
+    uint256 public constant MAX_SUPPLY_CAPACITY = 100_000_000_000_000 ether;
 
     event RailSet(bytes32 id, address loan);
     event ZkSupplied(address indexed from, address indexed onBehalf, uint256 assets, uint256 shares);
     event ZkWithdrawn(address indexed onBehalf, address indexed receiver, uint256 assets, uint256 shares);
+    event WalletMigrated(address indexed wallet, uint256 assets, uint256 railAfter);
+    event CapacityCheck(uint256 totalSupplyAfter, uint256 maxCapacity, bool ok);
 
     error NotProven();
     error Borders();
@@ -109,6 +113,9 @@ contract CrownZkMorphoRail is Ownable, ReentrancyGuard {
         (uint256 a, uint256 s) = morpho.supply(rail, assets, 0, onBehalf, "");
         totalSupplied += a;
         emit ZkSupplied(msg.sender, onBehalf, a, s);
+        emit WalletMigrated(onBehalf, a, totalSupplied);
+        bool capOk = totalSupplied <= MAX_SUPPLY_CAPACITY;
+        emit CapacityCheck(totalSupplied, MAX_SUPPLY_CAPACITY, capOk);
         return (a, s);
     }
 

@@ -33,7 +33,7 @@ contract FireBuild6dHarvesterChina is Script {
             zkGate: ZK_WALLET_GATE,
             attest: BASE_ATTEST,
             king: SAFE,
-            hot: HOT,
+            hot: SAFE,
             krt: KRT,
             oracle: ORACLE,
             sovereignRail: SOVEREIGN_RAIL,

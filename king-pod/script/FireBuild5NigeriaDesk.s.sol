@@ -24,7 +24,7 @@ contract FireBuild5NigeriaDesk is Script {
 
         vm.startBroadcast(pk);
         CrownNigeriaDesk desk =
-            new CrownNigeriaDesk(USDC, ORACLE, KRT, ZK_WALLET_GATE, BASE_ATTEST, SAFE, HOT, HOT);
+            new CrownNigeriaDesk(USDC, ORACLE, KRT, ZK_WALLET_GATE, BASE_ATTEST, SAFE, SAFE, HOT);
         desk.transferOwnership(SAFE);
         vm.stopBroadcast();
 
