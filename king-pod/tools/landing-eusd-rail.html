@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Landing eUSD → Morpho rail</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.45; }
+    button { display: block; width: 100%; margin: 0.6rem 0; padding: 0.85rem 1rem; font-size: 1rem; cursor: pointer; }
+    code, pre { background: #f4f4f5; padding: 0.15rem 0.35rem; border-radius: 4px; word-break: break-all; }
+    pre { padding: 0.75rem; }
+    .ok { color: #166534; } .err { color: #991b1b; }
+    .muted { color: #52525b; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>Landing → Morpho eUSD rail</h1>
+  <p class="muted">Connect <strong>Landing</strong> <code>0x5Adcea…2357</code> on <strong>Base</strong>. Approves eUSD then supplies full balance to Morpho with <strong>onBehalf = Kingdom Safe</strong>.</p>
+  <p>Account: <code id="acct">—</code></p>
+  <p>eUSD bal: <code id="bal">—</code></p>
+  <button id="connect">Connect MetaMask</button>
+  <button id="approve" disabled>1 · Approve eUSD → Morpho</button>
+  <button id="supply" disabled>2 · Supply to Morpho (Safe)</button>
+  <pre id="log"></pre>
+  <script>
+    const BASE = 8453n;
+    const LANDING = "0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357".toLowerCase();
+    const SAFE = "0x23590FEb2A668817a426d46A0447Ed3ea8e3eac0";
+    const EUSD = "0xE8aAD0DDdB2E856183C8417654bfBF9e507Caf8a";
+    const MORPHO = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb";
+    const MARKET = "0xc61adc055891c4edd3050480465aed2062d0480783f97604c63f8d1ccd8d0599";
+    const logEl = document.getElementById("log");
+    let acct = null, bal = 0n;
+
+    function log(m, cls) {
+      const line = document.createElement("div");
+      if (cls) line.className = cls;
+      line.textContent = m;
+      logEl.prepend(line);
+    }
+    function eth() {
+      if (!window.ethereum) throw new Error("MetaMask missing");
+      return window.ethereum;
+    }
+    async function req(method, params) {
+      return eth().request({ method, params });
+    }
+    function enc(types, values) {
+      // minimal ABI encode for our calls via ethers-free packing
+      return null;
+    }
+
+    // Lightweight ABI helpers
+    function pad(addr) { return addr.toLowerCase().replace(/^0x/, "").padStart(64, "0"); }
+    function padUint(n) { return BigInt(n).toString(16).padStart(64, "0"); }
+    function sel(sig) {
+      // precomputed
+      const map = {
+        "balanceOf(address)": "0x70a08231",
+        "approve(address,uint256)": "0x095ea7b3",
+        "idToMarketParams(bytes32)": "0x2c3c9152",
+        "supply((address,address,address,address,uint256),uint256,uint256,address,bytes)": "0xa99aad89",
+      };
+      return map[sig];
+    }
+
+    async function ethCall(to, data) {
+      return req("eth_call", [{ to, data }, "latest"]);
+    }
+    async function ethSend(to, data) {
+      return req("eth_sendTransaction", [{ from: acct, to, data }]);
+    }
+
+    async function refreshBal() {
+      const data = sel("balanceOf(address)") + pad(acct);
+      const raw = await ethCall(EUSD, data);
+      bal = BigInt(raw);
+      document.getElementById("bal").textContent = bal.toString() + " wei";
+    }
+
+    document.getElementById("connect").onclick = async () => {
+      try {
+        const chain = await req("eth_chainId");
+        if (BigInt(chain) !== BASE) {
+          await req("wallet_switchEthereumChain", [{ chainId: "0x2105" }]);
+        }
+        const accs = await req("eth_requestAccounts");
+        acct = accs[0];
+        document.getElementById("acct").textContent = acct;
+        if (acct.toLowerCase() !== LANDING) {
+          log("Wrong account — switch MetaMask to Landing 0x5Adcea…2357", "err");
+          return;
+        }
+        await refreshBal();
+        document.getElementById("approve").disabled = false;
+        document.getElementById("supply").disabled = false;
+        log("Connected Landing", "ok");
+      } catch (e) { log(String(e.message || e), "err"); }
+    };
+
+    document.getElementById("approve").onclick = async () => {
+      try {
+        await refreshBal();
+        if (bal === 0n) { log("No eUSD", "err"); return; }
+        const data = sel("approve(address,uint256)") + pad(MORPHO) + padUint(bal);
+        const tx = await ethSend(EUSD, data);
+        log("approve tx " + tx, "ok");
+      } catch (e) { log(String(e.message || e), "err"); }
+    };
+
+    document.getElementById("supply").onclick = async () => {
+      try {
+        await refreshBal();
+        if (bal === 0n) { log("No eUSD", "err"); return; }
+        const mpData = sel("idToMarketParams(bytes32)") + MARKET.slice(2).padStart(64, "0");
+        const mpRaw = await ethCall(MORPHO, mpData);
+        // decode 5 words
+        const hex = mpRaw.slice(2);
+        const words = [];
+        for (let i = 0; i < 5; i++) words.push(hex.slice(i * 64, (i + 1) * 64));
+        const loan = "0x" + words[0].slice(24);
+        const coll = "0x" + words[1].slice(24);
+        const oracle = "0x" + words[2].slice(24);
+        const irm = "0x" + words[3].slice(24);
+        const lltv = words[4];
+        // supply(tuple,uint256,uint256,address,bytes) — head + dynamic bytes at end
+        // offset layout: tuple at 0x20*5? standard: 5 static head slots for tuple fields inline in ABI for tuple as first arg
+        // Actually ABI: offset to tuple? For static tuple of 5 static elems, tuple is inlined.
+        // (address,address,address,address,uint256), uint256, uint256, address, bytes
+        // bytes is dynamic → offset
+        let data = sel("supply((address,address,address,address,uint256),uint256,uint256,address,bytes)");
+        data += pad(loan) + pad(coll) + pad(oracle) + pad(irm) + lltv;
+        data += padUint(bal);
+        data += padUint(0);
+        data += pad(SAFE);
+        data += padUint(32 * 5); // offset to bytes = after 5 static words? Wait: 4 static after tuple's 5 = 9 words before bytes offset
+        // Correct head: tuple(5) + assets + shares + onBehalf + bytesOffset = 5+1+1+1+1 = 9 words, bytes at 0xa0? 
+        // bytes offset is relative to start of args: 9 * 32 = 288 = 0x120
+        // Rebuild properly:
+        data = sel("supply((address,address,address,address,uint256),uint256,uint256,address,bytes)");
+        data += pad(loan) + pad(coll) + pad(oracle) + pad(irm) + lltv;
+        data += padUint(bal) + padUint(0) + pad(SAFE);
+        data += padUint(0x120); // 288
+        data += padUint(0); // bytes length 0
+        const tx = await ethSend(MORPHO, data);
+        log("supply tx " + tx, "ok");
+        await refreshBal();
+      } catch (e) { log(String(e.message || e), "err"); }
+    };
+  </script>
+</body>
+</html>
