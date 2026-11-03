@@ -1,0 +1,17 @@
+{
+  "name": "ocean-arb-keeper",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Kingdom OceanArb keeper — 0.2% edge rotations → ColdBuffer",
+  "scripts": {
+    "start": "node src/keeper.js",
+    "dry": "DRY_RUN=1 node src/keeper.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  }
+}
