@@ -2,12 +2,14 @@
 
 **Status: EXECUTED on Base.** Self-loop closed. RSS collateral freed to hot.
 
-## Position after
+> **SUPERSEDED post-state (2026-11-23):** HOT wallet RSS is now **0**. Bag was re-posted; live coll **9,497,295 RSS** on Morpho `0x6075ba26…` + **700k** sale contract. See `RSS-RECON-LEDGER.md`.
+
+## Position after (at free time — historical)
 | | |
 |--|--|
 | Hot Morpho RSS debt | **0** |
 | Hot Morpho RSS coll | **0** |
-| Hot RSS wallet | **~18,500,000 RSS** |
+| Hot RSS wallet | **~18,500,000 RSS** (historical — **not current**) |
 | Hot USDC floor | ~$1 |
 | Freer contract | see broadcast `DeployAndFreeRss` |
 

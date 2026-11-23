@@ -54,7 +54,7 @@ Broadcast artifact: 38 successful txs, blocks ~48826103–48826140.
 |-------|--------|
 | ETH | ~0.004977 |
 | USDC | 97432 (~$0.10) — spent $1 dead seed |
-| RSS | **18,499,999,999,999,976,205,989,826** (~18.5M) — **unchanged / still on hot** |
+| RSS | **~18.5M at deploy readout — STALE.** Live HOT RSS = **0** (see `RSS-RECON-LEDGER.md`) |
 | yRSS shares | ~8.267e11 |
 | Morpho RSS/USDC position | 0 / 0 / 0 |
 | Nonce | 744 |

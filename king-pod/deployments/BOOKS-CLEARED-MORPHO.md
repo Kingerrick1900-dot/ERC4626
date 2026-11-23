@@ -4,7 +4,7 @@
 | | |
 |--|--|
 | supply / borrow / collateral | **0 / 0 / 0** |
-| Hot RSS | **~18,500,000** |
+| Hot RSS | **~18,500,000** (stale — see `RSS-RECON-LEDGER.md`; live HOT = 0) |
 | Hot USDC | ~$2.10 |
 
 ## Cake `0xA1aF…832a` — RETIRED
