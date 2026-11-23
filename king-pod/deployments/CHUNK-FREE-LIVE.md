@@ -2,10 +2,12 @@
 
 **Status: EXECUTED. RSS on hot. NO RECYCLE.**
 
-## Result
+> **SUPERSEDED post-state (2026-11-23):** Hot RSS no longer ~18.5M. See `RSS-RECON-LEDGER.md`.
+
+## Result (at free time — historical)
 | | |
 |--|--|
-| Hot RSS | **~18,499,600** |
+| Hot RSS | **~18,499,600** (historical — **not current**) |
 | Morpho borrow | dust ~**$300** |
 | Morpho coll left | ~**400 RSS** |
 | Hot USDC | ~$1 (unchanged) |

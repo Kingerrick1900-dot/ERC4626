@@ -1,6 +1,8 @@
 # WHALE SCALE PLAN — King Errick (Base)
 
-**Inventory now:** ~**18.5M RSS** free on hot · Morpho RSS market empty · foreign PA **maxIn=0** · ops USDC ~$1  
+**Inventory now (STALE line):** docs once said ~**18.5M RSS** free on hot — **false as of 2026-11-23**. Live: HOT = 0; **9.497M** Morpho coll (`0x6075ba26…`) + **0.7M** sale `0xdbf7…`. See `RSS-RECON-LEDGER.md`.  
+**Also:** Morpho RSS/USDC market empty of *king position* · foreign PA **maxIn=0** · ops USDC ~$1  
+
 **Math unlocked:** 18.5M RSS × $1 oracle × **77% LLTV** = **~$14.2M** max borrow **if** USDC supply exists in the market.
 
 The bottleneck is not “find a dust yield.” It is **foreign USDC depth into `RSS_MARKET`**. Gauntlet/Steakhouse vaults hold **hundreds of millions** USDC on Base with **zero** flow caps into King’s market. That door is the whale.
