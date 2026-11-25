@@ -1,0 +1,38 @@
+KE-SOV WIRE / SETTLEMENT INSTRUCTIONS
+Effective for AnchorX · Conflux · SBI · HK/Shenzhen OTC fills
+
+1) CRYPTO PATH (PREFERRED — FASTEST)
+Network: Base (chain id 8453)
+Token: USDC 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+Beneficiary: Landing 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357
+Memo / ref (tx data or email): KE-SOV-<DESK>-700K
+Confirm to: efthompson008@gmail.com within 1 hour of broadcast
+
+2) FIAT USD PATH (WHEN KE-SOV BANK LIVE)
+Beneficiary: KE-Sov LLC
+Account: [FDIC account — King fills after bank open]
+Dual-control: required above cold-buffer threshold
+Same-day mirror: fiat credit → USDC on Base → Landing address above
+On-chain record: CrownRicardian.markIncorporated(ein, bankLabel)
+
+3) PSM / CORRIDOR PATH (CN DESK)
+Base PSM rails (eUSD↔gem):
+  Classic PSM     0x064489A287448674AA1dC6fb740d2F518CBA75dA
+  Multi-PSM       0xF7337A26d9456e42a36531A12036A4556EF1F987
+  CrownLsrEusd    0x3edeD70F8ACa4472948E7D3AE3Ad95D63ECdda4F
+  CrownPSMFiller  0xe93737c5275CEa3A90cEB0A28A7A0873dc107150
+Polygon China desk (spend / acquire):
+  RoyalCard NFC   0xc532b0e5400524d2ca83b3ffc85b7ae96ccefcd7
+  Lakala-class    0xbb5b4439060a3f46d14826973fb30ada661ff5f0
+  Card bridge     0x9c0e36f7f6a9194f781bf2e2c23c48281a23ce8d
+Final USDC still credits Landing on Base. No orphan wallets.
+
+4) AFTER CREDIT
+T+0  Landing USDC balance rises — desk emails hash + amount
+T+0  King / HOT: attestLive + scoreboard (yield_ignition_scoreboard.sh)
+T+1  Optional: deploy into ySYNTH-USDC 0xc91f3Bc556001eF7ACFCB869eC0fC29ac780c35C
+     or CrownCuratorTranche 0x8531F4DB622b982541A6715164d5A9dde58205b0
+
+5) REJECTED DESTINATIONS
+Hot EOA 0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1 — gas only, not settlement
+Any address not Landing or named KE-Sov bank — reject and re-wire

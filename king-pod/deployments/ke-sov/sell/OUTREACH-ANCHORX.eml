@@ -1,0 +1,47 @@
+From: King Errick Desk <efthompson008@gmail.com>
+To: AnchorX Group <enquiry@anchorx.org>
+Cc: KE-Sov Settlement <efthompson008@gmail.com>
+Subject: KE-Sov × AnchorX — $700k–$5M AxCNH / USDC fill · Base Landing settlement · Ricardian live
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+AnchorX desk —
+
+KE-Sov LLC (King Errick Sovereignty) is the sole legal counterparty for this ask.
+
+ASK
+- First tranche: USD 700,000 USDC-equivalent
+- Band: USD 700,000 – USD 5,000,000
+- Instrument: idle Kingdom eUSD ↔ AxCNH / CNH liquidity under your licensed rails
+- Gold (RSS / ELE) is loaned, not sold into the fill
+
+SETTLEMENT (Base, chain 8453)
+- Credit USDC / fiat only to Landing: 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357
+- Do not send operating fiat to hot EOAs
+- On-chain Ricardian: 0xe56D14583a736aD02943c69b19340A8475A7dF8a
+- Offer id hash: keccak256("AnchorX") — status SENT on CrownRicardian
+- Charter prose hash: 0xfb464c9b1b982e7a319b57242d0369397aeaac85d2202886e4915c587d986dca
+- Basescan: https://basescan.org/address/0xe56D14583a736aD02943c69b19340A8475A7dF8a
+
+TERMS
+1. Acceptance = reply confirming Ricardian hash + Landing address + tranche size.
+2. KAR allowlist + 30% cold buffer gate Kingdom outflows.
+3. Wire confirmation window: T+0 credit Landing → T+1 attest + desk ack.
+4. Optional: AxCNH pair on Conflux / ATAIX path already in your Belt & Road MoUs — we settle USDC leg on Base Landing.
+
+WIRE PATH
+- Preferred: USDC on Base to Landing (token 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
+- Fiat USD: to KE-Sov FDIC account (EIN + bank label posted on-chain via markIncorporated when live); mirror same day to Landing
+- Reference: KE-SOV-ANCHORX-700K
+
+PACKET ATTACHED / REPO
+- Legal prose: deployments/ke-sov/LEGAL-PROSE.md
+- KYC checklist: deployments/ke-sov/sell/onboarding/KYC-CHECKLIST.txt
+- Wire: deployments/ke-sov/sell/onboarding/WIRE-INSTRUCTIONS.txt
+- Repo: https://github.com/Kingerrick1900-dot/ERC4626
+
+Reply to this email with (a) accepted tranche, (b) your settlement contact name + phone, (c) expected value date.
+
+King Errick
+KE-Sov desk
+efthompson008@gmail.com

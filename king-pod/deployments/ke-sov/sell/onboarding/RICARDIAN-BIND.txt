@@ -1,0 +1,17 @@
+RICARDIAN BIND — ONE DOCUMENT
+
+Legal prose file: deployments/ke-sov/LEGAL-PROSE.md
+On-chain contract: CrownRicardian 0xe56D14583a736aD02943c69b19340A8475A7dF8a
+Prose hash: 0xfb464c9b1b982e7a319b57242d0369397aeaac85d2202886e4915c587d986dca
+Settlement: 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357
+
+Offers SENT (offerCount = 3):
+  keccak256("AnchorX")
+  keccak256("Conflux")
+  keccak256("SBI")
+
+Acceptance language (paste into reply):
+"We accept KE-Sov Ricardian offer [AnchorX|Conflux|SBI], acknowledge prose hash
+0xfb464c9b1b982e7a319b57242d0369397aeaac85d2202886e4915c587d986dca, and will settle
+USDC to Landing 0x5Adcea5319eA9Eac1241B95Ca53690574cFa2357 for tranche USD ______
+on value date ______."
