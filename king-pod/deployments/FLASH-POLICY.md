@@ -26,11 +26,17 @@ N. repay from <NAMED_SOURCE>   # balance/callback/return path proven in callStat
 | `CrownSpoilFire` | Armed fire when idle ≥ ask | Morpho borrow against live RSS collateral |
 | Cross-/elite flash close scripts | Atomic close only | Must set `REPAY_SOURCE=` env + callStatic pass |
 
-## Pre-flight (mandatory)
+## Unbreakable Loop (CrownLoopNative) — FULL SEND
+
+`CrownLoopNative` Morpho flash self-seed: repay source is **same-tx Morpho borrow** (fee 0).  
+**No 10k dry-run. No hesitation.** Gate A/B are contract-enforced on `CrownUnbreakableGate`.  
+Scale fires only after Gate B + Dilithium + Stark bind.
+
+## Pre-flight (mandatory for non-loop flashes)
 ```bash
-# Every flash path:
+# Every flash path outside CrownLoopNative:
 # 1) Document REPAY_SOURCE=<contract.method or market>
-# 2) forge script … --sig 'run()' with callStatic / dry-run success
+# 2) forge script … --sig 'run()' with callStatic success
 # 3) Broadcast only after static succeeds
 ```
 

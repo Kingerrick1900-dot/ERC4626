@@ -1,0 +1,30 @@
+{
+  "chainId": 8453,
+  "move": 4,
+  "contract": "CrownPassportBorrow",
+  "deployedBytecodeBytes": 5076,
+  "markets": {
+    "cbBTC_USDC": "0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836",
+    "WETH_USDC": "0x8793cf302b8ffd655ab97bd1c695dbd967807e8367a65cb2f4edaf1380ba1bda",
+    "lltv": "86%"
+  },
+  "constructor": {
+    "morpho": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "cbbtc": "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",
+    "weth": "0x4200000000000000000000000000000000000006",
+    "hot": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1",
+    "kingVault": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
+    "owner": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1"
+  },
+  "liveBoard": {
+    "hotCbBtc": 401,
+    "hotWeth": 0,
+    "fire": "NOOP_UNTIL_SEED"
+  },
+  "scripts": {
+    "deploy": "script/DeployPassportBorrow.s.sol:DeployPassportBorrow",
+    "fire": "script/FireMove4Passport.s.sol:FireMove4Passport",
+    "watcher": "offchain/move4_passport.py"
+  }
+}
