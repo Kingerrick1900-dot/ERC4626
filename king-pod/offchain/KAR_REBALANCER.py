@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """
-KAR_REBALANCER.py — Move 3 (CORRECTED)
-Morpho REST + RPC → PublicAllocator.reallocateTo → yRSS (ySYNTH) markets
+KAR_REBALANCER.py — Move 3 (CORRECTED drop-in for the broken Scribe stub)
+
+CANONICAL live watcher for ySYNTH:  king-pod/kar/reallocator.py
+CANONICAL on-chain module:          CrownKarReallocator 0xA6F695dE…758a0
+This file = physics-correct stub replacement (yRSS PA sniper + REST diagnostic).
 
 Physics (do not ignore):
   PublicAllocator only moves liquidity *within one MetaMorpho vault*
   between markets that vault already has enabled + funded.
-  It CANNOT siphon foreign cbBTC/WETH market idle into yRSS shares.
+  It CANNOT siphon foreign cbBTC/WETH market idle into yRSS/ySYNTH shares.
   Foreign idle is only borrowable by posting collateral on THAT market (Move 4).
 
 Live Base (8453) — King sheet:

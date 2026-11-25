@@ -1,17 +1,26 @@
 {
   "chainId": 8453,
-  "contract": "KarSniper",
-  "deployedBytecodeBytes": 2643,
-  "constructor": {
-    "morpho": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+  "status": "LIVE_STACK_PREFERRED",
+  "liveModule": {
+    "CrownKarReallocator": "0xA6F695dE7FE2C957f206b6374e6A8a96fA0758a0",
+    "watcher": "king-pod/kar/reallocator.py",
+    "vault": "0xc91f3Bc556001eF7ACFCB869eC0fC29ac780c35C",
     "publicAllocator": "0xA090dD1a701408Df1d4d0B85b716c87565f90467",
-    "vault": "0xF80C0529bD94C773844E459853CD91B9263dD525",
-    "kingVault": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
-    "operator": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1"
+    "doc": "king-pod/deployments/KAR-REALLOCATOR.md"
   },
-  "offchain": "king-pod/offchain/KAR_REBALANCER.py",
-  "forgeScript": "script/KarRebalancer.s.sol:KarRebalancer",
-  "deployScript": "script/DeployKarSniper.s.sol:DeployKarSniper",
-  "liveDryResult": "pullableTotal=0 \u2014 NOOP until yRSS source idle exists",
-  "note": "Do not deploy/broadcast without King OK. Python dry-run default."
+  "optionalKarSniper": {
+    "contract": "KarSniper",
+    "deployedBytecodeBytes": 2643,
+    "constructor": {
+      "morpho": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+      "publicAllocator": "0xA090dD1a701408Df1d4d0B85b716c87565f90467",
+      "vault": "0xF80C0529bD94C773844E459853CD91B9263dD525",
+      "kingVault": "0xA1aFcb46a64C9173519180458C1cF302179c832a",
+      "operator": "0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1"
+    },
+    "deployScript": "script/DeployKarSniper.s.sol:DeployKarSniper",
+    "note": "Prefer live CrownKarReallocator. KarSniper is optional yRSS executor only."
+  },
+  "scribeStub": "REJECTED — wrong ABI, GraphQL, foreign-siphon fantasy. See AUDIT-MOVE3-KAR-REBALANCER.md",
+  "correctedStubDropIn": "king-pod/offchain/KAR_REBALANCER.py"
 }

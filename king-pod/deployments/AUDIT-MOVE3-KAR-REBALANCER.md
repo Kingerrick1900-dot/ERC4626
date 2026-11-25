@@ -1,84 +1,75 @@
-# AUDIT — Move 3 KAR Rebalancer (Scribe stub vs live Morpho)
+# AUDIT — Move 3 Scribe stub vs live KAR stack
 
-**Status:** Stub `KAR_REBALANCER.py` as handed off is **unsafe / non-functional**.  
-**Deliverable:** Corrected `offchain/KAR_REBALANCER.py` + `src/KarSniper.sol` + `script/KarRebalancer.s.sol`
+**Verdict:** The pasted `KAR_REBALANCER.py` stub is **broken**. Do not deploy it.  
+**Live stack already correct:** `CrownKarReallocator` + `kar/reallocator.py`
 
 ---
 
-## Fatal errors in the Scribe Python stub
+## Scribe stub — fatal errors
 
-| Stub claim | Reality |
+| Stub | Truth |
 |--|--|
-| `allocator.reallocate(vault, bytes)` | Wrong ABI. Live fn is `PublicAllocator.reallocateTo(vault, Withdrawal[], MarketParams)` |
-| GraphQL `api.morpho.org/graphql` | Deprecated (retire → REST `/v0/...`). Use REST + RPC |
-| Sum foreign cbBTC/WETH **market** idle → pull into ySYNTH | **Impossible.** PA only reallocates **within one vault** that already holds those deposits |
-| Placeholder PA / ySYNTH / market ids | Live: PA `0xA090…0467`, yRSS `0xF80C…D525`, RSS mkt `0x40ac…b794` |
-| Hardcoded `PRIVATE_KEY = "KAR_OPERATOR_KEY"` | Never. Env-only. Dry-run default |
-| 30s loop auto-fire `$100k` | Dangerous while pullable=0; corrected script defaults dry |
+| `reallocate(vault, bytes)` ABI | Wrong. Use `PublicAllocator.reallocateTo(vault, Withdrawal[], MarketParams)` |
+| GraphQL `api.morpho.org/graphql` | Deprecated. Prefer RPC + REST `/v0/...` |
+| Sum **foreign** cbBTC/WETH market idle → ySYNTH | **Impossible.** PA is **intra-vault only** |
+| Placeholder PA / vault / market ids | Live addresses below |
+| Hardcoded `PRIVATE_KEY = "KAR_OPERATOR_KEY"` | Env-only. Dry-run default |
+| Auto-fire `$100k` every 30s | Unsafe while pullable=0 |
 
 ---
 
-## Live board (checked)
+## Live board (already fired on this branch)
 
-- yRSS `totalAssets` ≈ **$417M** (matched Path B book), but **cbBTC/WETH positions on yRSS = $0**
-- Fat holdings are on eUSD/RSS markets at **~100% util** → **pullable idle ≈ $0**
-- Morpho REST: RSS market `reallocatable_liquidity = 0`, `public-allocator-vaults = []`
-- Foreign cbBTC market shows large `reallocatable_liquidity` — that fills **cbBTC/USDC** for borrowers **on that market** (Move 4), not yRSS shares
-- yRSS allocations endpoint: **blacklisted** on Morpho REST → rebalancer must use **RPC** for own vault
+| Item | Value |
+|--|--|
+| **CrownKarReallocator** | `0xA6F695dE7FE2C957f206b6374e6A8a96fA0758a0` |
+| ySYNTH-USDC | `0xc91f3Bc556001eF7ACFCB869eC0fC29ac780c35C` |
+| PublicAllocator | `0xA090dD1a701408Df1d4d0B85b716c87565f90467` |
+| Watcher | `king-pod/kar/reallocator.py` |
+| First pull | **$0** (no ySYNTH shares in cbBTC/WETH side books) |
+| Blocker | Foreign maxIn=0 · side-book shares=0 · target util ~100% |
 
----
-
-## Corrected 5-move read (pre-execution)
-
-1. **Copy params** — OK as curator work (own markets). Does not create USDC.  
-2. **Legal armor** — Do **not** copy Aave/Kamino/Veda legal text verbatim (copyright). Counsel drafts KE-Sov wrapper.  
-3. **Rebalancer** — This PR. Own-vault PA sniper only.  
-4. **cbBTC path** — First external dollar: post cbBTC/WETH, borrow USDC on blue-chip markets (optionally PA-fill *those* markets first).  
-5. **Scale** — Only after liquid USDC exists; 100k is a test size, not a magic.
+See `KAR-REALLOCATOR.md` for full scoreboard.
 
 ---
 
-## KAR deploy parameters
+## Corrected 5-move read
 
-### A) Off-chain (primary — Steakhouse pattern)
+1. **Copy params** — curator work; does not mint USDC.  
+2. **Legal armor** — do **not** copy Aave/Kamino/Veda legal text verbatim (copyright). Counsel drafts.  
+3. **Rebalancer** — **DONE live** (module + watcher). Physics honest: NOOP until side-book shares or foreign maxIn.  
+4. **cbBTC path** — first external dollar: post cbBTC/WETH, borrow on blue-chip markets (foreign idle lives *there*).  
+5. **Scale** — only after liquid USDC exists.
+
+---
+
+## What this PR adds
+
+| File | Role |
+|--|--|
+| `offchain/KAR_REBALANCER.py` | Corrected drop-in replacing the Scribe stub (yRSS PA sniper + REST diagnostic). Dry-run default. |
+| `src/KarSniper.sol` + `DeployKarSniper.s.sol` | Optional thin executor. Prefer live `CrownKarReallocator` (`0xA6F695…`). |
+| `script/KarRebalancer.s.sol` | Forge one-shot PA pull for yRSS RSS market. |
+| `kar-sniper-params.json` | Deploy constructor params. |
+
+### KAR commands (use live watcher)
 
 ```bash
 cd king-pod
-# Dry board read:
+python3 kar/reallocator.py --once          # dry
+FIRE=1 python3 kar/reallocator.py --once   # broadcast via module/PA
+```
+
+### Stub-replacement dry (yRSS)
+
+```bash
 python3 offchain/KAR_REBALANCER.py
-
-# Evaluate $100k ask (no broadcast):
 REQUIRED=100000000000 python3 offchain/KAR_REBALANCER.py
-
-# Fire once (HOT / allocator key):
-REQUIRED=100000000000 BROADCAST=1 PRIVATE_KEY=0x... python3 offchain/KAR_REBALANCER.py
+# Live result: SKIP — yRSS/ySYNTH source idle << required; foreign idle not siphonable
 ```
-
-### B) On-chain sniper (optional executor)
-
-```bash
-cd king-pod
-forge install foundry-rs/forge-std --no-commit   # once
-forge build --skip test
-forge script script/DeployKarSniper.s.sol:DeployKarSniper --rpc-url $RPC --broadcast
-```
-
-| Param | Value |
-|--|--|
-| morpho | `0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb` |
-| publicAllocator | `0xA090dD1a701408Df1d4d0B85b716c87565f90467` |
-| vault (yRSS) | `0xF80C0529bD94C773844E459853CD91B9263dD525` |
-| kingVault | `0xA1aFcb46a64C9173519180458C1cF302179c832a` |
-| operator | HOT `0x6708e21113922ED588bBCcAA5ef756BEcBb2a7d1` |
-
-Before borrow path: `Morpho.setAuthorization(KarSniper, true)` from HOT.
-
-### C) Expected live result today
-
-`SKIP: yRSS source idle < required` until curator deposits / util frees pullable liquidity on yRSS source markets — **or** Move 4 posts blue-chip collateral and borrows foreign idle directly.
 
 ---
 
-## Bottom line
+## Bottom line for Builders / KAR
 
-The “10-line Steakhouse” bot is real **as an off-chain PA caller**. The Scribe stub pointed it at the wrong ABI and the wrong liquidity. Corrected code ships; it will honestly NOOP until yRSS has pullable idle.
+Ship **nothing** from the Scribe Python paste. The rail is already live; the seed is not. Next: Move 4 (post blue-chip → borrow foreign idle) or park real USDC in ySYNTH side books so the watcher can `reallocateTo`.
